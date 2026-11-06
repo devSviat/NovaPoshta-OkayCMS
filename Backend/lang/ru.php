@@ -108,3 +108,12 @@ $lang['sviat__novaposhta__service_ww'] = 'Отделение или почтом
 $lang['sviat__novaposhta__service_wd'] = 'Адрес — посылки сдаёте в отделении';
 $lang['sviat__novaposhta__service_dw'] = 'Отделение или почтомат — курьер забирает посылки у вас';
 $lang['sviat__novaposhta__service_dd'] = 'Адрес — курьер забирает посылки у вас';
+
+$lang['sviat__novaposhta__popular_box'] = 'Кнопки популярных городов в корзине';
+$lang['sviat__novaposhta__popular_intro'] = 'Кнопки над полем «Населённый пункт»: клик подставляет город. Порядок здесь — порядок в корзине. Пустой список — кнопок нет. Подсказки при вводе от этого не зависят: они сами ставят выше популярные города.';
+$lang['sviat__novaposhta__popular_saved'] = 'Кнопки сохранены.';
+$lang['sviat__novaposhta__popular_remove'] = 'Убрать';
+$lang['sviat__novaposhta__popular_empty'] = 'Кнопок нет — в корзине только поле поиска.';
+$lang['sviat__novaposhta__popular_add'] = 'Добавить город';
+$lang['sviat__novaposhta__popular_add_placeholder'] = 'Начните вводить название';
+$lang['sviat__novaposhta__popular_save'] = 'Сохранить кнопки';

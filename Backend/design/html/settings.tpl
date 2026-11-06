@@ -294,6 +294,49 @@
     </div>
 </form>
 
+{* Popular cities *}
+<form method="post" id="np_popular_form">
+    <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
+    <input type="hidden" name="np_action" value="popular">
+    <div class="row">
+        <div class="col-lg-8 col-md-12">
+            <div class="boxed mb-2">
+                <div class="heading_box mb-1">{$btr->sviat__novaposhta__popular_box|escape}</div>
+                <p>{$btr->sviat__novaposhta__popular_intro|escape}</p>
+                {if $np_popular_saved}
+                    <div class="alert alert--success" role="status"><div class="alert__content"><p>{$btr->sviat__novaposhta__popular_saved|escape}</p></div></div>
+                {/if}
+                <div id="np_popular_rows" class="sortable">
+                    {foreach $np_popular as $city}
+                        <div class="np_popular_row">
+                            <input type="hidden" name="popular[]" value="{$city.id|escape}">
+                            <div class="np_drag move_zone" title="{$btr->sviat__novaposhta__groups_drag|escape}">{include file='svg_icon.tpl' svgId='drag_vertical'}</div>
+                            <div class="np_popular_name"><b>{$city.name|escape}</b> <span class="text_grey">{$city.area|escape}</span></div>
+                            <button type="button" class="btn_close np_popular_remove" aria-label="{$btr->sviat__novaposhta__popular_remove|escape}" title="{$btr->sviat__novaposhta__popular_remove|escape}">{include file='svg_icon.tpl' svgId='trash'}</button>
+                        </div>
+                    {/foreach}
+                </div>
+                <p class="text_grey np_popular_empty" {if $np_popular}hidden{/if}>{$btr->sviat__novaposhta__popular_empty|escape}</p>
+                <div class="np_popular_add">
+                    <label class="heading_label" for="np_popular_search">{$btr->sviat__novaposhta__popular_add|escape}</label>
+                    <input id="np_popular_search" class="form-control" type="text" autocomplete="off" placeholder="{$btr->sviat__novaposhta__popular_add_placeholder|escape}">
+                    <ul id="np_popular_suggest" class="np_suggest" role="listbox" hidden></ul>
+                </div>
+                <button type="submit" class="btn btn_small btn_blue mt-1"><span>{$btr->sviat__novaposhta__popular_save|escape}</span></button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<template id="np_popular_row_template">
+    <div class="np_popular_row">
+        <input type="hidden" name="popular[]" value="">
+        <div class="np_drag move_zone" title="{$btr->sviat__novaposhta__groups_drag|escape}">{include file='svg_icon.tpl' svgId='drag_vertical'}</div>
+        <div class="np_popular_name"><b></b> <span class="text_grey"></span></div>
+        <button type="button" class="btn_close np_popular_remove" aria-label="{$btr->sviat__novaposhta__popular_remove|escape}" title="{$btr->sviat__novaposhta__popular_remove|escape}">{include file='svg_icon.tpl' svgId='trash'}</button>
+    </div>
+</template>
+
 <style>
     .np_key_buttons { display: flex; flex-wrap: wrap; gap: 10px; }
     .np_key_rows { margin: 8px 0; padding-left: 18px; }
@@ -312,6 +355,14 @@
     .np_category_name { flex: 1 1 220px; display: flex; flex-direction: column; }
     .np_category_row .bootstrap-select { min-width: 180px; }
     .np_category_warning { flex-basis: 100%; color: var(--ok-warning, #a35a00); }
+    .np_popular_row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--ok-line, #e4e6e9); }
+    .np_popular_name { flex: 1; min-width: 0; }
+    .np_popular_remove { color: var(--ok-danger, #c8352c); }
+    .np_popular_remove svg { width: 16px; height: 16px; }
+    .np_popular_add { position: relative; margin-top: 12px; }
+    .np_suggest { position: absolute; left: 0; right: 0; z-index: 10; margin: 2px 0 0; padding: 4px 0; list-style: none; background: var(--ok-surface, #fff); border: 1px solid var(--ok-control-line, #8a8f95); border-radius: 6px; max-height: 280px; overflow-y: auto; }
+    .np_suggest li { padding: 8px 12px; cursor: pointer; }
+    .np_suggest li[aria-selected="true"], .np_suggest li:hover { background: var(--ok-sunken, #fafbfc); }
     @media (max-width: 575px) { .np_key_buttons .btn, #np_dict_form .btn { width: 100%; } }
 </style>
 
@@ -367,6 +418,95 @@
                 });
                 index++;
             });
+        });
+    })();
+
+    (function () {
+        var rows = document.getElementById('np_popular_rows');
+        var empty = document.querySelector('.np_popular_empty');
+        var input = document.getElementById('np_popular_search');
+        var list = document.getElementById('np_popular_suggest');
+        var template = document.getElementById('np_popular_row_template');
+        var url = '{$smarty.server.SCRIPT_NAME|escape:'javascript'}?controller=Sviat.NovaPoshta.NovaPoshtaSettingsAdmin@searchSettlements&q=';
+        var timer = null;
+        var request = null;
+
+        function refreshEmpty() {
+            empty.hidden = rows.querySelector('.np_popular_row') !== null;
+        }
+
+        rows.addEventListener('click', function (event) {
+            var button = event.target.closest('.np_popular_remove');
+            if (button) {
+                button.closest('.np_popular_row').remove();
+                refreshEmpty();
+            }
+        });
+
+        function add(city) {
+            if (rows.querySelector('input[value="' + city.id + '"]')) {
+                return;
+            }
+            var row = template.content.firstElementChild.cloneNode(true);
+            row.querySelector('input').value = city.id;
+            row.querySelector('b').textContent = city.name;
+            row.querySelector('.text_grey').textContent = city.area || '';
+            rows.appendChild(row);
+            refreshEmpty();
+        }
+
+        function close() {
+            list.hidden = true;
+            list.textContent = '';
+        }
+
+        input.addEventListener('input', function () {
+            clearTimeout(timer);
+            var query = input.value.trim();
+            if (query === '') {
+                close();
+                return;
+            }
+            timer = setTimeout(function () {
+                if (request) {
+                    request.abort();
+                }
+                request = new AbortController();
+                fetch(url + encodeURIComponent(query), { credentials: 'same-origin', signal: request.signal })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        list.textContent = '';
+                        (data.settlements || []).forEach(function (city) {
+                            var item = document.createElement('li');
+                            item.setAttribute('role', 'option');
+                            var name = document.createElement('b');
+                            name.textContent = city.name;
+                            item.appendChild(name);
+                            item.appendChild(document.createTextNode(' ' + [city.district, city.area].filter(Boolean).join(', ')));
+                            item.addEventListener('mousedown', function (e) {
+                                e.preventDefault();
+                                add(city);
+                                input.value = '';
+                                close();
+                            });
+                            list.appendChild(item);
+                        });
+                        list.hidden = list.children.length === 0;
+                    })
+                    .catch(function () {});
+            }, 200);
+        });
+        input.addEventListener('blur', function () { setTimeout(close, 150); });
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                var first = list.querySelector('li');
+                if (first) {
+                    first.dispatchEvent(new Event('mousedown'));
+                }
+            } else if (e.key === 'Escape') {
+                close();
+            }
         });
     })();
 </script>
