@@ -124,8 +124,9 @@
 .np-check > span { flex: 1; min-width: 0; }
 .np-cart__note { display: flex; flex-direction: column; gap: 4px; }
 .np-cart__note-count { align-self: flex-end; font-size: 12px; opacity: .7; }
-.np-cart__lifting { padding: 10px 12px; border: 1px solid var(--np-border, #dbdbdb); border-radius: 4px; }
-.np-cart__lifting[hidden] { display: none; }
-.np-cart__lifting .np-cart__check { line-height: 1.4; }
-.np-cart__lifting .np-cart__elevator-check { margin-top: 10px; margin-left: 30px; }
-.np-cart__lifting-note { font-size: 13px; opacity: .8; }
+.np-cart__lifting { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--np-border, #dbdbdb); border-radius: 4px; }
+.np-cart__lifting[hidden], .np-cart__lifting [hidden] { display: none; }
+.np-cart__lifting .np-cart__check { min-height: 22px; line-height: 22px; }
+/* Same indent as the checkbox text (theme .checkbox / np-check: 22 px box + gap). */
+.np-cart__lifting-note { margin: 0 0 0 30px; font-size: 13px; line-height: 1.4; opacity: .8; }
+.np-cart__lifting .np-cart__elevator-check { margin-left: 30px; }

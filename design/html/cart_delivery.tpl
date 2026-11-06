@@ -87,14 +87,15 @@
             <label class="{$np_check|escape} np-cart__check">
                 <input type="checkbox" class="{$np_check|escape}__input np-cart__lifting-input" name="{$np_name|escape}[lifting]" value="1"{if !empty($np_address.lifting)} checked{/if}>
                 <svg class="{$np_check|escape}__icon" viewBox="0 0 20 20" aria-hidden="true"><path class="{$np_check|escape}__mark" fill="none" d="M4 10 l5 4 8-8.5"></path></svg>
-                <span><b class="np-cart__lifting-title">{$lang->sviat__novaposhta__cart_lifting|escape}</b> <span class="np-cart__lifting-fee"></span><br><span class="np-cart__lifting-note"></span></span>
+                <span><b class="np-cart__lifting-title">{$lang->sviat__novaposhta__cart_lifting|escape}</b> <span class="np-cart__lifting-fee"></span></span>
             </label>
+            <p class="np-cart__lifting-note"></p>
             {* The lift only matters to Nova Poshta together with lifting (getDocumentPrice, the shipment). *}
-            <label class="{$np_check|escape} np-cart__check np-cart__elevator-check">
-            <input type="checkbox" class="{$np_check|escape}__input np-cart__elevator" name="{$np_name|escape}[elevator]" value="1"{if !empty($np_address.elevator)} checked{/if}>
-            <svg class="{$np_check|escape}__icon" viewBox="0 0 20 20" aria-hidden="true"><path class="{$np_check|escape}__mark" fill="none" d="M4 10 l5 4 8-8.5"></path></svg>
-            <span>{$lang->sviat__novaposhta__cart_elevator|escape}</span>
-        </label>
+            <label class="{$np_check|escape} np-cart__check np-cart__elevator-check"{if empty($np_address.lifting)} hidden{/if}>
+                <input type="checkbox" class="{$np_check|escape}__input np-cart__elevator" name="{$np_name|escape}[elevator]" value="1"{if !empty($np_address.elevator)} checked{/if}>
+                <svg class="{$np_check|escape}__icon" viewBox="0 0 20 20" aria-hidden="true"><path class="{$np_check|escape}__mark" fill="none" d="M4 10 l5 4 8-8.5"></path></svg>
+                <span>{$lang->sviat__novaposhta__cart_elevator|escape}</span>
+            </label>
         </div>
     </div>
     {/if}

@@ -569,7 +569,10 @@
         };
         this.floor.addEventListener('input', requote);
         this.elevator.addEventListener('change', requote);
-        this.liftingInput.addEventListener('change', requote);
+        this.liftingInput.addEventListener('change', function () {
+            self.showElevator();
+            requote();
+        });
         var count = function () {
             var left = Math.max(0, 40 - self.note.value.length);
             self.noteCount.textContent = format(self.texts.cart_note_left, { left: left });
@@ -644,10 +647,20 @@
             // A hidden, still ticked box would be posted and then demand a floor.
             this.liftingInput.checked = false;
             this.elevator.checked = false;
+            this.showElevator();
             return;
         }
         this.lifting.querySelector('.np-cart__lifting-fee').textContent = data.liftingFeeText ? '(' + data.liftingFeeText + ')' : '';
         this.lifting.querySelector('.np-cart__lifting-note').textContent = data.liftingFeeText ? this.texts.cart_lifting_paid : this.texts.cart_lifting_unknown;
+    };
+
+    /** "There is a lift" only means something when lifting is ordered. */
+    Block.prototype.showElevator = function () {
+        var row = this.elevator.closest('.np-cart__elevator-check');
+        row.hidden = !this.liftingInput.checked;
+        if (row.hidden) {
+            this.elevator.checked = false;
+        }
     };
 
     Block.prototype.say = function (text) {
