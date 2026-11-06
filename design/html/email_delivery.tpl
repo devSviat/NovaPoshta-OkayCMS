@@ -22,6 +22,12 @@
         <td class="es-p5t es-p5b"><span>{$lang->sviat__novaposhta__order_lifting_yes|escape}</span></td>
     </tr>
     {/if}
+    {if $np_order_delivery.priceUnconfirmed}
+    <tr valign="top">
+        <td class="es-p5t es-p5b" width="180px"><span>{$lang->sviat__novaposhta__order_delivery_cost|escape}:</span></td>
+        <td class="es-p5t es-p5b"><span>{$lang->sviat__novaposhta__cart_price_by_manager|escape}</span></td>
+    </tr>
+    {/if}
     {if $np_order_delivery.term}
     <tr valign="top">
         <td class="es-p5t es-p5b" width="180px"><span>{$lang->sviat__novaposhta__order_term|escape}:</span></td>

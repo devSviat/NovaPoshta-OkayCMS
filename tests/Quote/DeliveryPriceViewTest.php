@@ -36,4 +36,20 @@ class DeliveryPriceViewTest extends TestCase
 
         self::assertSame([0.0, 'безкоштовно', 1250.0, true], [$d->price, $d->delivery_price_text, $d->total_price_with_delivery, $d->is_free_delivery]);
     }
+
+    public function testUnpricedDeliveryIsLeftOutOfTheTotal(): void
+    {
+        $d = (object)['free_from' => 5000, 'separate_payment' => 0, 'price' => 70];
+        DeliveryPriceView::unpriced($d, 1250.0, 'уточнить менеджер');
+
+        self::assertSame([0.0, 'уточнить менеджер', 1250.0, false], [$d->price, $d->delivery_price_text, $d->total_price_with_delivery, $d->is_free_delivery]);
+    }
+
+    public function testFreeDeliveryStaysFreeWhenUnpriced(): void
+    {
+        $d = (object)['free_from' => 0, 'separate_payment' => 0, 'price' => 70, 'is_free_delivery' => true, 'delivery_price_text' => 'безкоштовно'];
+        DeliveryPriceView::unpriced($d, 1250.0, 'уточнить менеджер');
+
+        self::assertSame('безкоштовно', $d->delivery_price_text);
+    }
 }

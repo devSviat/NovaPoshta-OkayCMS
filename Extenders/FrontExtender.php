@@ -76,6 +76,8 @@ class FrontExtender implements ExtensionInterface
             $quote = is_object($delivery) && empty($delivery->is_free_delivery) ? $this->quotes->cachedForChoice($delivery, $cart) : null;
             if ($quote?->price !== null) {
                 $this->showPrice($delivery, $quote->price, (float)$cart->total_price);
+            } elseif ($quote?->unpriced()) {
+                DeliveryPriceView::unpriced($delivery, (float)$cart->total_price, $this->translations->getTranslation('sviat__novaposhta__cart_price_by_manager'));
             }
         }
 

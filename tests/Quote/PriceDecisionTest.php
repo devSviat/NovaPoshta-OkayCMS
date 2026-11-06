@@ -18,12 +18,14 @@ class PriceDecisionTest extends TestCase
         self::assertSame('old', $decision['source']);
     }
 
-    public function testFailedCalculationKeepsTheAdminPrice(): void
+    public function testFailedCalculationChargesNoDelivery(): void
     {
-        $decision = PriceDecision::forOrder(new DeliveryQuote(null, null, 'fallback', 'unreachable'), self::CORE);
+        foreach (['unreachable', 'rejected', 'no_city_ref', 'no_uah'] as $problem) {
+            $decision = PriceDecision::forOrder(new DeliveryQuote(null, null, 'fallback', $problem), self::CORE, coreDefault: 70.0);
 
-        self::assertSame(self::CORE, $decision['info']);
-        self::assertSame('fallback', $decision['source']);
+            self::assertSame(['delivery_price' => 0.0, 'separate_delivery' => 0], $decision['info'], $problem);
+            self::assertSame('fallback', $decision['source']);
+        }
     }
 
     public function testNoQuoteMeansTheCoreDecides(): void

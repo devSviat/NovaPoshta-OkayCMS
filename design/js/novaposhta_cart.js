@@ -524,8 +524,13 @@
     Block.prototype.showQuote = function (data) {
         var lines = [];
         var problem = data.problem === 'unreachable' || data.problem === 'rejected' || data.problem === 'busy' || data.problem === 'no_city_ref' || data.problem === 'no_uah';
+        var priced = typeof data.price === 'number' && !data.unpriced;
         if (typeof data.price === 'number') {
             this.setThemePrice(data.price, data.totalWithDelivery, data.priceText || '', !!data.free);
+            if (data.unpriced && this.themeInput().is(':checked')) {
+                // Not charged: the order summary says the manager will tell instead of "0".
+                window.jQuery('#fn_total_delivery_price').text(data.priceText || '');
+            }
         } else {
             // No price (free, hidden, no sender, bad input or a failure): the theme's own numbers come back.
             this.restoreTheme();
@@ -544,16 +549,16 @@
         }
         if (this.mode === 'address' && data.problem === 'no_city_ref') {
             lines.push(this.texts.cart_no_address);
-        } else if (data.problem === 'rejected' && typeof data.price !== 'number') {
+        } else if (data.problem === 'rejected' && !priced) {
             lines.push(this.texts.cart_price_rejected);
-        } else if (problem && typeof data.price !== 'number' && data.problem !== 'no_city_ref') {
+        } else if (problem && !priced && data.problem !== 'no_city_ref') {
             lines.push(this.texts.cart_price_unreachable);
         }
         this.showLifting(data);
         this.quoteBox.textContent = '';
         var self = this;
         lines.forEach(function (line) { self.quoteBox.appendChild(el('p', null, line)); });
-        this.quoteBox.classList.toggle('np-cart__quote--problem', problem && typeof data.price !== 'number');
+        this.quoteBox.classList.toggle('np-cart__quote--problem', problem && !priced);
         this.quoteBox.hidden = lines.length === 0;
     };
 

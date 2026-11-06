@@ -66,3 +66,4 @@ $lang['sviat__novaposhta__order_entrance'] = 'entrance';
 $lang['sviat__novaposhta__order_floor'] = 'floor';
 $lang['sviat__novaposhta__order_elevator'] = 'lift available';
 $lang['sviat__novaposhta__order_note'] = 'Note';
+$lang['sviat__novaposhta__order_delivery_cost'] = 'Delivery cost';

@@ -22,4 +22,16 @@ final class DeliveryPriceView
         }
         $delivery->total_price_with_delivery = $cartTotal + ($free || !empty($delivery->separate_payment) ? 0.0 : $price);
     }
+
+    /** Nova Poshta gave no price: nothing is added to the total, the text says the manager will tell. */
+    public static function unpriced(object $delivery, float $cartTotal, string $text): void
+    {
+        if (!empty($delivery->is_free_delivery)) {
+            return;
+        }
+        $delivery->is_free_delivery = false;
+        $delivery->price = 0.0;
+        $delivery->delivery_price_text = $text;
+        $delivery->total_price_with_delivery = $cartTotal;
+    }
 }
