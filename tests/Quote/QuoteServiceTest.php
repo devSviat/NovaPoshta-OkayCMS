@@ -99,6 +99,7 @@ class QuoteServiceTest extends TestCase
         $quote = $this->service()->quote(self::request(cod: true));
 
         self::assertSame(135.0, $quote->price);
+        self::assertSame(40.0, $quote->codFee);
         self::assertSame('old', $quote->source);
         $p = $this->body(0)['methodProperties'];
         self::assertSame([self::LVIV, self::KYIV, 'WarehouseWarehouse', '2', '0.001', '1000'], [$p['CitySender'], $p['CityRecipient'], $p['ServiceType'], $p['Weight'], $p['VolumeGeneral'], $p['Cost']]);

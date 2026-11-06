@@ -1,0 +1,53 @@
+<?php
+
+namespace Okay\Modules\Sviat\NovaPoshta\Quote;
+
+/**
+ * Quotes and the customer's last choice, kept in the PHP session (`$bag` is the module's slot
+ * in it). Plain arrays only: a session must not hold module objects that may change shape.
+ */
+final class QuoteSession
+{
+    private const int TTL = 3600;
+    private const int MAX_QUOTES = 10;
+
+    public static function get(array $bag, string $key, int $now): ?DeliveryQuote
+    {
+        $row = $bag['quotes'][$key] ?? null;
+        if (!is_array($row) || !is_int($row['at'] ?? null) || $now - $row['at'] >= self::TTL) {
+            return null;
+        }
+        $term = is_string($row['term'] ?? null) ? \DateTimeImmutable::createFromFormat('!Y-m-d', $row['term']) : null;
+
+        return new DeliveryQuote(
+            is_numeric($row['price'] ?? null) ? (float)$row['price'] : null,
+            $term ?: null,
+            (string)($row['source'] ?? 'fallback'),
+            is_string($row['problem'] ?? null) ? $row['problem'] : null,
+            is_numeric($row['codFee'] ?? null) ? (float)$row['codFee'] : null,
+        );
+    }
+
+    public static function put(array &$bag, string $key, DeliveryQuote $quote, int $now): void
+    {
+        $quotes = is_array($bag['quotes'] ?? null) ? $bag['quotes'] : [];
+        unset($quotes[$key]);
+        $quotes[$key] = ['price' => $quote->price, 'term' => $quote->term?->format('Y-m-d'), 'source' => $quote->source, 'problem' => $quote->problem, 'codFee' => $quote->codFee, 'at' => $now];
+        $bag['quotes'] = array_slice($quotes, -self::MAX_QUOTES, null, true);
+    }
+
+    public static function choose(array &$bag, int $deliveryId, int $divisionId, bool $cod): void
+    {
+        $chosen = is_array($bag['chosen'] ?? null) ? $bag['chosen'] : [];
+        $chosen[$deliveryId] = ['divisionId' => $divisionId, 'cod' => $cod];
+        $bag['chosen'] = $chosen;
+    }
+
+    /** @return array{divisionId:int, cod:bool}|null */
+    public static function chosen(array $bag, int $deliveryId): ?array
+    {
+        $row = is_array($bag['chosen'] ?? null) ? ($bag['chosen'][$deliveryId] ?? null) : null;
+
+        return is_array($row) && is_int($row['divisionId'] ?? null) ? ['divisionId' => $row['divisionId'], 'cod' => (bool)($row['cod'] ?? false)] : null;
+    }
+}

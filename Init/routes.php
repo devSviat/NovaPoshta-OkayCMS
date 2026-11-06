@@ -19,4 +19,12 @@ return [
             'method' => 'divisions',
         ],
     ],
+    'Sviat_NovaPoshta_cart_quote' => [
+        'slug' => 'ajax/novaposhta/quote',
+        'to_front' => true,
+        'params' => [
+            'controller' => __NAMESPACE__ . '\Controllers\CartController',
+            'method' => 'quote',
+        ],
+    ],
 ];

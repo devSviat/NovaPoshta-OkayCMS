@@ -41,6 +41,8 @@ use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
+use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteService;
+use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DbCityRefStore;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 
@@ -88,6 +90,14 @@ return [
     CityRefResolver::class => [
         'class' => CityRefResolver::class,
         'arguments' => [new SR(OldApiClient::class), new SR(DbCityRefStore::class)],
+    ],
+    QuoteService::class => [
+        'class' => QuoteService::class,
+        'arguments' => [new SR(NewApiClient::class), new SR(OldApiClient::class), new SR(CityRefResolver::class)],
+    ],
+    CartQuotes::class => [
+        'class' => CartQuotes::class,
+        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class)],
     ],
     CodPayments::class => [
         'class' => CodPayments::class,

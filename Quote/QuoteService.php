@@ -31,6 +31,7 @@ final class QuoteService
     public function quote(QuoteRequest $request): DeliveryQuote
     {
         $price = null;
+        $codFee = null;
         $term = null;
         $problem = null;
         $source = 'none';
@@ -38,7 +39,7 @@ final class QuoteService
         if ($request->wantPrice) {
             $useNew = str_starts_with($request->serviceType, 'Warehouse') && (!$request->cod || $request->codKind === CodKind::Control);
             try {
-                $price = $useNew ? $this->newPrice($request) : $this->oldPrice($request);
+                [$price, $codFee] = $useNew ? [$this->newPrice($request), null] : $this->oldPrice($request);
                 $source = $useNew ? 'new' : 'old';
             } catch (QuoteProblem $e) {
                 $problem = $e->getMessage();
@@ -54,7 +55,7 @@ final class QuoteService
             }
         }
 
-        return new DeliveryQuote($price, $term, $source, $problem);
+        return new DeliveryQuote($price, $term, $source, $problem, $codFee);
     }
 
     private function newPrice(QuoteRequest $request): float
@@ -82,7 +83,8 @@ final class QuoteService
         return round((float)array_sum($costs), 2);
     }
 
-    private function oldPrice(QuoteRequest $request): float
+    /** @return array{0: float, 1: ?float} price and the COD commission inside it */
+    private function oldPrice(QuoteRequest $request): array
     {
         $properties = $this->cities($request) + [
             'Weight' => self::number($request->parcel->weightKg, 3),
@@ -100,7 +102,9 @@ final class QuoteService
             throw new QuoteProblem('rejected');
         }
 
-        return round((float)$row['Cost'] + (is_numeric($row['CostRedelivery'] ?? null) ? (float)$row['CostRedelivery'] : 0.0), 2);
+        $fee = is_numeric($row['CostRedelivery'] ?? null) ? round((float)$row['CostRedelivery'], 2) : null;
+
+        return [round((float)$row['Cost'] + ($fee ?? 0.0), 2), $fee];
     }
 
     private function term(QuoteRequest $request): ?\DateTimeImmutable
