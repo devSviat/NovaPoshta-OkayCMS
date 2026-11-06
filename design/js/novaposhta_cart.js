@@ -85,6 +85,9 @@
             });
         });
         this.city.addEventListener('input', function () {
+            if (self.settlement && self.city.value.trim() !== self.settlement.name) {
+                self.dropSettlement();
+            }
             clearTimeout(self.cityTimer);
             self.cityTimer = setTimeout(function () { self.findCities(); }, DEBOUNCE_MS);
         });
@@ -197,6 +200,22 @@
         }
         this.showChoice();
         this.load();
+    };
+
+    /** Edited city text no longer names the chosen place: the order must not go there silently. */
+    Block.prototype.dropSettlement = function () {
+        if (this.pointsRequest) {
+            this.pointsRequest.abort();
+        }
+        this.settlement = null;
+        this.division = null;
+        this.settlementInput.value = '';
+        this.divisionInput.value = '';
+        this.groupId = null;
+        this.points.hidden = true;
+        this.say('');
+        this.markPopular();
+        this.showChoice();
     };
 
     Block.prototype.markPopular = function () {
