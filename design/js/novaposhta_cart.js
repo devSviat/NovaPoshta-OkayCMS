@@ -434,7 +434,6 @@
         return $ ? $('input[name="delivery_id"][value="' + String(this.deliveryId).replace(/[^0-9]/g, '') + '"]') : null;
     };
 
-    /** Writes a price where the theme reads it, then lets the theme recount its totals. */
     /** Remembers what the theme showed before the module touched it, to give it back later. */
     Block.prototype.captureTheme = function () {
         var input = this.themeInput();
@@ -455,6 +454,7 @@
         }
     };
 
+    /** Writes a price where the theme reads it, then lets the theme recount its totals. */
     Block.prototype.setThemePrice = function (price, total, text, free) {
         var input = this.themeInput();
         if (!input || !input.length) {
@@ -465,6 +465,12 @@
         input.closest('.fn_delivery_item').find('.fn_delivery_price').text(text);
         if (input.is(':checked') && typeof okay !== 'undefined' && typeof okay.update_cart_total_price === 'function') {
             okay.update_cart_total_price();
+            // The theme fills the "до оплати" amounts only when the delivery method changes.
+            var $ = window.jQuery;
+            $('.fn_payment_method__item').each(function () {
+                var currency = $(this).find('input[name="payment_method_id"]').data('currency_id');
+                $(this).find('.fn_payment_price').text(okay.convert(total, currency));
+            });
         }
     };
 
