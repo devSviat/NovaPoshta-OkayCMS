@@ -14,6 +14,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NewApi\JwtProvider;
 use Okay\Modules\Sviat\NovaPoshta\Api\NewApi\NewApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Backend\KeySettings;
+use Okay\Modules\Sviat\NovaPoshta\Cart\DivisionList;
 use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\BoostUpdater;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Cdn\CdnClient;
@@ -109,5 +110,9 @@ return [
     SettlementSearch::class => [
         'class' => SettlementSearch::class,
         'arguments' => [new SR(Database::class), new SR(QueryFactory::class)],
+    ],
+    DivisionList::class => [
+        'class' => DivisionList::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class), new SR(GroupsStore::class)],
     ],
 ];
