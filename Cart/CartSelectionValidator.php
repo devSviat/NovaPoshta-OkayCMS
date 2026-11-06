@@ -76,7 +76,8 @@ final class CartSelectionValidator
         foreach ($groupRows as $group) {
             array_push($shownCategories, ...DivisionList::categoriesOf($groupRows, (int)$group->id));
         }
-        if ($division->status !== 'Working' || (int)$division->prohibited_issuance === 1 || !in_array($division->category, $shownCategories, true)) {
+        if ($division->status !== 'Working' || (int)$division->prohibited_issuance === 1 || !in_array($division->category, $shownCategories, true)
+            || DivisionList::isTestPoint((string)($division->name_uk ?? ''))) {
             return 'error_point_unavailable';
         }
         $problems = DivisionFit::problems($cart, $division);

@@ -157,4 +157,12 @@ class DivisionListTest extends TestCase
         self::assertCount(DivisionList::PAGE, $ids);
         self::assertSame([900, 901, 1, 2], array_slice($ids, 0, 4), 'fitting first, number order kept inside each part');
     }
+
+    public function testNovaPoshtaTestPointsAreNotOffered(): void
+    {
+        self::assertTrue(DivisionList::isTestPoint('Поштомат ТРЦ "Атмосфера" №1 (ТЕСТОВИЙ)'));
+        self::assertTrue(DivisionList::isTestPoint('Поштомат "Нова Пошта" №3998: Столичне шосе,103 (ТЕСТОВИЙ Нова Тех, тільки для технологів)'));
+        self::assertFalse(DivisionList::isTestPoint('Поштомат "Нова Пошта" №41766: Овідіопольська дорога, 3 (На фасаді 2й лабораторний корпус АГМІНТЕСТ)'));
+        self::assertFalse(DivisionList::isTestPoint('Відділення №5: вул. Тестова, 1'));
+    }
 }

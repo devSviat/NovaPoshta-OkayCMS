@@ -93,6 +93,7 @@ class CartSelectionValidatorTest extends TestCase
     {
         self::assertSame('error_point_unavailable', self::check(self::delivery(), self::settlement(), self::division(['status' => 'NotWorkingTemporary'])));
         self::assertSame('error_point_unavailable', self::check(self::delivery(), self::settlement(), self::division(['prohibited_issuance' => 1])));
+        self::assertSame('error_point_unavailable', self::check(self::delivery(), self::settlement(), self::division(['name_uk' => 'Поштомат "Нова Пошта" №7400: ТЕСТОВИЙ'])));
     }
 
     public function testPointOfHiddenCategoryOrDisabledGroup(): void

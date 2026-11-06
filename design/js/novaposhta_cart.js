@@ -99,6 +99,7 @@
             if (this.address) {
                 this.address.hidden = false;
             }
+            this.markPopular();
             this.showChoice();
             this.load();
             this.requestQuote();
@@ -350,6 +351,10 @@
         if (data.divisions.length === 0) {
             this.list.appendChild(el('p', 'np-cart__empty', this.texts.cart_no_results));
         }
+        // Fitting points come first, so an unfit first point means none here takes the order.
+        if (data.divisions.length > 0 && (data.divisions[0].problems || []).length) {
+            this.list.appendChild(el('p', 'np-cart__empty', this.texts.cart_none_fit));
+        }
         data.divisions.forEach(function (point) { self.list.appendChild(self.option(point)); });
 
         this.more.hidden = data.total <= data.divisions.length;
@@ -378,14 +383,16 @@
             option.appendChild(el('span', 'np-cart__option-place', point.place));
         }
         var notes = [];
-        (point.problems || []).forEach(function (problem) {
-            notes.push(self.texts['cart_' + problem]);
+        (point.problems || []).forEach(function (problem, i) {
+            var text = self.texts['cart_' + problem] || '';
+            // "Не вміщається: …" once: the second reason continues the first.
+            notes.push(i === 0 ? text : text.replace(/^[^:]*:\s*/, ''));
         });
         if (!unfit && point.closesToday) {
             notes.push(point.closesToday === '24/7' ? this.texts.cart_all_day : format(this.texts.cart_closes, { time: point.closesToday }));
         }
         if (notes.length) {
-            option.appendChild(el('span', 'np-cart__option-note', notes.join(' · ')));
+            option.appendChild(el('span', 'np-cart__option-note', notes.join(unfit ? '; ' : ' · ')));
         }
 
         option.addEventListener('click', function () {

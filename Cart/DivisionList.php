@@ -16,6 +16,8 @@ final class DivisionList
     public const int PAGE = 100;
     private const int MAX_SEARCH = 64;
     private const int MAX_WORDS = 5;
+    /** Nova Poshta lists its own technicians' lockers as working points, marked only in the name. */
+    private const string TEST_MARK = 'ТЕСТОВИЙ';
 
     public function __construct(
         private readonly Database $db,
@@ -188,6 +190,11 @@ final class DivisionList
         return $page;
     }
 
+    public static function isTestPoint(string $name): bool
+    {
+        return mb_stripos($name, self::TEST_MARK) !== false;
+    }
+
     /**
      * The typed search as words for LIKE, at most 5. "№" and commas only separate: "№ 13" is branch 13.
      * @return ?non-empty-list<string>
@@ -207,6 +214,7 @@ final class DivisionList
             ->where('d.settlement_id = :settlement')
             ->where("d.status = 'Working'")
             ->where('d.prohibited_issuance = 0')
+            ->where('d.name_uk NOT LIKE :test_mark')->bindValue('test_mark', '%' . self::TEST_MARK . '%')
             ->bindValue('settlement', $settlementId);
     }
 
