@@ -30,6 +30,7 @@ final class CartQuotes
         private readonly Module $module,
         private readonly Money $money,
         private readonly ModuleState $state,
+        private readonly AddressCityResolver $addressCities,
     ) {
     }
 
@@ -47,6 +48,45 @@ final class CartQuotes
             return null;
         }
 
+        return $this->run($delivery, 'd:' . $divisionId, $paymentId, $cart, $forOrder, false,
+            static fn(ShippingConfig $config): array => [$division, null]);
+    }
+
+    /**
+     * Address delivery: price and term to the settlement's city; with lifting offered (admin
+     * setting) the extra cost of floor lifting is priced too.
+     *
+     * @return DeliveryQuote|null null when this module does not price this method or cart
+     */
+    public function quoteAddress(object $delivery, object $settlement, bool $lifting, ?int $floor, bool $elevator, int $paymentId, object $cart, bool $forOrder = false): ?DeliveryQuote
+    {
+        if (!$this->isOwnMethod($delivery, DeliveryMode::Address) || empty($cart->purchases)) {
+            return null;
+        }
+        $lifting = $lifting && $this->shipping->read()->showLifting;
+
+        return $this->run($delivery, 'a:' . (int)$settlement->id, $paymentId, $cart, $forOrder, $lifting,
+            function (ShippingConfig $config) use ($settlement, $lifting, $floor, $elevator): array {
+                try {
+                    $cityRef = $this->addressCities->forSettlement($settlement);
+                } catch (CityRefUnavailable) {
+                    return [null, 'unreachable'];
+                }
+                if ($cityRef === null) {
+                    return [null, 'no_city_ref'];
+                }
+
+                return [new AddressTarget((int)$settlement->id, $cityRef, $lifting, $floor, $elevator, $config->showLifting), null];
+            });
+    }
+
+    /**
+     * The common part: session choice and cache, limits, currency, the call and what is kept.
+     *
+     * @param callable(ShippingConfig): array{0: object|AddressTarget|null, 1: ?string} $target recipient, or the problem
+     */
+    private function run(object $delivery, string $targetKey, int $paymentId, object $cart, bool $forOrder, bool $lifting, callable $target): DeliveryQuote
+    {
         $config = $this->shipping->read();
         $sender = $config->senderDivisionId ? $this->entityFactory->get(DivisionEntity::class)->get($config->senderDivisionId) : null;
         if (!$sender) {
@@ -55,8 +95,8 @@ final class CartQuotes
 
         $cod = $this->codPayments->isCod($paymentId);
         $bag = $this->bag();
-        QuoteSession::choose($bag, (int)$delivery->id, $divisionId, $cod);
-        $key = QuoteKey::for((int)$delivery->id, $divisionId, $cod, $cart);
+        QuoteSession::choose($bag, (int)$delivery->id, $targetKey, $cod, $lifting);
+        $key = QuoteKey::for((int)$delivery->id, $targetKey, $cod, $cart, $lifting);
         $now = time();
         $cached = QuoteSession::get($bag, $key, $now);
         if ($cached !== null) {
@@ -89,19 +129,25 @@ final class CartQuotes
             return new DeliveryQuote(null, null, 'fallback', 'busy');
         }
 
-        $settings = self::settings($delivery);
-        $quote = $this->service->quote(new QuoteRequest(
-            (string)($settings['service_type'] ?? 'WarehouseWarehouse'),
-            $sender,
-            $division,
-            // Nova Poshta takes the declared value in hryvnias; the cart total is in the main currency.
-            Parcel::fromMetrics(CartMetrics::fromCart($cart), $config, (float)$this->money->convert((float)($cart->total_price ?? 0), (int)$uah->id, false, false, 2)),
-            $cod,
-            $config->codKind,
-            $wantPrice,
-            $wantTerm,
-        ));
-        $quote = $this->inMainCurrency($quote, $uah);
+        [$recipient, $problem] = $target($config);
+        if ($recipient === null) {
+            $quote = new DeliveryQuote(null, null, 'fallback', $problem);
+        } else {
+            $settings = self::settings($delivery);
+            $quote = $this->service->quote(new QuoteRequest(
+                (string)($settings['service_type'] ?? 'WarehouseWarehouse'),
+                $sender,
+                $recipient instanceof AddressTarget ? null : $recipient,
+                // Nova Poshta takes the declared value in hryvnias; the cart total is in the main currency.
+                Parcel::fromMetrics(CartMetrics::fromCart($cart), $config, (float)$this->money->convert((float)($cart->total_price ?? 0), (int)$uah->id, false, false, 2)),
+                $cod,
+                $config->codKind,
+                $wantPrice,
+                $wantTerm,
+                $recipient instanceof AddressTarget ? $recipient : null,
+            ));
+            $quote = $this->inMainCurrency($quote, $uah);
+        }
         // An unreachable Nova Poshta is asked again next time instead of keeping the failure for an hour.
         if ($quote->problem !== 'unreachable') {
             QuoteSession::put($bag, $key, $quote, $now);
@@ -116,14 +162,14 @@ final class CartQuotes
     {
         $bag = $this->bag();
         $chosen = QuoteSession::chosen($bag, (int)$delivery->id);
-        if ($chosen === null || !$this->isOwnPointsMethod($delivery)) {
+        if ($chosen === null || !$this->isOwnMethod($delivery)) {
             return null;
         }
 
-        return QuoteSession::get($bag, QuoteKey::for((int)$delivery->id, $chosen['divisionId'], $chosen['cod'], $cart), time());
+        return QuoteSession::get($bag, QuoteKey::for((int)$delivery->id, $chosen['target'], $chosen['cod'], $cart, $chosen['lifting']), time());
     }
 
-    /** @return array{divisionId:int, cod:bool}|null what the visitor last chose for this method */
+    /** @return array{target:string, cod:bool, lifting:bool}|null what the visitor last chose for this method */
     public function chosen(int $deliveryId): ?array
     {
         return QuoteSession::chosen($this->bag(), $deliveryId);
@@ -136,10 +182,15 @@ final class CartQuotes
 
     public function isOwnPointsMethod(object $delivery): bool
     {
+        return $this->isOwnMethod($delivery, DeliveryMode::Points);
+    }
+
+    public function isOwnMethod(object $delivery, ?DeliveryMode $mode = null): bool
+    {
         $moduleId = (int)$this->module->getModuleIdByNamespace(__CLASS__);
 
         return $moduleId > 0 && (int)($delivery->module_id ?? 0) === $moduleId
-            && DeliveryMode::fromServiceType(self::settings($delivery)['service_type'] ?? null) === DeliveryMode::Points;
+            && ($mode === null || DeliveryMode::fromServiceType(self::settings($delivery)['service_type'] ?? null) === $mode);
     }
 
     /** Nova Poshta prices in hryvnias; delivery prices in OkayCMS are in the shop's main currency. */
@@ -151,7 +202,7 @@ final class CartQuotes
         // Precision 2 explicitly: by default Money rounds to the UAH currency's `cents`, which may be 0.
         $convert = fn(float $amount): float => round((float)$this->money->convert($amount, (int)$uah->id, false, true, 2), 2);
 
-        return new DeliveryQuote($convert($quote->price), $quote->term, $quote->source, $quote->problem, $quote->codFee === null ? null : $convert($quote->codFee));
+        return new DeliveryQuote($convert($quote->price), $quote->term, $quote->source, $quote->problem, $quote->codFee === null ? null : $convert($quote->codFee), $quote->liftingFee === null ? null : $convert($quote->liftingFee));
     }
 
     private function takeBudget(int $now, string $name = 'quote_budget', int $limit = QuoteBudget::LIMIT): bool

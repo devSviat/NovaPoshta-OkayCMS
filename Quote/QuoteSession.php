@@ -25,6 +25,7 @@ final class QuoteSession
             (string)($row['source'] ?? 'fallback'),
             is_string($row['problem'] ?? null) ? $row['problem'] : null,
             is_numeric($row['codFee'] ?? null) ? (float)$row['codFee'] : null,
+            is_numeric($row['liftingFee'] ?? null) ? (float)$row['liftingFee'] : null,
         );
     }
 
@@ -32,22 +33,23 @@ final class QuoteSession
     {
         $quotes = is_array($bag['quotes'] ?? null) ? $bag['quotes'] : [];
         unset($quotes[$key]);
-        $quotes[$key] = ['price' => $quote->price, 'term' => $quote->term?->format('Y-m-d'), 'source' => $quote->source, 'problem' => $quote->problem, 'codFee' => $quote->codFee, 'at' => $now];
+        $quotes[$key] = ['price' => $quote->price, 'term' => $quote->term?->format('Y-m-d'), 'source' => $quote->source, 'problem' => $quote->problem, 'codFee' => $quote->codFee, 'liftingFee' => $quote->liftingFee, 'at' => $now];
         $bag['quotes'] = array_slice($quotes, -self::MAX_QUOTES, null, true);
     }
 
-    public static function choose(array &$bag, int $deliveryId, int $divisionId, bool $cod): void
+    /** @param string $target "d:<division id>" or "a:<settlement id>" */
+    public static function choose(array &$bag, int $deliveryId, string $target, bool $cod, bool $lifting = false): void
     {
         $chosen = is_array($bag['chosen'] ?? null) ? $bag['chosen'] : [];
-        $chosen[$deliveryId] = ['divisionId' => $divisionId, 'cod' => $cod];
+        $chosen[$deliveryId] = ['target' => $target, 'cod' => $cod, 'lifting' => $lifting];
         $bag['chosen'] = $chosen;
     }
 
-    /** @return array{divisionId:int, cod:bool}|null */
+    /** @return array{target:string, cod:bool, lifting:bool}|null */
     public static function chosen(array $bag, int $deliveryId): ?array
     {
         $row = is_array($bag['chosen'] ?? null) ? ($bag['chosen'][$deliveryId] ?? null) : null;
 
-        return is_array($row) && is_int($row['divisionId'] ?? null) ? ['divisionId' => $row['divisionId'], 'cod' => (bool)($row['cod'] ?? false)] : null;
+        return is_array($row) && is_string($row['target'] ?? null) ? ['target' => $row['target'], 'cod' => (bool)($row['cod'] ?? false), 'lifting' => (bool)($row['lifting'] ?? false)] : null;
     }
 }

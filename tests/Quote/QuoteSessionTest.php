@@ -20,20 +20,20 @@ class QuoteSessionTest extends TestCase
     public function testKeyFollowsEveryInputButNotTheOrderOfLines(): void
     {
         $cart = self::cart([[1, 2], [5, 1]], 300.0);
-        $key = QuoteKey::for(4, 7162, false, $cart);
+        $key = QuoteKey::for(4, 'd:7162', false, $cart);
 
-        self::assertSame($key, QuoteKey::for(4, 7162, false, self::cart([[5, 1], [1, 2]], 300.0)));
-        self::assertNotSame($key, QuoteKey::for(5, 7162, false, $cart));
-        self::assertNotSame($key, QuoteKey::for(4, 7163, false, $cart));
-        self::assertNotSame($key, QuoteKey::for(4, 7162, true, $cart));
-        self::assertNotSame($key, QuoteKey::for(4, 7162, false, self::cart([[1, 2], [5, 1]], 301.0)));
+        self::assertSame($key, QuoteKey::for(4, 'd:7162', false, self::cart([[5, 1], [1, 2]], 300.0)));
+        self::assertNotSame($key, QuoteKey::for(5, 'd:7162', false, $cart));
+        self::assertNotSame($key, QuoteKey::for(4, 'd:7163', false, $cart));
+        self::assertNotSame($key, QuoteKey::for(4, 'd:7162', true, $cart));
+        self::assertNotSame($key, QuoteKey::for(4, 'd:7162', false, self::cart([[1, 2], [5, 1]], 301.0)));
     }
 
     public function testCartChangeChangesKey(): void
     {
         self::assertNotSame(
-            QuoteKey::for(4, 7162, false, self::cart([[1, 2]], 300.0)),
-            QuoteKey::for(4, 7162, false, self::cart([[1, 3]], 300.0)),
+            QuoteKey::for(4, 'd:7162', false, self::cart([[1, 2]], 300.0)),
+            QuoteKey::for(4, 'd:7162', false, self::cart([[1, 3]], 300.0)),
         );
     }
 
@@ -72,10 +72,11 @@ class QuoteSessionTest extends TestCase
     public function testLastChoicePerDelivery(): void
     {
         $bag = [];
-        QuoteSession::choose($bag, 4, 7162, true);
-        QuoteSession::choose($bag, 9, 1, false);
+        QuoteSession::choose($bag, 4, 'd:7162', true);
+        QuoteSession::choose($bag, 9, 'a:118064', false, true);
 
-        self::assertSame(['divisionId' => 7162, 'cod' => true], QuoteSession::chosen($bag, 4));
+        self::assertSame(['target' => 'd:7162', 'cod' => true, 'lifting' => false], QuoteSession::chosen($bag, 4));
+        self::assertSame(['target' => 'a:118064', 'cod' => false, 'lifting' => true], QuoteSession::chosen($bag, 9));
         self::assertNull(QuoteSession::chosen($bag, 5));
     }
 
@@ -100,5 +101,13 @@ class QuoteSessionTest extends TestCase
         }
         self::assertFalse(QuoteThrottle::allow($bag, self::NOW, 'street_calls', 60));
         self::assertFalse(QuoteThrottle::allow($bag, self::NOW), 'the quote slot is spent separately');
+    }
+
+    public function testKeyFollowsTargetAndLifting(): void
+    {
+        $cart = self::cart([[1, 1]], 100.0);
+
+        self::assertNotSame(QuoteKey::for(4, 'a:118064', false, $cart), QuoteKey::for(4, 'd:118064', false, $cart));
+        self::assertNotSame(QuoteKey::for(4, 'a:118064', false, $cart), QuoteKey::for(4, 'a:118064', false, $cart, true));
     }
 }

@@ -13,6 +13,8 @@ final readonly class DeliveryQuote
         public ?string $problem,
         /** Part of the price that is Nova Poshta's commission for transferring the COD money. */
         public ?float $codFee = null,
+        /** Extra cost of floor lifting when it is not free (address delivery). */
+        public ?float $liftingFee = null,
     ) {
     }
 }

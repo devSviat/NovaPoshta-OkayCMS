@@ -149,3 +149,5 @@ $lang['sviat__novaposhta__variant_volume'] = 'Объём, м³ (НП)';
 $lang['sviat__novaposhta__variant_volume_hint'] = 'Объём упаковки в кубических метрах: 40×30×10 см = 0.012. Пусто — неизвестно.';
 $lang['sviat__novaposhta__order_term'] = 'Ориентировочная дата доставки';
 $lang['sviat__novaposhta__order_price_fallback'] = 'Цену доставки не удалось посчитать: Новая Почта не отвечала. В заказе цена способа доставки — уточните её с покупателем.';
+$lang['sviat__novaposhta__shipping_show_lifting'] = 'Подъём на этаж в корзине';
+$lang['sviat__novaposhta__shipping_show_lifting_note'] = 'Для доставки на адрес. Покупатель видит опцию только когда подъём платный (тяжёлая посылка) или вес части товаров неизвестен. Цену даёт калькулятор Новой Почты.';

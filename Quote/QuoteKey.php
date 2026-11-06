@@ -5,7 +5,8 @@ namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 /** Identifies what a quote was made for; any change in the cart makes a new key (design: no stale prices). */
 final class QuoteKey
 {
-    public static function for(int $deliveryId, int $divisionId, bool $cod, object $cart): string
+    /** @param string $target "d:<division id>" or "a:<settlement id>" */
+    public static function for(int $deliveryId, string $target, bool $cod, object $cart, bool $lifting = false): string
     {
         $lines = [];
         foreach ((array)($cart->purchases ?? []) as $purchase) {
@@ -13,6 +14,6 @@ final class QuoteKey
         }
         sort($lines);
 
-        return sha1(implode('|', [$deliveryId, $divisionId, $cod ? 1 : 0, implode(',', $lines), number_format((float)($cart->total_price ?? 0), 2, '.', '')]));
+        return sha1(implode('|', [$deliveryId, $target, $cod ? 1 : 0, $lifting ? 1 : 0, implode(',', $lines), number_format((float)($cart->total_price ?? 0), 2, '.', '')]));
     }
 }

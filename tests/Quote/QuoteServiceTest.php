@@ -17,6 +17,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NewApi\NewApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
+use Okay\Modules\Sviat\NovaPoshta\Quote\AddressTarget;
 use Okay\Modules\Sviat\NovaPoshta\Quote\Parcel;
 use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteRequest;
 use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteService;
@@ -233,5 +234,75 @@ class QuoteServiceTest extends TestCase
         $this->service()->quote(self::request());
 
         self::assertSame(5, $this->http->requests()[0]->timeoutSeconds);
+    }
+
+    private static function addressRequest(bool $lifting = false, bool $offerLifting = false, bool $term = false): QuoteRequest
+    {
+        return new QuoteRequest(
+            serviceType: 'WarehouseDoors',
+            sender: (object)['id' => 2200878, 'settlement_id' => 121300],
+            recipient: null,
+            parcel: new Parcel(31.0, 0.001, 1000.0),
+            cod: false,
+            codKind: CodKind::Money,
+            wantPrice: true,
+            wantTerm: $term,
+            address: new AddressTarget(515025, 'a88bc669-76f2-11e9-898c-005056b24375', $lifting, $lifting ? 7 : null, true, $offerLifting),
+        );
+    }
+
+    private function oldPriceAnswer(float $cost): self
+    {
+        $this->http->json(200, ['success' => true, 'data' => [['Cost' => $cost]], 'errors' => []]);
+
+        return $this;
+    }
+
+    public function testAddressIsPricedByTheOldApiToTheAddressCity(): void
+    {
+        $this->oldPriceAnswer(610.5);
+
+        $quote = $this->service()->quote(self::addressRequest());
+
+        self::assertSame([610.5, 'old', null], [$quote->price, $quote->source, $quote->liftingFee]);
+        $p = $this->body(0)['methodProperties'];
+        self::assertSame([self::LVIV, 'a88bc669-76f2-11e9-898c-005056b24375', 'WarehouseDoors'], [$p['CitySender'], $p['CityRecipient'], $p['ServiceType']]);
+        self::assertArrayNotHasKey('NumberOfFloorsLifting', $p);
+    }
+
+    public function testLiftingFeeIsTheDifferenceOfTwoCalculations(): void
+    {
+        $this->oldPriceAnswer(610.5)->oldPriceAnswer(810.5);
+
+        $quote = $this->service()->quote(self::addressRequest(offerLifting: true));
+
+        self::assertSame([610.5, 200.0], [$quote->price, $quote->liftingFee]);
+        self::assertSame(['1', '1'], [$this->body(1)['methodProperties']['NumberOfFloorsLifting'], $this->body(1)['methodProperties']['Elevator']]);
+    }
+
+    public function testChosenLiftingIsInThePrice(): void
+    {
+        $this->oldPriceAnswer(610.5)->oldPriceAnswer(810.5);
+
+        $quote = $this->service()->quote(self::addressRequest(lifting: true, offerLifting: true));
+
+        self::assertSame([810.5, 200.0], [$quote->price, $quote->liftingFee]);
+        self::assertSame('7', $this->body(1)['methodProperties']['NumberOfFloorsLifting']);
+    }
+
+    public function testFreeLiftingHasNoFee(): void
+    {
+        $this->oldPriceAnswer(155)->oldPriceAnswer(155);
+
+        self::assertNull($this->service()->quote(self::addressRequest(offerLifting: true))->liftingFee);
+    }
+
+    public function testAddressTermGoesToTheAddressCity(): void
+    {
+        $this->oldPriceAnswer(155)->http->json(200, ['success' => true, 'data' => [['DeliveryDate' => ['date' => '2030-03-18 18:00:00.000000']]], 'errors' => []]);
+
+        $this->service()->quote(self::addressRequest(term: true));
+
+        self::assertSame(['a88bc669-76f2-11e9-898c-005056b24375', 'WarehouseDoors'], [$this->body(1)['methodProperties']['CityRecipient'], $this->body(1)['methodProperties']['ServiceType']]);
     }
 }

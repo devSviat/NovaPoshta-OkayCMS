@@ -345,6 +345,7 @@
                 </div>
                 <p class="text_grey mt-1">{$btr->sviat__novaposhta__shipping_defaults_note|escape}</p>
                 <label class="np_check mt-1"><input type="checkbox" name="show_term" value="1" {if $np_shipping.config->showTerm}checked{/if}> <span><b>{$btr->sviat__novaposhta__shipping_show_term|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__shipping_show_term_note|escape}</span></span></label>
+                <label class="np_check mt-1"><input type="checkbox" name="show_lifting" value="1" {if $np_shipping.config->showLifting}checked{/if}> <span><b>{$btr->sviat__novaposhta__shipping_show_lifting|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__shipping_show_lifting_note|escape}</span></span></label>
                 <div><button type="submit" class="btn btn_small btn_blue mt-1"><span>{$btr->sviat__novaposhta__shipping_save|escape}</span></button></div>
             </div>
         </div>

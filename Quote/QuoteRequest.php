@@ -9,12 +9,14 @@ final readonly class QuoteRequest
         public string $serviceType,
         /** Division rows: id, settlement_id. */
         public object $sender,
-        public object $recipient,
+        /** Division row (id, settlement_id); null for address delivery. */
+        public ?object $recipient,
         public Parcel $parcel,
         public bool $cod,
         public CodKind $codKind,
         public bool $wantPrice,
         public bool $wantTerm,
+        public ?AddressTarget $address = null,
     ) {
     }
 }
