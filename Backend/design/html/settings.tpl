@@ -204,13 +204,12 @@
                 {/if}
 
                 <div class="heading_label">{$btr->sviat__novaposhta__groups_list|escape}</div>
-                <div id="np_group_rows">
+                <div id="np_group_rows" class="sortable">
                     {foreach $np_groups.groups as $group}
                         <div class="np_group_row" data-form-id="{$group.id|escape}">
                             <input type="hidden" data-field="id" value="{$group.id|escape}">
-                            <div class="np_move">
-                                <button type="button" class="btn_border" data-np-move="-1" aria-label="{$btr->sviat__novaposhta__groups_up|escape}">▲</button>
-                                <button type="button" class="btn_border" data-np-move="1" aria-label="{$btr->sviat__novaposhta__groups_down|escape}">▼</button>
+                            <div class="np_drag move_zone" title="{$btr->sviat__novaposhta__groups_drag|escape}">
+                                {include file='svg_icon.tpl' svgId='drag_vertical'}
                             </div>
                             <label class="np_group_name">
                                 <span class="text_grey">{$btr->sviat__novaposhta__groups_name|escape}</span>
@@ -231,9 +230,8 @@
                     {/foreach}
                     <div class="np_group_row np_group_new" data-form-id="new" hidden>
                         <input type="hidden" data-field="id" value="new">
-                        <div class="np_move">
-                            <button type="button" class="btn_border" data-np-move="-1" aria-label="{$btr->sviat__novaposhta__groups_up|escape}">▲</button>
-                            <button type="button" class="btn_border" data-np-move="1" aria-label="{$btr->sviat__novaposhta__groups_down|escape}">▼</button>
+                        <div class="np_drag move_zone" title="{$btr->sviat__novaposhta__groups_drag|escape}">
+                            {include file='svg_icon.tpl' svgId='drag_vertical'}
                         </div>
                         <label class="np_group_name">
                             <span class="text_grey">{$btr->sviat__novaposhta__groups_name|escape}</span>
@@ -249,7 +247,10 @@
                         </label>
                     </div>
                 </div>
-                <button type="button" class="btn_border btn_small mb-2" id="np_group_add">+ {$btr->sviat__novaposhta__groups_add|escape}</button>
+                <button type="button" class="btn btn_mini btn-secondary btn_openSans mb-2" id="np_group_add">
+                    {include file='svg_icon.tpl' svgId='plus'}
+                    <span>{$btr->sviat__novaposhta__groups_add|escape}</span>
+                </button>
 
                 <div class="heading_label">{$btr->sviat__novaposhta__groups_categories|escape}</div>
                 {foreach $np_groups.categories as $category}
@@ -260,12 +261,11 @@
                         </div>
                         <label class="np_inline">
                             <span>{$btr->sviat__novaposhta__groups_group|escape}</span>
-                            <select name="categories[{$category.key|escape}][group]" class="form-control np_category_group">
+                            <select name="categories[{$category.key|escape}][group]" class="selectpicker form-control np_category_group">
                                 <option value="0" {if !$category.group}selected{/if}>— {$btr->sviat__novaposhta__groups_none|escape}</option>
                                 {foreach $np_groups.groups as $group}
                                     <option value="{$group.id|escape}" {if $category.group == $group.id}selected{/if}>{$group.name|escape}</option>
                                 {/foreach}
-                                <option value="new" hidden disabled class="np_option_new"></option>
                             </select>
                         </label>
                         <label class="np_inline">
@@ -303,13 +303,12 @@
     .np_cron { display: block; padding: 6px 10px; margin-top: 6px; overflow-x: auto; white-space: nowrap; }
     .np_group_row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--ok-line, #e4e6e9); }
     .np_group_row[hidden] { display: none; }
-    .np_move { display: flex; flex-direction: column; gap: 2px; }
-    .np_move button { min-width: 34px; padding: 0 6px; line-height: 20px; }
+    .np_drag { align-self: center; cursor: move; color: var(--ok-ink-muted, #676e75); width: 24px; height: 24px; }
     .np_group_name { flex: 1 1 220px; display: flex; flex-direction: column; gap: 4px; margin: 0; }
     .np_inline { display: inline-flex; align-items: center; gap: 8px; margin: 0; }
     .np_category_row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--ok-line, #e4e6e9); }
     .np_category_name { flex: 1 1 220px; display: flex; flex-direction: column; }
-    .np_category_group { min-width: 160px; }
+    .np_category_row .bootstrap-select { min-width: 180px; }
     .np_category_warning { flex-basis: 100%; color: var(--ok-warning, #a35a00); }
     @media (max-width: 575px) { .np_key_buttons .btn, #np_dict_form .btn { width: 100%; } }
 </style>
@@ -339,36 +338,22 @@
         var newRow = rows.querySelector('.np_group_new');
         var newName = newRow.querySelector('[data-field="name"]');
 
-        rows.addEventListener('click', function (event) {
-            var button = event.target.closest('[data-np-move]');
-            if (!button) {
-                return;
-            }
-            var row = button.closest('.np_group_row');
-            var sibling = button.dataset.npMove === '-1' ? row.previousElementSibling : row.nextElementSibling;
-            if (sibling && !sibling.hidden) {
-                button.dataset.npMove === '-1' ? rows.insertBefore(row, sibling) : rows.insertBefore(sibling, row);
-            }
-        });
+        var selects = $(form).find('select.np_category_group');
 
         document.getElementById('np_group_add').addEventListener('click', function () {
             newRow.hidden = false;
             this.hidden = true;
-            form.querySelectorAll('.np_option_new').forEach(function (option) {
-                option.hidden = false;
-                option.disabled = false;
-            });
+            selects.append($('<option>', { value: 'new' }).text(newName.value.trim()));
+            selects.selectpicker('refresh');
             newName.focus();
         });
 
         newName.addEventListener('input', function () {
-            var label = newName.value.trim();
-            form.querySelectorAll('.np_option_new').forEach(function (option) {
-                option.textContent = label;
-            });
+            selects.find('option[value="new"]').text(newName.value.trim());
+            selects.selectpicker('refresh');
         });
 
-        // Names follow the order on the page, so a moved group keeps its new position.
+        // Names follow the order on the page, so a dragged group keeps its new position.
         form.addEventListener('submit', function () {
             var index = 0;
             rows.querySelectorAll('.np_group_row').forEach(function (row) {

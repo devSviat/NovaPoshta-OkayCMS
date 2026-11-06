@@ -2,10 +2,13 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Init;
 
+use Okay\Core\Config;
+use Okay\Core\Database;
 use Okay\Core\EntityFactory;
 use Okay\Core\Languages;
 use Okay\Core\Modules\AbstractInit;
 use Okay\Core\Modules\EntityField;
+use Okay\Core\QueryFactory;
 use Okay\Core\Scheduler\Schedule;
 use Okay\Core\ServiceLocator;
 use Okay\Entities\LanguagesEntity;
@@ -24,9 +27,7 @@ class Init extends AbstractInit
         // otherwise a delivery method could be bound to a module that cannot deliver.
         $this->setBackendMainController('NovaPoshtaSettingsAdmin');
 
-        foreach (self::tables() as $entityClass => $fields) {
-            $this->migrateEntityTable($entityClass, $fields);
-        }
+        $this->createMissingTables(self::tables());
         $this->addDefaultGroups();
     }
 
@@ -36,9 +37,7 @@ class Init extends AbstractInit
      */
     public function update_0_2_0()
     {
-        foreach (self::dictionaryTables() as $entityClass => $fields) {
-            $this->migrateEntityTable($entityClass, $fields);
-        }
+        $this->createMissingTables(self::dictionaryTables());
         $this->addDefaultGroups();
     }
 
@@ -129,6 +128,32 @@ class Init extends AbstractInit
         ];
     }
 
+    /**
+     * Deleting a module keeps its tables, and migrateEntityTable() is a bare CREATE TABLE:
+     * a reinstall would fill the log with "table already exists".
+     *
+     * @param array<class-string, list<EntityField>> $tables
+     */
+    private function createMissingTables(array $tables): void
+    {
+        $serviceLocator = ServiceLocator::getInstance();
+        /** @var Database $db */
+        $db = $serviceLocator->getService(Database::class);
+        $db->query($serviceLocator->getService(QueryFactory::class)->newSqlQuery()->setStatement('SHOW TABLES'));
+        $existing = [];
+        foreach ($db->results() as $row) {
+            $existing[] = (string)current((array)$row);
+        }
+
+        $prefix = (string)$serviceLocator->getService(Config::class)->get('db_prefix');
+        foreach ($tables as $entityClass => $fields) {
+            // The core writes the table prefix in place of the leading "__".
+            if (!in_array($prefix . substr($entityClass::getTable(), 2), $existing, true)) {
+                $this->migrateEntityTable($entityClass, $fields);
+            }
+        }
+    }
+
     /** Each site language gets its own name: the entity writes a language row per current language. */
     private function addDefaultGroups(): void
     {
@@ -138,6 +163,10 @@ class Init extends AbstractInit
         /** @var Languages $languages */
         $languages = $serviceLocator->getService(Languages::class);
         $groups = $entityFactory->get(GroupEntity::class);
+        // Deleting a module keeps its tables: a reinstall must not add the defaults twice.
+        if ($groups->count() > 0) {
+            return;
+        }
         $siteLanguages = $entityFactory->get(LanguagesEntity::class)->find();
         $initialLanguage = $languages->getLangId();
 
