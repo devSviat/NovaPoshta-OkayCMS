@@ -14,6 +14,8 @@ final class NewApiClient
     public const string BASE_URL = 'https://api.novaposhta.ua/v.1.0';
 
     private readonly \Closure $sleep;
+    private int $timeoutSeconds = 20;
+    private bool $retries = true;
 
     public function __construct(
         private readonly HttpTransport $http,
@@ -21,6 +23,16 @@ final class NewApiClient
         ?\Closure $sleep = null,
     ) {
         $this->sleep = $sleep ?? static fn() => sleep(1);
+    }
+
+    /** Short timeout and no repeats: for answers a customer waits for in the cart. */
+    public function quick(int $timeoutSeconds): self
+    {
+        $client = clone $this;
+        $client->timeoutSeconds = $timeoutSeconds;
+        $client->retries = false;
+
+        return $client;
     }
 
     public function get(string $path, array $query = []): array
@@ -38,7 +50,7 @@ final class NewApiClient
     private function send(string $method, string $url, ?string $body): array
     {
         // A POST may have reached Nova Poshta before the connection broke: repeating it could create a second shipment.
-        $retriesLeft = $method === 'GET' ? 1 : 0;
+        $retriesLeft = $method === 'GET' && $this->retries ? 1 : 0;
         $tokenRenewed = false;
 
         while (true) {
@@ -68,7 +80,7 @@ final class NewApiClient
         }
 
         try {
-            $response = $this->http->send(new HttpRequest($method, $url, $headers, $body));
+            $response = $this->http->send(new HttpRequest($method, $url, $headers, $body, $this->timeoutSeconds));
         } catch (TransportException $e) {
             throw NpApiException::fromNp(NpErrorKind::Unavailable, [$e->getMessage()], [], [$jwt]);
         }
