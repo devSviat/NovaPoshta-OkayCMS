@@ -122,6 +122,25 @@ class CdnClientTest extends TestCase
         unlink($path);
     }
 
+    public function testDownloadRemovesFilesLeftByAKilledRun(): void
+    {
+        $old = tempnam(sys_get_temp_dir(), 'np-dict-');
+        touch($old, time() - 3 * 3600);
+        $fresh = tempnam(sys_get_temp_dir(), 'np-dict-');
+        $foreign = tempnam(sys_get_temp_dir(), 'other-');
+        touch($foreign, time() - 3 * 3600);
+        $url = self::CDN . '/divisions/api/uk/base.json.gz';
+        $this->downloader->files[$url] = 'x';
+
+        unlink($this->client()->download($url));
+
+        self::assertFileDoesNotExist($old);
+        self::assertFileExists($fresh, 'a file of a run still going stays');
+        self::assertFileExists($foreign);
+        unlink($fresh);
+        unlink($foreign);
+    }
+
     public function testFailedDownloadLeavesNoFile(): void
     {
         $url = self::CDN . '/divisions/api/uk/base.json.gz';

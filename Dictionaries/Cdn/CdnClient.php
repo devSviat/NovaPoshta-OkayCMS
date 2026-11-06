@@ -16,6 +16,9 @@ final class CdnClient
 
     private const array LANGUAGES = ['uk', 'en'];
     private const int DOWNLOAD_TIMEOUT = 600;
+    private const string TEMP_PREFIX = 'np-dict-';
+    /** Longer than the scheduler task timeout (3600 s): an older file belongs to a killed run. */
+    private const int STALE_AFTER = 7200;
 
     public function __construct(
         private readonly HttpTransport $http,
@@ -41,7 +44,8 @@ final class CdnClient
     public function download(string $url): string
     {
         self::assertCdnUrl($url);
-        $path = tempnam(sys_get_temp_dir(), 'np-dict-');
+        self::removeStaleDownloads();
+        $path = tempnam(sys_get_temp_dir(), self::TEMP_PREFIX);
         try {
             $this->downloader->download($url, $path, self::DOWNLOAD_TIMEOUT);
         } catch (TransportException $e) {
@@ -50,6 +54,16 @@ final class CdnClient
         }
 
         return $path;
+    }
+
+    /** A run killed by the scheduler timeout cannot delete its ~35 MB files itself. */
+    private static function removeStaleDownloads(): void
+    {
+        foreach (glob(sys_get_temp_dir() . '/' . self::TEMP_PREFIX . '*') ?: [] as $file) {
+            if (is_file($file) && filemtime($file) < time() - self::STALE_AFTER) {
+                @unlink($file);
+            }
+        }
     }
 
     private function versionsJson(string $url): array

@@ -6,8 +6,10 @@ use Okay\Core\EntityFactory;
 use Okay\Core\Languages;
 use Okay\Core\Modules\AbstractInit;
 use Okay\Core\Modules\EntityField;
+use Okay\Core\Scheduler\Schedule;
 use Okay\Core\ServiceLocator;
 use Okay\Entities\LanguagesEntity;
+use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryRunner;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
@@ -44,6 +46,16 @@ class Init extends AbstractInit
     {
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
+
+        // Every 5 minutes is only a cheap check; the runner itself decides whether work is due,
+        // so the admin button is served within minutes and the daily update needs no own slot.
+        $this->registerSchedule(
+            new Schedule([DictionaryRunner::class, 'tick'])
+                ->name('Nova Poshta: dictionaries')
+                ->time('*/5 * * * *')
+                ->overlap(false)
+                ->timeout(3600)
+        );
     }
 
     /** @return array<class-string, list<EntityField>> every table of the module */
