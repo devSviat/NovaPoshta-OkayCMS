@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Orders;
 
-/** The order's saved choice as two lines of text, for the order page and both order emails. */
+/** The order's saved choice as lines of text, for the order pages (customer and admin) and both order emails. */
 final class OrderDeliveryView
 {
     /** @return array{city:string, point:string, term:?string, priceUnconfirmed:bool, address:?array, lifting:bool} */
@@ -17,7 +17,7 @@ final class OrderDeliveryView
             'city' => implode(', ', $city),
             'point' => implode(': ', $point),
             'term' => preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $term, $m) ? "{$m[3]}.{$m[2]}.{$m[1]}" : null,
-            // Nova Poshta did not answer at checkout: the order has the delivery method's own price.
+            // Nova Poshta gave no price at checkout: no delivery is charged, the manager states it.
             'priceUnconfirmed' => ($row->price_source ?? null) === 'fallback',
             'address' => ($row->mode ?? null) === 'address' ? self::address($row) : null,
             'lifting' => !empty($row->lifting),

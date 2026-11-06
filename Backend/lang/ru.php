@@ -159,3 +159,4 @@ $lang['sviat__novaposhta__order_entrance'] = 'подъезд';
 $lang['sviat__novaposhta__order_floor'] = 'этаж';
 $lang['sviat__novaposhta__order_elevator'] = 'есть лифт';
 $lang['sviat__novaposhta__order_note'] = 'Примечание';
+$lang['sviat__novaposhta__order_title'] = 'Новая Почта';

@@ -19,6 +19,7 @@ use Okay\Core\Settings;
 use Okay\Entities\LanguagesEntity;
 use Okay\Entities\PaymentsEntity;
 use Okay\Entities\VariantsEntity;
+use Okay\Admin\Helpers\BackendOrdersHelper;
 use Okay\Admin\Requests\BackendProductsRequest;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
@@ -128,6 +129,11 @@ class Init extends AbstractInit
             [BackendProductsRequest::class, 'postVariants'],
             [BackendExtender::class, 'cleanVariantVolumes']
         );
+        $this->registerQueueExtension(
+            [BackendOrdersHelper::class, 'findOrder'],
+            [BackendExtender::class, 'assignOrderDelivery']
+        );
+        $this->addBackendBlock('order_contact', 'order_delivery.tpl');
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
 
