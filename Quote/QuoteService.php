@@ -32,14 +32,35 @@ final class QuoteService
     {
         $price = null;
         $codFee = null;
+        $liftingFee = null;
+        $liftingRefused = false;
         $term = null;
         $problem = null;
         $source = 'none';
 
         if ($request->wantPrice) {
-            $useNew = str_starts_with($request->serviceType, 'Warehouse') && (!$request->cod || $request->codKind === CodKind::Control);
+            $useNew = $request->address === null && str_starts_with($request->serviceType, 'Warehouse') && (!$request->cod || $request->codKind === CodKind::Control);
             try {
-                [$price, $codFee] = $useNew ? [$this->newPrice($request), null] : $this->oldPrice($request);
+                if ($request->address?->offerLifting) {
+                    // NP has no "lifting price" method: the extra is the difference of two calculations,
+                    // so the weight limit for lifting stays NP's, not ours (design §6).
+                    $base = $this->oldPrice($request, false);
+                    try {
+                        $lifted = $this->oldPrice($request, true);
+                    } catch (QuoteProblem $e) {
+                        if ($e->getMessage() !== 'rejected' && $request->address->lifting) {
+                            throw $e;
+                        }
+                        // Too heavy to lift, or the second call failed: the delivery is still priced, lifting is not offered.
+                        $lifted = null;
+                        $liftingRefused = true;
+                    }
+                    [$price, $codFee] = $request->address->lifting && $lifted !== null ? $lifted : $base;
+                    $fee = $lifted === null ? 0.0 : round($lifted[0] - $base[0], 2);
+                    $liftingFee = $fee > 0.004 ? $fee : null;
+                } else {
+                    [$price, $codFee] = $useNew ? [$this->newPrice($request), null] : $this->oldPrice($request, $request->address?->lifting ?? false);
+                }
                 $source = $useNew ? 'new' : 'old';
             } catch (QuoteProblem $e) {
                 $problem = $e->getMessage();
@@ -55,7 +76,7 @@ final class QuoteService
             }
         }
 
-        return new DeliveryQuote($price, $term, $source, $problem, $codFee);
+        return new DeliveryQuote($price, $term, $source, $problem, $codFee, $liftingFee, $liftingRefused);
     }
 
     private function newPrice(QuoteRequest $request): float
@@ -84,7 +105,7 @@ final class QuoteService
     }
 
     /** @return array{0: float, 1: ?float} price and the COD commission inside it */
-    private function oldPrice(QuoteRequest $request): array
+    private function oldPrice(QuoteRequest $request, bool $lifting): array
     {
         $properties = $this->cities($request) + [
             'Weight' => self::number($request->parcel->weightKg, 3),
@@ -94,6 +115,10 @@ final class QuoteService
             'SeatsAmount' => '1',
             'ServiceType' => $request->serviceType,
         ];
+        if ($lifting && $request->address !== null) {
+            $properties['NumberOfFloorsLifting'] = (string)($request->address->floor ?? 1);
+            $properties['Elevator'] = $request->address->elevator ? '1' : '0';
+        }
         if ($request->cod && $request->codKind === CodKind::Money) {
             $properties['RedeliveryCalculate'] = ['CargoType' => 'Money', 'Amount' => self::number($request->parcel->declaredCost, 2)];
         }
@@ -124,7 +149,9 @@ final class QuoteService
     /** @return array{CitySender: string, CityRecipient: string} */
     private function cities(QuoteRequest $request): array
     {
-        return ['CitySender' => $this->cityRef((int)$request->sender->settlement_id), 'CityRecipient' => $this->cityRef((int)$request->recipient->settlement_id)];
+        $sender = $this->cityRef((int)$request->sender->settlement_id);
+
+        return ['CitySender' => $sender, 'CityRecipient' => $request->address?->cityRef ?? $this->cityRef((int)$request->recipient?->settlement_id)];
     }
 
     private function cityRef(int $settlementId): string

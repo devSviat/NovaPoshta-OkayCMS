@@ -8,19 +8,19 @@ final class QuoteThrottle
     private const int LIMIT = 20;
     private const int WINDOW = 600;
 
-    public static function allow(array &$bag, int $now): bool
+    public static function allow(array &$bag, int $now, string $slot = 'calls', int $limit = self::LIMIT): bool
     {
         $recent = array_values(array_filter(
-            is_array($bag['calls'] ?? null) ? $bag['calls'] : [],
+            is_array($bag[$slot] ?? null) ? $bag[$slot] : [],
             static fn($at): bool => is_int($at) && $now - $at < self::WINDOW,
         ));
-        if (count($recent) >= self::LIMIT) {
-            $bag['calls'] = $recent;
+        if (count($recent) >= $limit) {
+            $bag[$slot] = $recent;
 
             return false;
         }
         $recent[] = $now;
-        $bag['calls'] = $recent;
+        $bag[$slot] = $recent;
 
         return true;
     }

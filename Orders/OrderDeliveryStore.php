@@ -14,39 +14,71 @@ final class OrderDeliveryStore
     {
     }
 
-    /** Names are copied in Ukrainian: the order keeps what was chosen even if the dictionary changes. */
-    /** @param array{delivery_price: mixed, price_source: ?string, delivery_term: ?string, cod: int}|null $pricing */
+    /**
+     * Names are copied in Ukrainian: the order keeps what was chosen even if the dictionary changes.
+     *
+     * @param array{delivery_price: mixed, price_source: ?string, delivery_term: ?string, cod: int}|null $pricing
+     */
     public function save(int $orderId, CartSelection $selection, ?array $pricing = null): void
     {
         if (!$selection->applies()) {
             return;
         }
+        $address = $selection->address;
+        if ($address !== null && !self::stored('street_name')) {
+            return;
+        }
         $now = date('Y-m-d H:i:s');
-        [$title, $place] = array_pad(explode(': ', (string)$selection->division->name_uk, 2), 2, null);
         $entity = $this->entityFactory->get(OrderDeliveryEntity::class);
         $existing = $entity->findOne(['order_id' => $orderId]);
         $row = [
             'order_id' => $orderId,
             'delivery_id' => (int)$selection->delivery->id,
-            'mode' => DeliveryMode::Points->value,
+            'mode' => ($address === null ? DeliveryMode::Points : DeliveryMode::Address)->value,
             'settlement_id' => (int)$selection->settlement->id,
             'settlement_name' => (string)$selection->settlement->name_uk,
             'district_name' => $selection->settlement->district_uk ?: null,
             'area_name' => $selection->settlement->area_uk ?: null,
-            'division_id' => (int)$selection->division->id,
-            'division_number' => (string)$selection->division->number,
-            'division_category' => (string)$selection->division->category,
-            'division_name' => $title,
-            'division_address' => $place ?? ($selection->division->address_uk ?: null),
             'updated_at' => $now,
-        ] + (self::pricingStored() ? ($pricing ?? []) : []);
+        ];
+        if ($address === null) {
+            [$title, $place] = array_pad(explode(': ', (string)$selection->division->name_uk, 2), 2, null);
+            $row += [
+                'division_id' => (int)$selection->division->id,
+                'division_number' => (string)$selection->division->number,
+                'division_category' => (string)$selection->division->category,
+                'division_name' => $title,
+                'division_address' => $place ?? ($selection->division->address_uk ?: null),
+            ];
+            if (self::stored('street_name')) {
+                $row += array_fill_keys(['street_name', 'street_ref', 'house', 'flat', 'entrance', 'floor', 'address_note'], null) + ['elevator' => 0, 'lifting' => 0];
+            }
+        } else {
+            $row += [
+                'division_id' => null,
+                'division_number' => null,
+                'division_category' => null,
+                'division_name' => null,
+                'division_address' => null,
+                'street_name' => $address->street,
+                'street_ref' => $address->streetRef,
+                'house' => $address->house,
+                'flat' => $address->flat,
+                'entrance' => $address->entrance,
+                'floor' => $address->floor,
+                'elevator' => $address->elevator ? 1 : 0,
+                'address_note' => $address->note,
+                'lifting' => $address->lifting ? 1 : 0,
+            ];
+        }
+        $row = (self::stored('delivery_price') ? ($pricing ?? []) : []) + $row;
         $existing ? $entity->update((int)$existing->id, $row) : $entity->add($row + ['created_at' => $now]);
     }
 
-    /** The price columns are registered by Init only once the 0.4.0 update has created them. */
-    private static function pricingStored(): bool
+    /** Columns added after 0.3.0 are registered by Init only once their update has created them. */
+    private static function stored(string $column): bool
     {
-        return in_array('delivery_price', OrderDeliveryEntity::getFields(), true);
+        return in_array($column, OrderDeliveryEntity::getFields(), true);
     }
 
     public function forOrder(int $orderId): ?object

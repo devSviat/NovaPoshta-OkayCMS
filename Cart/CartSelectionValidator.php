@@ -8,6 +8,7 @@ use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
+use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 
 /**
  * Checks on the server what the cart form says: the browser can post any ids. Nothing from
@@ -20,6 +21,7 @@ final class CartSelectionValidator
         private readonly GroupsStore $groups,
         private readonly Module $module,
         private readonly SettlementSearch $settlements,
+        private readonly ShippingSettings $shipping,
     ) {
     }
 
@@ -33,6 +35,10 @@ final class CartSelectionValidator
         }
         [$settlementId, $divisionId] = self::postedIds($post, $deliveryId);
         $settlement = $settlementId > 0 ? $this->entityFactory->get(SettlementEntity::class)->get($settlementId) : null;
+        $address = self::checkAddress($delivery ?: null, (int)$this->module->getModuleIdByNamespace(__CLASS__), $settlement ?: null, $post, $this->shipping->read()->showLifting);
+        if (is_string($address) || $address->applies()) {
+            return $address;
+        }
         $division = $divisionId > 0 ? $this->entityFactory->get(DivisionEntity::class)->get($divisionId) : null;
 
         return self::check(
@@ -79,6 +85,27 @@ final class CartSelectionValidator
         }
 
         return new CartSelection($delivery, $settlement, $division);
+    }
+
+    /** Address mode of this module's method: the posted address, checked; anything else is not this check's business. */
+    public static function checkAddress(?object $delivery, int $moduleId, ?object $settlement, array $post, bool $liftingOffered): CartSelection|string
+    {
+        if ($delivery === null || (int)($delivery->module_id ?? 0) !== $moduleId || $moduleId === 0) {
+            return CartSelection::none();
+        }
+        $settings = is_array($delivery->settings ?? null) ? $delivery->settings : [];
+        if (DeliveryMode::fromServiceType($settings['service_type'] ?? null) !== DeliveryMode::Address) {
+            return CartSelection::none();
+        }
+        $parsed = AddressInput::parse($post, (int)$delivery->id, $liftingOffered);
+        if ($parsed['error'] !== null) {
+            return $parsed['error'];
+        }
+        if ($settlement === null || (int)$settlement->id !== $parsed['address']->settlementId) {
+            return 'error_city';
+        }
+
+        return new CartSelection($delivery, $settlement, null, $parsed['address']);
     }
 
     /** @return array{0:int, 1:int} settlement and point ids posted for this delivery method */

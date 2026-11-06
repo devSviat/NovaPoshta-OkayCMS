@@ -15,6 +15,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NewApi\NewApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
+use Okay\Modules\Sviat\NovaPoshta\Quote\AddressTarget;
 use Okay\Modules\Sviat\NovaPoshta\Quote\Parcel;
 use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteRequest;
 use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteService;
@@ -64,5 +65,26 @@ class LiveQuoteTest extends TestCase
         self::assertGreaterThan($new->price, $old->price, 'COD commission is on top');
         self::assertNotNull($new->term, (string)$new->problem);
         self::assertGreaterThan(new \DateTimeImmutable('today'), $new->term);
+    }
+
+    public function testLiftingCostsExtraOnlyForAHeavyParcel(): void
+    {
+        $quote = fn(float $kg) => $this->service->quote(new QuoteRequest(
+            'WarehouseDoors',
+            (object)['id' => 2200878, 'settlement_id' => 121300],
+            null,
+            new Parcel($kg, 0.001, 1000.0),
+            false,
+            CodKind::Money,
+            true,
+            false,
+            new AddressTarget(118064, '8d5a980d-391c-11dd-90d9-001a92567626', false, 5, true, true),
+        ));
+
+        $light = $quote(2.0);
+        self::assertSame('old', $light->source, (string)$light->problem);
+        self::assertNull($light->liftingFee);
+        $heavy = $quote(31.0);
+        self::assertGreaterThan(0, $heavy->liftingFee);
     }
 }

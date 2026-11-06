@@ -99,3 +99,34 @@
     border-color: var(--np-accent);
 }
 .np-chip--selected .np-cart__count { opacity: .85; }
+
+/* Address delivery */
+.np-cart__address { display: flex; flex-direction: column; gap: 12px; }
+.np-cart__address[hidden] { display: none; }
+.np-cart__street { position: relative; }
+.np-cart__street .np-cart__field, .np-cart__note .np-cart__field { margin: 0; }
+.np-cart__street-hint { margin: 4px 0 0; font-size: 13px; color: #a35a00; }
+.np-cart__address-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.np-cart__address-row .np-cart__field { margin: 0; min-width: 0; }
+.np-cart__address-row input { min-width: 0; width: 100%; box-sizing: border-box; }
+@media (max-width: 600px) { .np-cart__address-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.np-cart .np-cart__check { margin: 0; }
+/* vibe_shop has no checkbox component; same structure as okay_shop's `.checkbox`, theme colours. */
+.np-check { display: flex; align-items: flex-start; gap: 8px; position: relative; cursor: pointer; line-height: 1.4; }
+.np-check__input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.np-check__icon { flex: 0 0 22px; width: 22px; height: 22px; box-sizing: border-box; border: 1px solid var(--np-border, #dbdbdb); border-radius: 4px; background: #fff; }
+.np-check > span { padding-top: 1px; }
+.np-check__mark { stroke: #fff; stroke-width: 2px; opacity: 0; }
+.np-check__input:checked + .np-check__icon { background: var(--np-accent, #222); border-color: var(--np-accent, #222); }
+.np-check__input:checked + .np-check__icon .np-check__mark { opacity: 1; }
+.np-check__input:focus-visible + .np-check__icon { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--np-accent, #222); }
+.np-cart .np-check { margin: 0; font-weight: inherit; align-items: flex-start; }
+.np-check > span { flex: 1; min-width: 0; }
+.np-cart__note { display: flex; flex-direction: column; gap: 4px; }
+.np-cart__note-count { align-self: flex-end; font-size: 12px; opacity: .7; }
+.np-cart__lifting { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--np-border, #dbdbdb); border-radius: 4px; }
+.np-cart__lifting[hidden], .np-cart__lifting [hidden] { display: none; }
+.np-cart__lifting .np-cart__check { min-height: 22px; line-height: 22px; }
+/* Same indent as the checkbox text (theme .checkbox / np-check: 22 px box + gap). */
+.np-cart__lifting-note { margin: 0 0 0 30px; font-size: 13px; line-height: 1.4; opacity: .8; }
+.np-cart__lifting .np-cart__elevator-check { margin-left: 30px; }

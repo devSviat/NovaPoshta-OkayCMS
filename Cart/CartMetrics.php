@@ -17,7 +17,14 @@ final readonly class CartMetrics
         public float $knownVolume = 0.0,
         public int $unitsWithoutWeight = 0,
         public int $unitsWithoutVolume = 0,
+        /** The cart total in hryvnias, for Nova Poshta's limits; null when there is no UAH currency. */
+        public ?float $totalUah = null,
     ) {
+    }
+
+    public function inUah(?float $totalUah): self
+    {
+        return new self($this->knownWeight, $this->weightUnknown, $this->total, $this->knownVolume, $this->unitsWithoutWeight, $this->unitsWithoutVolume, $totalUah);
     }
 
     /** @param object $cart Okay\Core\Cart::get() */

@@ -27,4 +27,11 @@ class QuoteBudgetTest extends TestCase
         self::assertTrue($ok);
         self::assertSame(['start' => 5, 'count' => 1], json_decode($state, true));
     }
+
+    public function testOwnLimit(): void
+    {
+        [$ok, $state] = QuoteBudget::take(null, 5, 1);
+        self::assertTrue($ok);
+        self::assertFalse(QuoteBudget::take($state, 6, 1)[0]);
+    }
 }

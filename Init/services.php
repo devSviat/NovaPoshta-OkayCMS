@@ -42,10 +42,13 @@ use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
+use Okay\Modules\Sviat\NovaPoshta\Quote\AddressCityResolver;
+use Okay\Modules\Sviat\NovaPoshta\Cart\StreetSearch;
 use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteService;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DbCityRefStore;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
+use Okay\Modules\Sviat\NovaPoshta\Cart\UahTotal;
 
 return [
     ApiKey::class => [
@@ -80,6 +83,10 @@ return [
         'class' => ShippingSettings::class,
         'arguments' => [new SR(Settings::class), new SR(EntityFactory::class)],
     ],
+    UahTotal::class => [
+        'class' => UahTotal::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(Money::class)],
+    ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
         'arguments' => [],
@@ -92,13 +99,21 @@ return [
         'class' => CityRefResolver::class,
         'arguments' => [new SR(OldApiClient::class), new SR(DbCityRefStore::class)],
     ],
+    AddressCityResolver::class => [
+        'class' => AddressCityResolver::class,
+        'arguments' => [new SR(OldApiClient::class), new SR(DbCityRefStore::class), new SR(CityRefResolver::class)],
+    ],
+    StreetSearch::class => [
+        'class' => StreetSearch::class,
+        'arguments' => [new SR(OldApiClient::class), new SR(AddressCityResolver::class)],
+    ],
     QuoteService::class => [
         'class' => QuoteService::class,
         'arguments' => [new SR(NewApiClient::class), new SR(OldApiClient::class), new SR(CityRefResolver::class)],
     ],
     CartQuotes::class => [
         'class' => CartQuotes::class,
-        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class), new SR(Money::class), new SR(ModuleState::class)],
+        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class), new SR(Money::class), new SR(ModuleState::class), new SR(AddressCityResolver::class)],
     ],
     CodPayments::class => [
         'class' => CodPayments::class,
@@ -187,11 +202,12 @@ return [
             new SR(SettlementSearch::class),
             new SR(CartQuotes::class),
             new SR(Money::class),
+            new SR(UahTotal::class),
         ],
     ],
     CartSelectionValidator::class => [
         'class' => CartSelectionValidator::class,
-        'arguments' => [new SR(EntityFactory::class), new SR(GroupsStore::class), new SR(Module::class), new SR(SettlementSearch::class)],
+        'arguments' => [new SR(EntityFactory::class), new SR(GroupsStore::class), new SR(Module::class), new SR(SettlementSearch::class), new SR(ShippingSettings::class)],
     ],
     OrderDeliveryStore::class => [
         'class' => OrderDeliveryStore::class,
