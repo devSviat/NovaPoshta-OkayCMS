@@ -53,4 +53,12 @@ class OrderDeliveryViewTest extends TestCase
         self::assertTrue($lines['lifting']);
         self::assertSame('', $lines['point']);
     }
+
+    public function testPriceTheManagerEnteredLaterIsConfirmed(): void
+    {
+        $row = (object)['settlement_name' => 'місто Київ', 'price_source' => 'fallback'];
+
+        self::assertTrue(OrderDeliveryView::lines($row, 0.0)['priceUnconfirmed']);
+        self::assertFalse(OrderDeliveryView::lines($row, 85.0)['priceUnconfirmed']);
+    }
 }

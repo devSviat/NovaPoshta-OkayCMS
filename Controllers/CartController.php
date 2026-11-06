@@ -51,7 +51,7 @@ class CartController
             $uahTotal->metrics($cart->get()),
             (string)$languages->getLangLabel(),
             $groupId ? (int)$groupId : null,
-            (string)self::typed($request),
+            is_string($query = self::typed($request)) ? $query : '',
         ));
     }
 

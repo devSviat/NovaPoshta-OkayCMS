@@ -173,7 +173,7 @@ class FrontExtender implements ExtensionInterface
     public function assignOrderDelivery($result, $order)
     {
         $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
-        $this->design->assign('np_order_delivery', $row ? OrderDeliveryView::lines($row) : null);
+        $this->design->assign('np_order_delivery', $row ? OrderDeliveryView::lines($row, (float)($order->delivery_price ?? 0)) : null);
         $this->design->assign('np_order_family', ThemeClasses::for((string)$this->settings->get('theme'))['family']);
     }
 

@@ -110,4 +110,14 @@ class QuoteSessionTest extends TestCase
         self::assertNotSame(QuoteKey::for(4, 'a:118064', false, $cart), QuoteKey::for(4, 'd:118064', false, $cart));
         self::assertNotSame(QuoteKey::for(4, 'a:118064', false, $cart), QuoteKey::for(4, 'a:118064', false, $cart, true));
     }
+
+    public function testUnreachableIsKeptForTheOrderButRetriedByTheCart(): void
+    {
+        $bag = [];
+        QuoteSession::put($bag, 'k', new DeliveryQuote(null, null, 'fallback', 'unreachable'), self::NOW);
+
+        self::assertSame('unreachable', QuoteSession::get($bag, 'k', self::NOW + 59, retryUnreachableAfter: 60)?->problem);
+        self::assertNull(QuoteSession::get($bag, 'k', self::NOW + 60, retryUnreachableAfter: 60));
+        self::assertSame('unreachable', QuoteSession::get($bag, 'k', self::NOW + 600)?->problem, 'checkout keeps what the cart showed');
+    }
 }

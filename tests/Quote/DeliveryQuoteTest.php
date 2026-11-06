@@ -14,5 +14,6 @@ class DeliveryQuoteTest extends TestCase
         self::assertFalse(new DeliveryQuote(95.0, null, 'new', null)->unpriced());
         self::assertFalse(new DeliveryQuote(null, null, 'none', 'no_sender')->unpriced(), 'no price was asked: the admin price stands');
         self::assertFalse(new DeliveryQuote(null, null, 'fallback', 'busy')->unpriced(), 'busy: checkout prices it anyway');
+        self::assertFalse(new DeliveryQuote(null, null, 'none', 'no_city_ref')->unpriced(), 'term-only failure: no price was asked');
     }
 }

@@ -49,7 +49,6 @@ final class DivisionList
 
         $categories = self::categoriesOf($groupRows, $chosen);
         $words = self::searchWords($query);
-        // Built twice on purpose: aura's clone is shallow and would share the column list.
         $filtered = function () use ($settlementId, $categories, $words) {
             $select = $this->base($settlementId)->where('d.category IN (:categories)')->bindValue('categories', $categories);
             // Every word must be found somewhere: "Дорогожицька 4" is the street and the house in one address.
@@ -63,7 +62,8 @@ final class DivisionList
 
         // All of the group's points, light: those that fit the cart must lead the page even when
         // their numbers are high (a 35 kg cart in Kyiv: most low-numbered branches take 30 kg).
-        $cols = ['d.id', 'd.max_weight', 'd.max_declared_cost'];
+        // Everything DivisionFit reads, or the fit-first order and the list's "does not fit" disagree.
+        $cols = ['d.id', 'd.category', 'd.max_weight', 'd.max_declared_cost', 'd.max_length', 'd.max_width', 'd.max_height'];
         $exact = self::exactNumber($query);
         if ($words !== null) {
             // Customers know branch numbers better than addresses: the number they typed first,
@@ -201,6 +201,8 @@ final class DivisionList
      */
     public static function searchWords(string $raw): ?array
     {
+        // Dictionary names use the ASCII apostrophe; phones type ’ or ʼ.
+        $raw = str_replace(['’', 'ʼ', '`', '‘'], "'", $raw);
         $text = mb_substr(trim(preg_replace('/[\s,№#]+/u', ' ', $raw) ?? ''), 0, self::MAX_SEARCH);
         $words = array_slice(array_values(array_filter(explode(' ', $text), static fn(string $w): bool => $w !== '')), 0, self::MAX_WORDS);
 

@@ -20,7 +20,7 @@ class BackendExtender implements ExtensionInterface
     public function assignOrderDelivery($order, $orderId = null)
     {
         $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
-        $this->design->assign('np_order_delivery', $row ? OrderDeliveryView::lines($row) : null);
+        $this->design->assign('np_order_delivery', $row ? OrderDeliveryView::lines($row, (float)($order->delivery_price ?? 0)) : null);
     }
 
     /** ChainExtension of BackendProductsRequest::postVariants: the volume column is decimal, text must not reach it. */

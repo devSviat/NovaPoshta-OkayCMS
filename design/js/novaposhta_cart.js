@@ -92,6 +92,7 @@
         this.cityTimer = null;
         this.searchTimer = null;
         this.bind();
+        this.showUnpricedSummary();
         if (this.mode === 'address') {
             this.bindAddress();
         }
@@ -351,8 +352,7 @@
         if (data.divisions.length === 0) {
             this.list.appendChild(el('p', 'np-cart__empty', this.texts.cart_no_results));
         }
-        // Fitting points come first, so an unfit first point means none here takes the order.
-        if (data.divisions.length > 0 && (data.divisions[0].problems || []).length) {
+        if (data.divisions.length > 0 && data.divisions.every(function (point) { return (point.problems || []).length > 0; })) {
             this.list.appendChild(el('p', 'np-cart__empty', this.texts.cart_none_fit));
         }
         data.divisions.forEach(function (point) { self.list.appendChild(self.option(point)); });
@@ -383,10 +383,13 @@
             option.appendChild(el('span', 'np-cart__option-place', point.place));
         }
         var notes = [];
-        (point.problems || []).forEach(function (problem, i) {
+        var lead = null;
+        (point.problems || []).forEach(function (problem) {
             var text = self.texts['cart_' + problem] || '';
-            // "Не вміщається: …" once: the second reason continues the first.
-            notes.push(i === 0 ? text : text.replace(/^[^:]*:\s*/, ''));
+            var prefix = (text.match(/^[^:]*:\s*/) || [''])[0];
+            // "Не вміщається: …" once: a reason with the same lead-in continues the previous one.
+            notes.push(lead !== null && prefix !== '' && prefix === lead ? text.slice(prefix.length) : text);
+            lead = prefix;
         });
         if (!unfit && point.closesToday) {
             notes.push(point.closesToday === '24/7' ? this.texts.cart_all_day : format(this.texts.cart_closes, { time: point.closesToday }));
@@ -461,6 +464,18 @@
         }
     };
 
+    /** Not charged: the order summary says the manager will tell instead of the theme's "0". */
+    Block.prototype.showUnpricedSummary = function () {
+        var input = this.themeInput();
+        var text = this.texts.cart_price_by_manager || '';
+        if (!input || !input.length || !input.is(':checked') || input.data('is_free_delivery') || Number(input.data('delivery_price')) !== 0) {
+            return;
+        }
+        if (text !== '' && input.closest('.fn_delivery_item').find('.fn_delivery_price').first().text().trim() === text) {
+            window.jQuery('#fn_total_delivery_price').text(text);
+        }
+    };
+
     /** Writes a price where the theme reads it, then lets the theme recount its totals. */
     Block.prototype.setThemePrice = function (price, total, text, free) {
         var input = this.themeInput();
@@ -474,7 +489,7 @@
             okay.update_cart_total_price();
             // The theme fills the "до оплати" amounts only when the delivery method changes.
             var $ = window.jQuery;
-            $('.fn_payment_method__item').each(function () {
+            $(typeof okay.convert === 'function' ? '.fn_payment_method__item' : []).each(function () {
                 var currency = $(this).find('input[name="payment_method_id"]').data('currency_id');
                 $(this).find('.fn_payment_price').text(okay.convert(total, currency));
             });
@@ -534,10 +549,7 @@
         var priced = typeof data.price === 'number' && !data.unpriced;
         if (typeof data.price === 'number') {
             this.setThemePrice(data.price, data.totalWithDelivery, data.priceText || '', !!data.free);
-            if (data.unpriced && this.themeInput().is(':checked')) {
-                // Not charged: the order summary says the manager will tell instead of "0".
-                window.jQuery('#fn_total_delivery_price').text(data.priceText || '');
-            }
+            this.showUnpricedSummary();
         } else {
             // No price (free, hidden, no sender, bad input or a failure): the theme's own numbers come back.
             this.restoreTheme();
@@ -750,6 +762,7 @@
         if (window.jQuery) {
             window.jQuery(document).on('change', 'input[name="delivery_id"]', function () {
                 blocks.forEach(function (block) {
+                    block.showUnpricedSummary();
                     if (block.settlement) {
                         block.load();
                         block.requestQuote();
