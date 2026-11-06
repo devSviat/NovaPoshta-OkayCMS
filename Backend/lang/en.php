@@ -102,3 +102,9 @@ $lang['sviat__novaposhta__category_pudo'] = 'Pickup points (PUDO)';
 $lang['sviat__novaposhta__category_postomat'] = 'Parcel lockers';
 $lang['sviat__novaposhta__dict_stale_title'] = 'The dictionaries have not been updated for a while';
 $lang['sviat__novaposhta__dict_stale_text'] = 'The last update was more than 3 days ago, though they update daily. Most likely the OkayCMS scheduler stopped running.';
+
+$lang['sviat__novaposhta__service_type'] = 'What the customer chooses';
+$lang['sviat__novaposhta__service_ww'] = 'Branch or parcel locker — you hand parcels in at a branch';
+$lang['sviat__novaposhta__service_wd'] = 'Address — you hand parcels in at a branch';
+$lang['sviat__novaposhta__service_dw'] = 'Branch or parcel locker — a courier collects parcels from you';
+$lang['sviat__novaposhta__service_dd'] = 'Address — a courier collects parcels from you';

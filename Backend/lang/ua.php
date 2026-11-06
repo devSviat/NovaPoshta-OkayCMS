@@ -102,3 +102,9 @@ $lang['sviat__novaposhta__category_pudo'] = 'Пункти приймання-в�
 $lang['sviat__novaposhta__category_postomat'] = 'Поштомати';
 $lang['sviat__novaposhta__dict_stale_title'] = 'Довідники давно не оновлювались';
 $lang['sviat__novaposhta__dict_stale_text'] = 'Останнє оновлення — понад 3 дні тому, хоча вони оновлюються щодня. Швидше за все, планувальник OkayCMS перестав запускатися.';
+
+$lang['sviat__novaposhta__service_type'] = 'Що вибирає покупець';
+$lang['sviat__novaposhta__service_ww'] = 'Відділення чи поштомат — посилки здаєте у відділенні';
+$lang['sviat__novaposhta__service_wd'] = 'Адреса — посилки здаєте у відділенні';
+$lang['sviat__novaposhta__service_dw'] = 'Відділення чи поштомат — кур’єр забирає посилки у вас';
+$lang['sviat__novaposhta__service_dd'] = 'Адреса — кур’єр забирає посилки у вас';
