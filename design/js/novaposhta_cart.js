@@ -61,6 +61,23 @@
         this.choice = root.querySelector('.np-cart__choice');
         this.quoteBox = root.querySelector('.np-cart__quote');
         this.deliveryId = root.getAttribute('data-delivery-id');
+        this.mode = root.getAttribute('data-mode') === 'address' ? 'address' : 'points';
+        this.address = root.querySelector('.np-cart__address');
+        this.street = root.querySelector('.np-cart__street-input');
+        this.streetSuggest = root.querySelector('.np-cart__street-suggest');
+        this.streetHint = root.querySelector('.np-cart__street-hint');
+        this.streetRef = root.querySelector('.np-cart__street-ref');
+        this.house = root.querySelector('.np-cart__house-input');
+        this.flat = root.querySelector('.np-cart__flat-input');
+        this.floor = root.querySelector('.np-cart__floor-input');
+        this.elevator = root.querySelector('.np-cart__elevator');
+        this.note = root.querySelector('.np-cart__note-input');
+        this.noteCount = root.querySelector('.np-cart__note-count');
+        this.lifting = root.querySelector('.np-cart__lifting');
+        this.liftingInput = root.querySelector('.np-cart__lifting-input');
+        this.streetRequest = null;
+        this.streetTimer = null;
+        this.quoteTimer = null;
         this.quoteRequest = null;
         this.themePrice = null;
         this.settlementInput = root.querySelector('.np-cart__settlement-id');
@@ -75,7 +92,13 @@
         this.cityTimer = null;
         this.searchTimer = null;
         this.bind();
+        if (this.mode === 'address') {
+            this.bindAddress();
+        }
         if (this.settlement) {
+            if (this.address) {
+                this.address.hidden = false;
+            }
             this.showChoice();
             this.load();
             this.requestQuote();
@@ -98,6 +121,9 @@
         });
         this.city.addEventListener('keydown', function (event) { self.cityKeys(event); });
         this.city.addEventListener('blur', function () { setTimeout(function () { self.closeSuggest(); }, 150); });
+        if (!this.search) {
+            return;
+        }
         this.search.addEventListener('input', function () {
             clearTimeout(self.searchTimer);
             self.searchTimer = setTimeout(function () { self.load(); }, DEBOUNCE_MS);
@@ -120,7 +146,7 @@
             this.cityRequest.abort();
         }
         this.cityRequest = new AbortController();
-        fetch(route('Sviat_NovaPoshta_cart_settlements') + '?q=' + encodeURIComponent(query), { credentials: 'same-origin', signal: this.cityRequest.signal })
+        fetch(route('Sviat_NovaPoshta_cart_settlements') + '?q=' + encodeURIComponent(query) + (this.mode === 'address' ? '&mode=address' : ''), { credentials: 'same-origin', signal: this.cityRequest.signal })
             .then(function (response) { return response.json(); })
             .then(function (data) { self.showSuggest(data.settlements || []); })
             .catch(function (error) {
@@ -201,11 +227,25 @@
             this.divisionInput.value = '';
             this.clearQuote();
             this.groupId = null;
-            this.search.value = '';
-            syncFilled(this.search);
+            if (this.search) {
+                this.search.value = '';
+                syncFilled(this.search);
+            }
+            if (this.street) {
+                // Streets belong to one settlement: a street of the previous one must not travel along.
+                this.street.value = '';
+                this.streetRef.value = '';
+                syncFilled(this.street);
+            }
+        }
+        if (this.address) {
+            this.address.hidden = false;
         }
         this.showChoice();
         this.load();
+        if (this.mode === 'address') {
+            this.requestQuote();
+        }
     };
 
     /** Edited city text no longer names the chosen place: the order must not go there silently. */
@@ -219,6 +259,9 @@
         this.divisionInput.value = '';
         this.groupId = null;
         this.points.hidden = true;
+        if (this.address) {
+            this.address.hidden = true;
+        }
         this.say('');
         this.markPopular();
         this.showChoice();
@@ -236,7 +279,7 @@
 
     Block.prototype.load = function () {
         var self = this;
-        if (!this.settlement || !route('Sviat_NovaPoshta_cart_divisions')) {
+        if (this.mode === 'address' || !this.settlement || !route('Sviat_NovaPoshta_cart_divisions')) {
             return;
         }
         if (this.pointsRequest) {
@@ -360,6 +403,19 @@
     };
 
     Block.prototype.showChoice = function () {
+        if (this.mode === 'address') {
+            var street = this.street ? this.street.value.trim() : '';
+            var house = this.house ? this.house.value.trim() : '';
+            var flat = this.flat ? this.flat.value.trim() : '';
+            if (this.settlement && street && house) {
+                var place = [this.settlement.name, street, house].join(', ') + (flat ? ', ' + (this.texts.cart_flat_short || '') + ' ' + flat : '');
+                this.choice.textContent = format(this.texts.cart_address_choice, { place: place });
+                this.choice.hidden = false;
+            } else {
+                this.choice.hidden = true;
+            }
+            return;
+        }
         if (this.settlement && this.division) {
             this.choice.textContent = format(this.texts.cart_choice, { place: this.settlement.name + ', ' + this.division.title });
             this.choice.hidden = false;
@@ -426,14 +482,20 @@
     Block.prototype.requestQuote = function () {
         var self = this;
         var url = route('Sviat_NovaPoshta_cart_quote');
-        if (!this.division || !url) {
+        var target = this.mode === 'address'
+            ? (this.settlement ? '&mode=address&settlement_id=' + encodeURIComponent(this.settlement.id)
+                + '&lifting=' + (this.liftingInput && this.liftingInput.checked && !this.lifting.hidden ? 1 : 0)
+                + '&floor=' + encodeURIComponent(this.floor ? this.floor.value.trim() : '')
+                + '&elevator=' + (this.elevator && this.elevator.checked ? 1 : 0) : null)
+            : (this.division ? '&division_id=' + encodeURIComponent(this.division.id) : null);
+        if (!target || !url) {
             return;
         }
         if (this.quoteRequest) {
             this.quoteRequest.abort();
         }
         this.quoteRequest = new AbortController();
-        var query = '?delivery_id=' + encodeURIComponent(this.deliveryId) + '&division_id=' + encodeURIComponent(this.division.id) + '&payment_id=' + encodeURIComponent(this.paymentId());
+        var query = '?delivery_id=' + encodeURIComponent(this.deliveryId) + target + '&payment_id=' + encodeURIComponent(this.paymentId());
         var input = this.themeInput();
         if (input && input.length && !input.data('hide_front_delivery_price') && !input.data('is_free_delivery')) {
             this.captureTheme();
@@ -470,14 +532,121 @@
             var lang = document.documentElement.lang || 'uk';
             lines.push(format(this.texts.cart_term, { date: isNaN(date) ? data.term : date.toLocaleDateString(lang, { day: 'numeric', month: 'long' }) }));
         }
-        if (problem && typeof data.price !== 'number' && data.problem !== 'no_city_ref') {
+        if (this.mode === 'address' && data.problem === 'no_city_ref') {
+            lines.push(this.texts.cart_no_address);
+        } else if (data.problem === 'rejected' && typeof data.price !== 'number') {
+            lines.push(this.texts.cart_price_rejected);
+        } else if (problem && typeof data.price !== 'number' && data.problem !== 'no_city_ref') {
             lines.push(this.texts.cart_price_unreachable);
         }
+        this.showLifting(data);
         this.quoteBox.textContent = '';
         var self = this;
         lines.forEach(function (line) { self.quoteBox.appendChild(el('p', null, line)); });
         this.quoteBox.classList.toggle('np-cart__quote--problem', problem && typeof data.price !== 'number');
         this.quoteBox.hidden = lines.length === 0;
+    };
+
+    Block.prototype.bindAddress = function () {
+        var self = this;
+        if (!this.street) {
+            return;
+        }
+        this.street.addEventListener('input', function () {
+            // A typed street is allowed, but it has no Nova Poshta Ref: the shipment then goes by text.
+            self.streetRef.value = '';
+            self.showChoice();
+            clearTimeout(self.streetTimer);
+            self.streetTimer = setTimeout(function () { self.findStreets(); }, DEBOUNCE_MS);
+        });
+        this.street.addEventListener('blur', function () { setTimeout(function () { self.streetSuggest.hidden = true; }, 150); });
+        [this.house, this.flat].forEach(function (input) {
+            input.addEventListener('input', function () { self.showChoice(); });
+        });
+        var requote = function () {
+            clearTimeout(self.quoteTimer);
+            self.quoteTimer = setTimeout(function () { self.requestQuote(); }, DEBOUNCE_MS);
+        };
+        this.floor.addEventListener('input', requote);
+        this.elevator.addEventListener('change', requote);
+        this.liftingInput.addEventListener('change', requote);
+        var count = function () {
+            var left = Math.max(0, 40 - self.note.value.length);
+            self.noteCount.textContent = format(self.texts.cart_note_left, { left: left });
+        };
+        this.note.addEventListener('input', count);
+        count();
+        [this.street, this.house, this.flat, this.floor, this.note, root(this, '.np-cart__entrance-input')].forEach(function (input) {
+            if (input) {
+                syncFilled(input);
+                input.addEventListener('blur', function () { syncFilled(input); });
+            }
+        });
+    };
+
+    function root(block, selector) {
+        return block.root.querySelector(selector);
+    }
+
+    Block.prototype.findStreets = function () {
+        var self = this;
+        var query = this.street.value.trim();
+        var url = route('Sviat_NovaPoshta_cart_streets');
+        this.streetHint.hidden = true;
+        if (!this.settlement || query.length < 2 || !url) {
+            this.streetSuggest.hidden = true;
+            return;
+        }
+        if (this.streetRequest) {
+            this.streetRequest.abort();
+        }
+        this.streetRequest = new AbortController();
+        fetch(url + '?settlement_id=' + encodeURIComponent(this.settlement.id) + '&q=' + encodeURIComponent(query), { credentials: 'same-origin', signal: this.streetRequest.signal })
+            .then(function (response) { return response.json(); })
+            .then(function (data) { self.showStreets(data || {}); })
+            .catch(function (error) {
+                if (error.name !== 'AbortError') {
+                    self.showStreets({ streets: [], problem: 'unreachable' });
+                }
+            });
+    };
+
+    Block.prototype.showStreets = function (data) {
+        var self = this;
+        var streets = data.streets || [];
+        this.streetSuggest.textContent = '';
+        streets.forEach(function (street) {
+            var option = el('li', 'np-cart__suggest-item', street.name);
+            option.setAttribute('role', 'option');
+            option.addEventListener('mousedown', function (event) {
+                event.preventDefault();
+                self.street.value = street.name;
+                self.streetRef.value = street.ref;
+                syncFilled(self.street);
+                self.streetSuggest.hidden = true;
+                self.showChoice();
+            });
+            self.streetSuggest.appendChild(option);
+        });
+        this.streetSuggest.hidden = streets.length === 0;
+        var hint = data.problem ? this.texts.cart_street_failed : (streets.length === 0 ? this.texts.cart_no_street : '');
+        this.streetHint.textContent = hint || '';
+        this.streetHint.hidden = !hint;
+    };
+
+    /** Lifting is offered only when it costs extra or some weights are unknown (server decides). */
+    Block.prototype.showLifting = function (data) {
+        if (!this.lifting) {
+            return;
+        }
+        this.lifting.hidden = !data.liftingOffered;
+        if (!data.liftingOffered) {
+            // A hidden, still ticked box would be posted and then demand a floor.
+            this.liftingInput.checked = false;
+            return;
+        }
+        this.lifting.querySelector('.np-cart__lifting-fee').textContent = data.liftingFeeText ? '(' + data.liftingFeeText + ')' : '';
+        this.lifting.querySelector('.np-cart__lifting-note').textContent = data.liftingFeeText ? this.texts.cart_lifting_paid : this.texts.cart_lifting_unknown;
     };
 
     Block.prototype.say = function (text) {

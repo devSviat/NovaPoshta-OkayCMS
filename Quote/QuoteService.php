@@ -33,6 +33,7 @@ final class QuoteService
         $price = null;
         $codFee = null;
         $liftingFee = null;
+        $liftingRefused = false;
         $term = null;
         $problem = null;
         $source = 'none';
@@ -44,9 +45,18 @@ final class QuoteService
                     // NP has no "lifting price" method: the extra is the difference of two calculations,
                     // so the weight limit (30 kg today) stays NP's, not ours (design §6).
                     $base = $this->oldPrice($request, false);
-                    $lifted = $this->oldPrice($request, true);
-                    [$price, $codFee] = $request->address->lifting ? $lifted : $base;
-                    $fee = round($lifted[0] - $base[0], 2);
+                    try {
+                        $lifted = $this->oldPrice($request, true);
+                    } catch (QuoteProblem $e) {
+                        if ($e->getMessage() !== 'rejected') {
+                            throw $e;
+                        }
+                        // Too heavy to lift: the delivery itself is still priced, lifting is just not offered.
+                        $lifted = null;
+                        $liftingRefused = true;
+                    }
+                    [$price, $codFee] = $request->address->lifting && $lifted !== null ? $lifted : $base;
+                    $fee = $lifted === null ? 0.0 : round($lifted[0] - $base[0], 2);
                     $liftingFee = $fee > 0.004 ? $fee : null;
                 } else {
                     [$price, $codFee] = $useNew ? [$this->newPrice($request), null] : $this->oldPrice($request, $request->address?->lifting ?? false);
@@ -66,7 +76,7 @@ final class QuoteService
             }
         }
 
-        return new DeliveryQuote($price, $term, $source, $problem, $codFee, $liftingFee);
+        return new DeliveryQuote($price, $term, $source, $problem, $codFee, $liftingFee, $liftingRefused);
     }
 
     private function newPrice(QuoteRequest $request): float

@@ -202,7 +202,7 @@ final class CartQuotes
         // Precision 2 explicitly: by default Money rounds to the UAH currency's `cents`, which may be 0.
         $convert = fn(float $amount): float => round((float)$this->money->convert($amount, (int)$uah->id, false, true, 2), 2);
 
-        return new DeliveryQuote($convert($quote->price), $quote->term, $quote->source, $quote->problem, $quote->codFee === null ? null : $convert($quote->codFee), $quote->liftingFee === null ? null : $convert($quote->liftingFee));
+        return new DeliveryQuote($convert($quote->price), $quote->term, $quote->source, $quote->problem, $quote->codFee === null ? null : $convert($quote->codFee), $quote->liftingFee === null ? null : $convert($quote->liftingFee), $quote->liftingRefused);
     }
 
     private function takeBudget(int $now, string $name = 'quote_budget', int $limit = QuoteBudget::LIMIT): bool

@@ -305,4 +305,13 @@ class QuoteServiceTest extends TestCase
 
         self::assertSame(['a88bc669-76f2-11e9-898c-005056b24375', 'WarehouseDoors'], [$this->body(1)['methodProperties']['CityRecipient'], $this->body(1)['methodProperties']['ServiceType']]);
     }
+
+    public function testTooHeavyForLiftingKeepsThePriceWithoutLifting(): void
+    {
+        $this->oldPriceAnswer(2899.55)->http->json(200, ['success' => false, 'data' => [], 'errors' => ['Weight is too high for floors lifting'], 'errorCodes' => ['20000200377']]);
+
+        $quote = $this->service()->quote(self::addressRequest(lifting: true, offerLifting: true));
+
+        self::assertSame([2899.55, null, true, 'old', null], [$quote->price, $quote->liftingFee, $quote->liftingRefused, $quote->source, $quote->problem]);
+    }
 }

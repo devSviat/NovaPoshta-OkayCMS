@@ -35,6 +35,7 @@ class FrontExtender implements ExtensionInterface
         'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_closes', 'cart_all_day', 'cart_up_to_kg',
         'cart_too_heavy', 'cart_too_expensive', 'cart_choice', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
         'cart_cod_fee', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager',
+        'cart_street_failed', 'cart_no_street', 'cart_address_choice', 'cart_flat_short', 'cart_no_address', 'cart_lifting_paid', 'cart_lifting_unknown', 'cart_note_left', 'cart_price_rejected',
     ];
 
     public function __construct(
@@ -160,8 +161,7 @@ class FrontExtender implements ExtensionInterface
     public function getCartDeliveriesList($deliveries, $cart)
     {
         $moduleId = (int)$this->module->getModuleIdByNamespace(__CLASS__);
-        $own = array_filter((array)$deliveries, static fn($d): bool => (int)($d->module_id ?? 0) === $moduleId
-            && DeliveryMode::fromServiceType($d->settings['service_type'] ?? null) === DeliveryMode::Points);
+        $own = array_filter((array)$deliveries, static fn($d): bool => (int)($d->module_id ?? 0) === $moduleId);
         if ($own === []) {
             return;
         }
@@ -178,6 +178,7 @@ class FrontExtender implements ExtensionInterface
         $this->design->assign('np_popular', $this->popularCities->buttons($lang));
         // JSON is built here: Smarty 5 does not allow PHP functions such as json_encode as modifiers.
         $this->design->assign('np_texts_json', json_encode($texts, JSON_UNESCAPED_UNICODE));
+        $this->design->assign('np_modes', array_map(static fn($d): string => DeliveryMode::fromServiceType($d->settings['service_type'] ?? null) === DeliveryMode::Address ? 'address' : 'points', $own));
         $this->design->assign('np_prefill', $this->prefill(array_keys($own), $lang));
     }
 
@@ -196,15 +197,48 @@ class FrontExtender implements ExtensionInterface
         $prefill = [];
         foreach ($deliveryIds as $deliveryId) {
             $choice = is_array($posted[$deliveryId] ?? null) ? $posted[$deliveryId]
-                : ($last ? ['settlement_id' => $last->settlement_id, 'division_id' => $last->division_id] : []);
+                : ($last ? ['settlement_id' => $last->settlement_id, 'division_id' => $last->division_id] + self::lastAddress($last) : []);
             $described = $this->describe((int)($choice['settlement_id'] ?? 0), (int)($choice['division_id'] ?? 0), $lang);
             $prefill[(int)$deliveryId] = $described + [
+                'address' => self::addressPrefill($choice),
                 'settlement_json' => $described['settlement'] ? json_encode($described['settlement'], JSON_UNESCAPED_UNICODE) : '',
                 'division_json' => $described['division'] ? json_encode($described['division'], JSON_UNESCAPED_UNICODE) : '',
             ];
         }
 
         return $prefill;
+    }
+
+    /** Address fields of the previous order's snapshot, under the names the cart posts. */
+    private static function lastAddress(object $last): array
+    {
+        if (($last->mode ?? null) !== 'address') {
+            return [];
+        }
+
+        return array_filter([
+            'street' => $last->street_name ?? null,
+            'street_ref' => $last->street_ref ?? null,
+            'house' => $last->house ?? null,
+            'flat' => $last->flat ?? null,
+            'entrance' => $last->entrance ?? null,
+            'floor' => $last->floor ?? null,
+            'elevator' => $last->elevator ?? null,
+            'note' => $last->address_note ?? null,
+        ], static fn($v): bool => $v !== null && $v !== '');
+    }
+
+    /** @return array<string, string> only plain strings go back into the form; the template escapes them */
+    private static function addressPrefill(array $choice): array
+    {
+        $out = [];
+        foreach (['street', 'street_ref', 'house', 'flat', 'entrance', 'floor', 'elevator', 'note', 'lifting'] as $name) {
+            if (is_scalar($choice[$name] ?? null)) {
+                $out[$name] = mb_substr((string)$choice[$name], 0, 100);
+            }
+        }
+
+        return $out;
     }
 
     /** @return array{settlement:?array{id:int, name:string}, division:?array{id:int, title:string}} */

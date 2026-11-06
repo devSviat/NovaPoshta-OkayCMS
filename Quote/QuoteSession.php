@@ -26,6 +26,7 @@ final class QuoteSession
             is_string($row['problem'] ?? null) ? $row['problem'] : null,
             is_numeric($row['codFee'] ?? null) ? (float)$row['codFee'] : null,
             is_numeric($row['liftingFee'] ?? null) ? (float)$row['liftingFee'] : null,
+            !empty($row['liftingRefused']),
         );
     }
 
@@ -33,7 +34,7 @@ final class QuoteSession
     {
         $quotes = is_array($bag['quotes'] ?? null) ? $bag['quotes'] : [];
         unset($quotes[$key]);
-        $quotes[$key] = ['price' => $quote->price, 'term' => $quote->term?->format('Y-m-d'), 'source' => $quote->source, 'problem' => $quote->problem, 'codFee' => $quote->codFee, 'liftingFee' => $quote->liftingFee, 'at' => $now];
+        $quotes[$key] = ['price' => $quote->price, 'term' => $quote->term?->format('Y-m-d'), 'source' => $quote->source, 'problem' => $quote->problem, 'codFee' => $quote->codFee, 'liftingFee' => $quote->liftingFee, 'liftingRefused' => $quote->liftingRefused, 'at' => $now];
         $bag['quotes'] = array_slice($quotes, -self::MAX_QUOTES, null, true);
     }
 

@@ -86,7 +86,7 @@ class CartController
 
         $answer = ['price' => null, 'priceText' => null, 'totalWithDelivery' => null, 'free' => false, 'codFee' => null, 'codFeeText' => null, 'term' => $quote->term?->format('Y-m-d'), 'problem' => $quote->problem, 'liftingOffered' => false, 'liftingFeeText' => null];
         // Lifting is offered only when it costs extra, or when the weight of some goods is unknown (design §6).
-        if ($request->get('mode') === 'address' && $shipping->read()->showLifting
+        if ($request->get('mode') === 'address' && $shipping->read()->showLifting && !$quote->liftingRefused
             && ($quote->liftingFee !== null || CartMetrics::fromCart($cartData)->weightUnknown)) {
             $answer['liftingOffered'] = true;
             if ($quote->liftingFee !== null) {
