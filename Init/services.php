@@ -17,10 +17,12 @@ use Okay\Modules\Sviat\NovaPoshta\Backend\KeySettings;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\BoostUpdater;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Cdn\CdnClient;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\CdnDictionarySteps;
+use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryCounts;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryRunner;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DivisionsUpdater;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\SettlementsUpdater;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Store\DbDictionaryStore;
+use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 
@@ -94,5 +96,13 @@ return [
     DictionaryRunner::class => [
         'class' => DictionaryRunner::class,
         'arguments' => [new SR(CdnDictionarySteps::class), new SR(ModuleState::class)],
+    ],
+    DictionaryCounts::class => [
+        'class' => DictionaryCounts::class,
+        'arguments' => [new SR(EntityFactory::class)],
+    ],
+    GroupsStore::class => [
+        'class' => GroupsStore::class,
+        'arguments' => [new SR(EntityFactory::class)],
     ],
 ];

@@ -100,11 +100,218 @@
     </div>
 </div>
 
+{* Dictionaries *}
+<form method="post" id="np_dict_form">
+    <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
+    <input type="hidden" name="np_action" value="dictionaries">
+    <div class="row">
+        <div class="col-lg-8 col-md-12">
+            <div class="boxed mb-2">
+                <div class="np_box_head">
+                    <div class="heading_box">{$btr->sviat__novaposhta__dict_box|escape}</div>
+                    <button type="submit" class="btn btn_small btn_blue" {if $np_dict.busy}disabled{/if}>
+                        <span>{if $np_dict.busy}{$btr->sviat__novaposhta__dict_button_busy|escape}{else}{$btr->sviat__novaposhta__dict_button|escape}{/if}</span>
+                    </button>
+                </div>
+                <p>{$btr->sviat__novaposhta__dict_intro|escape}</p>
+                {if $np_dict.has_data}
+                    <div class="np_figures">
+                        <div><b>{$np_dict.figures.divisions|escape}</b><span>{$btr->sviat__novaposhta__dict_fig_divisions|escape}</span></div>
+                        <div><b>{$np_dict.figures.postomats|escape}</b><span>{$btr->sviat__novaposhta__dict_fig_postomats|escape}</span></div>
+                        <div><b>{$np_dict.figures.settlements|escape}</b><span>{$btr->sviat__novaposhta__dict_fig_settlements|escape}</span></div>
+                        <div><b>{$np_dict.figures.boosted|escape}</b><span>{$btr->sviat__novaposhta__dict_fig_boosted|escape}</span></div>
+                    </div>
+                    {if $np_dict.updated_at}
+                        <div class="text_grey">
+                            {$btr->sviat__novaposhta__dict_updated|escape} <b>{$np_dict.updated_at|escape}</b> ·
+                            {$btr->sviat__novaposhta__dict_changes|escape}
+                            +{$np_dict.changes.added|escape} / ~{$np_dict.changes.changed|escape} / −{$np_dict.changes.deleted|escape}
+                        </div>
+                    {/if}
+                {/if}
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="row">
+    <div class="col-lg-8 col-md-12">
+        <div class="alert alert--icon {if $np_dict.state == 'ok'}alert--success{elseif $np_dict.state == 'error'}alert--error{elseif $np_dict.state == 'scheduler_idle' || $np_dict.state == 'stopped'}alert--warning{else}alert--info{/if}" role="status" aria-live="polite">
+            <div class="alert__content">
+                <div class="alert__title">
+                    {if $np_dict.state == 'ok'}{$btr->sviat__novaposhta__dict_ok_title|escape}
+                    {elseif $np_dict.state == 'error'}{$btr->sviat__novaposhta__dict_error_title|escape}
+                    {elseif $np_dict.state == 'queued'}{$btr->sviat__novaposhta__dict_queued_title|escape}
+                    {elseif $np_dict.state == 'running'}{$btr->sviat__novaposhta__dict_running_title|escape}
+                    {elseif $np_dict.state == 'scheduler_idle'}{$btr->sviat__novaposhta__dict_idle_title|escape}
+                    {elseif $np_dict.state == 'stopped'}{$btr->sviat__novaposhta__dict_stopped_title|escape}
+                    {else}{$btr->sviat__novaposhta__dict_none_title|escape}{/if}
+                </div>
+                <p>
+                    {if $np_dict.state == 'ok'}{$btr->sviat__novaposhta__dict_ok_text|escape}
+                    {elseif $np_dict.state == 'error'}{$btr->sviat__novaposhta__dict_error_text|escape} <span class="text_grey">({$np_dict.error|escape})</span>
+                    {elseif $np_dict.state == 'queued'}{$btr->sviat__novaposhta__dict_queued_text|escape}
+                    {elseif $np_dict.state == 'running'}{$btr->sviat__novaposhta__dict_running_text|escape}
+                    {elseif $np_dict.state == 'scheduler_idle'}{$btr->sviat__novaposhta__dict_idle_text|escape}
+                    {elseif $np_dict.state == 'stopped'}{$btr->sviat__novaposhta__dict_stopped_text|escape}
+                    {else}{$btr->sviat__novaposhta__dict_none_text|escape}{/if}
+                </p>
+                {if $np_dict.state == 'error' || $np_dict.state == 'scheduler_idle' || $np_dict.state == 'stopped' || $np_dict.state == 'none'}
+                    <p>
+                        <b>{$btr->sviat__novaposhta__what_to_do|escape}</b>
+                        {if $np_dict.state == 'error'}{$btr->sviat__novaposhta__dict_error_action|escape}
+                        {elseif $np_dict.state == 'scheduler_idle'}{$btr->sviat__novaposhta__dict_idle_action|escape}
+                        {elseif $np_dict.state == 'stopped'}{$btr->sviat__novaposhta__dict_stopped_action|escape}
+                        {else}{$btr->sviat__novaposhta__dict_none_action|escape}{/if}
+                    </p>
+                    {if $np_dict.state == 'scheduler_idle'}<code class="np_cron">* * * * * php /path/to/site/ok scheduler:run</code>{/if}
+                {/if}
+            </div>
+        </div>
+        {if $np_dict.boost_warning}
+            <div class="alert alert--warning" role="status">
+                <div class="alert__content">
+                    <p><b>{$btr->sviat__novaposhta__dict_boost_title|escape}</b> {$btr->sviat__novaposhta__dict_boost_text|escape}</p>
+                </div>
+            </div>
+        {/if}
+    </div>
+</div>
+
+{* Groups *}
+<form method="post" id="np_groups_form">
+    <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
+    <input type="hidden" name="np_action" value="groups">
+    <div class="row">
+        <div class="col-lg-8 col-md-12">
+            <div class="boxed mb-2">
+                <div class="heading_box mb-1">{$btr->sviat__novaposhta__groups_box|escape}</div>
+                <p>{$btr->sviat__novaposhta__groups_intro|escape}</p>
+
+                {if $np_groups_saved}
+                    <div class="alert alert--success" role="status"><div class="alert__content"><p>{$btr->sviat__novaposhta__groups_saved|escape}</p></div></div>
+                {/if}
+                {if $np_groups_errors}
+                    <div class="alert alert--error" role="alert"><div class="alert__content">
+                        {foreach $np_groups_errors as $error}
+                            <p>
+                                {if $error == 'empty_name'}{$btr->sviat__novaposhta__groups_error_empty_name|escape}
+                                {elseif $error == 'category_in_deleted_group'}{$btr->sviat__novaposhta__groups_error_deleted|escape}
+                                {else}{$btr->sviat__novaposhta__groups_error_other|escape}{/if}
+                            </p>
+                        {/foreach}
+                    </div></div>
+                {/if}
+
+                <div class="heading_label">{$btr->sviat__novaposhta__groups_list|escape}</div>
+                <div id="np_group_rows">
+                    {foreach $np_groups.groups as $group}
+                        <div class="np_group_row" data-form-id="{$group.id|escape}">
+                            <input type="hidden" data-field="id" value="{$group.id|escape}">
+                            <div class="np_move">
+                                <button type="button" class="btn_border" data-np-move="-1" aria-label="{$btr->sviat__novaposhta__groups_up|escape}">▲</button>
+                                <button type="button" class="btn_border" data-np-move="1" aria-label="{$btr->sviat__novaposhta__groups_down|escape}">▼</button>
+                            </div>
+                            <label class="np_group_name">
+                                <span class="text_grey">{$btr->sviat__novaposhta__groups_name|escape}</span>
+                                <input type="text" class="form-control" data-field="name" value="{$group.name|escape}" maxlength="255">
+                            </label>
+                            <label class="np_inline">
+                                <span>{$btr->sviat__novaposhta__groups_enabled|escape}</span>
+                                <span class="switch switch-default">
+                                    <input class="switch-input" type="checkbox" data-field="enabled" value="1" {if $group.enabled}checked{/if}>
+                                    <span class="switch-label"></span>
+                                    <span class="switch-handle"></span>
+                                </span>
+                            </label>
+                            <label class="np_inline text_grey">
+                                <input type="checkbox" data-field="delete" value="1"> {$btr->sviat__novaposhta__groups_delete|escape}
+                            </label>
+                        </div>
+                    {/foreach}
+                    <div class="np_group_row np_group_new" data-form-id="new" hidden>
+                        <input type="hidden" data-field="id" value="new">
+                        <div class="np_move">
+                            <button type="button" class="btn_border" data-np-move="-1" aria-label="{$btr->sviat__novaposhta__groups_up|escape}">▲</button>
+                            <button type="button" class="btn_border" data-np-move="1" aria-label="{$btr->sviat__novaposhta__groups_down|escape}">▼</button>
+                        </div>
+                        <label class="np_group_name">
+                            <span class="text_grey">{$btr->sviat__novaposhta__groups_name|escape}</span>
+                            <input type="text" class="form-control" data-field="name" value="" maxlength="255">
+                        </label>
+                        <label class="np_inline">
+                            <span>{$btr->sviat__novaposhta__groups_enabled|escape}</span>
+                            <span class="switch switch-default">
+                                <input class="switch-input" type="checkbox" data-field="enabled" value="1" checked>
+                                <span class="switch-label"></span>
+                                <span class="switch-handle"></span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                <button type="button" class="btn_border btn_small mb-2" id="np_group_add">+ {$btr->sviat__novaposhta__groups_add|escape}</button>
+
+                <div class="heading_label">{$btr->sviat__novaposhta__groups_categories|escape}</div>
+                {foreach $np_groups.categories as $category}
+                    <div class="np_category_row">
+                        <div class="np_category_name">
+                            <b>{$btr->getTranslation($category.label_key)|escape}</b>
+                            <span class="text_grey">{$category.count|escape} {$btr->sviat__novaposhta__groups_points|escape}</span>
+                        </div>
+                        <label class="np_inline">
+                            <span>{$btr->sviat__novaposhta__groups_group|escape}</span>
+                            <select name="categories[{$category.key|escape}][group]" class="form-control np_category_group">
+                                <option value="0" {if !$category.group}selected{/if}>— {$btr->sviat__novaposhta__groups_none|escape}</option>
+                                {foreach $np_groups.groups as $group}
+                                    <option value="{$group.id|escape}" {if $category.group == $group.id}selected{/if}>{$group.name|escape}</option>
+                                {/foreach}
+                                <option value="new" hidden disabled class="np_option_new"></option>
+                            </select>
+                        </label>
+                        <label class="np_inline">
+                            <span>{$btr->sviat__novaposhta__groups_shown|escape}</span>
+                            <span class="switch switch-default">
+                                <input class="switch-input" type="checkbox" name="categories[{$category.key|escape}][shown]" value="1" {if $category.shown}checked{/if}>
+                                <span class="switch-label"></span>
+                                <span class="switch-handle"></span>
+                            </span>
+                        </label>
+                        {if $category.warning}
+                            <div class="np_category_warning">
+                                {if $category.warning == 'no_group'}{$btr->sviat__novaposhta__groups_warn_no_group|escape}
+                                {elseif $category.warning == 'group_disabled'}{$btr->sviat__novaposhta__groups_warn_group_disabled|escape}
+                                {else}{$btr->sviat__novaposhta__groups_warn_hidden|escape}{/if}
+                            </div>
+                        {/if}
+                    </div>
+                {/foreach}
+
+                <button type="submit" class="btn btn_small btn_blue mt-1"><span>{$btr->sviat__novaposhta__groups_save|escape}</span></button>
+            </div>
+        </div>
+    </div>
+</form>
+
 <style>
     .np_key_buttons { display: flex; flex-wrap: wrap; gap: 10px; }
     .np_key_rows { margin: 8px 0; padding-left: 18px; }
     .np_key_rows li { margin-bottom: 4px; }
-    @media (max-width: 575px) { .np_key_buttons .btn { width: 100%; } }
+    .np_box_head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .np_figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
+    .np_figures > div { border: 1px solid var(--ok-line, #e4e6e9); border-radius: 6px; padding: 8px 12px; display: flex; flex-direction: column; }
+    .np_figures b { font-size: 18px; }
+    .np_cron { display: block; padding: 6px 10px; margin-top: 6px; overflow-x: auto; white-space: nowrap; }
+    .np_group_row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--ok-line, #e4e6e9); }
+    .np_group_row[hidden] { display: none; }
+    .np_move { display: flex; flex-direction: column; gap: 2px; }
+    .np_move button { min-width: 34px; padding: 0 6px; line-height: 20px; }
+    .np_group_name { flex: 1 1 220px; display: flex; flex-direction: column; gap: 4px; margin: 0; }
+    .np_inline { display: inline-flex; align-items: center; gap: 8px; margin: 0; }
+    .np_category_row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--ok-line, #e4e6e9); }
+    .np_category_name { flex: 1 1 220px; display: flex; flex-direction: column; }
+    .np_category_group { min-width: 160px; }
+    .np_category_warning { flex-basis: 100%; color: var(--ok-warning, #a35a00); }
+    @media (max-width: 575px) { .np_key_buttons .btn, #np_dict_form .btn { width: 100%; } }
 </style>
 
 <script>
@@ -125,4 +332,54 @@
             }
         }
     });
+
+    (function () {
+        var form = document.getElementById('np_groups_form');
+        var rows = document.getElementById('np_group_rows');
+        var newRow = rows.querySelector('.np_group_new');
+        var newName = newRow.querySelector('[data-field="name"]');
+
+        rows.addEventListener('click', function (event) {
+            var button = event.target.closest('[data-np-move]');
+            if (!button) {
+                return;
+            }
+            var row = button.closest('.np_group_row');
+            var sibling = button.dataset.npMove === '-1' ? row.previousElementSibling : row.nextElementSibling;
+            if (sibling && !sibling.hidden) {
+                button.dataset.npMove === '-1' ? rows.insertBefore(row, sibling) : rows.insertBefore(sibling, row);
+            }
+        });
+
+        document.getElementById('np_group_add').addEventListener('click', function () {
+            newRow.hidden = false;
+            this.hidden = true;
+            form.querySelectorAll('.np_option_new').forEach(function (option) {
+                option.hidden = false;
+                option.disabled = false;
+            });
+            newName.focus();
+        });
+
+        newName.addEventListener('input', function () {
+            var label = newName.value.trim();
+            form.querySelectorAll('.np_option_new').forEach(function (option) {
+                option.textContent = label;
+            });
+        });
+
+        // Names follow the order on the page, so a moved group keeps its new position.
+        form.addEventListener('submit', function () {
+            var index = 0;
+            rows.querySelectorAll('.np_group_row').forEach(function (row) {
+                if (row.hidden) {
+                    return;
+                }
+                row.querySelectorAll('[data-field]').forEach(function (input) {
+                    input.name = 'groups[' + index + '][' + input.dataset.field + ']';
+                });
+                index++;
+            });
+        });
+    })();
 </script>
