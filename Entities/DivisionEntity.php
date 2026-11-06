@@ -1,0 +1,40 @@
+<?php
+
+namespace Okay\Modules\Sviat\NovaPoshta\Entities;
+
+use Okay\Core\Entity\Entity;
+
+/** Branches, PUDO points and parcel lockers of Ukraine; `id` is Nova Poshta's id. */
+class DivisionEntity extends Entity
+{
+    protected static $fields = [
+        'id',
+        'settlement_id',
+        'number',
+        'category',
+        'status',
+        'name_uk',
+        'name_en',
+        'short_name_uk',
+        'short_name_en',
+        'address_uk',
+        'address_en',
+        'post_code',
+        'latitude',
+        'longitude',
+        'max_weight',
+        'max_length',
+        'max_width',
+        'max_height',
+        'max_declared_cost',
+        'prohibited_issuance',
+        'schedule',
+        'row_hash',
+        'seen_run',
+        'updated_at',
+    ];
+
+    protected static $defaultOrderFields = ['id'];
+    protected static $table = 'sviat__novaposhta_divisions';
+    protected static $tableAlias = 'nps_d';
+}
