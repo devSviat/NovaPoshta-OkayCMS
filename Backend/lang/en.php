@@ -100,3 +100,5 @@ $lang['sviat__novaposhta__category_postbranch'] = 'Post branches';
 $lang['sviat__novaposhta__category_cargobranch'] = 'Cargo branches';
 $lang['sviat__novaposhta__category_pudo'] = 'Pickup points (PUDO)';
 $lang['sviat__novaposhta__category_postomat'] = 'Parcel lockers';
+$lang['sviat__novaposhta__dict_stale_title'] = 'The dictionaries have not been updated for a while';
+$lang['sviat__novaposhta__dict_stale_text'] = 'The last update was more than 3 days ago, though they update daily. Most likely the OkayCMS scheduler stopped running.';

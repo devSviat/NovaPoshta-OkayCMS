@@ -68,6 +68,18 @@ class BoostUpdaterTest extends TestCase
         self::assertStringContainsString('/v.1.0/settlements?countryCodes%5B0%5D=UA&limit=100&page=2', $this->http->requests()[2]->url);
     }
 
+    public function testFirstPageWithoutBoostIsAnError(): void
+    {
+        $this->page(1, 276, [1 => 0, 2 => 0]);
+
+        try {
+            $this->updater()->update();
+            self::fail('expected NpApiException');
+        } catch (NpApiException) {
+        }
+        self::assertSame([9, 0, 4], array_column($this->store->tables['settlements'], 'boost'), 'boosts are kept');
+    }
+
     public function testStopsAtTheLastPage(): void
     {
         $this->page(1, 1, [1 => 5]);

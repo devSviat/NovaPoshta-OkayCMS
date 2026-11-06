@@ -14,40 +14,25 @@ final class DivisionRow
         return RowHash::with([
             'id' => (int)$uk['id'],
             'settlement_id' => (int)($uk['settlement']['id'] ?? 0),
-            'number' => (string)($uk['number'] ?? ''),
-            'category' => (string)($uk['divisionCategory'] ?? ''),
-            'status' => (string)($uk['status'] ?? ''),
-            'name_uk' => (string)($uk['name'] ?? ''),
-            'name_en' => self::text($en['name'] ?? null),
-            'short_name_uk' => self::text($uk['shortName'] ?? null),
-            'short_name_en' => self::text($en['shortName'] ?? null),
-            'address_uk' => self::text($uk['address'] ?? null),
-            'address_en' => self::text($en['address'] ?? null),
-            'post_code' => self::text($uk['addressParts']['postCode'] ?? null),
-            'latitude' => self::number($uk['latitude'] ?? null),
-            'longitude' => self::number($uk['longitude'] ?? null),
-            'max_weight' => self::number($uk['maxWeightPlaceRecipient'] ?? null),
-            'max_length' => self::integer($uk['maxLengthPlaceRecipient'] ?? null),
-            'max_width' => self::integer($uk['maxWidthPlaceRecipient'] ?? null),
-            'max_height' => self::integer($uk['maxHeightPlaceRecipient'] ?? null),
-            'max_declared_cost' => self::number($uk['maxDeclaredCostPlace'] ?? null),
+            'number' => Fit::text($uk['number'] ?? '', 32) ?? '',
+            'category' => Fit::text($uk['divisionCategory'] ?? '', 32) ?? '',
+            'status' => Fit::text($uk['status'] ?? '', 32) ?? '',
+            'name_uk' => Fit::text($uk['name'] ?? '', 255) ?? '',
+            'name_en' => Fit::text($en['name'] ?? null, 255),
+            'short_name_uk' => Fit::text($uk['shortName'] ?? null, 255),
+            'short_name_en' => Fit::text($en['shortName'] ?? null, 255),
+            'address_uk' => Fit::text($uk['address'] ?? null, 255),
+            'address_en' => Fit::text($en['address'] ?? null, 255),
+            'post_code' => Fit::text($uk['addressParts']['postCode'] ?? null, 10),
+            'latitude' => Fit::decimal($uk['latitude'] ?? null, 999.9999999),
+            'longitude' => Fit::decimal($uk['longitude'] ?? null, 999.9999999),
+            'max_weight' => Fit::decimal($uk['maxWeightPlaceRecipient'] ?? null, 99999999.99),
+            'max_length' => Fit::integer($uk['maxLengthPlaceRecipient'] ?? null),
+            'max_width' => Fit::integer($uk['maxWidthPlaceRecipient'] ?? null),
+            'max_height' => Fit::integer($uk['maxHeightPlaceRecipient'] ?? null),
+            'max_declared_cost' => Fit::decimal($uk['maxDeclaredCostPlace'] ?? null, 999999999999.99),
             'prohibited_issuance' => empty($uk['prohibitedIssuance']) ? 0 : 1,
             'schedule' => isset($uk['workSchedule']) ? json_encode($uk['workSchedule'], JSON_UNESCAPED_UNICODE) : null,
         ]);
-    }
-
-    private static function text(mixed $value): ?string
-    {
-        return is_string($value) && $value !== '' ? $value : null;
-    }
-
-    private static function number(mixed $value): ?float
-    {
-        return is_numeric($value) ? (float)$value : null;
-    }
-
-    private static function integer(mixed $value): ?int
-    {
-        return is_numeric($value) ? (int)$value : null;
     }
 }

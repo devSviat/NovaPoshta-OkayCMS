@@ -11,6 +11,8 @@ final class DictionaryStatusView
     private const int SCHEDULER_SILENT_AFTER = 15 * 60;
     /** The scheduler task timeout: a run "in progress" for longer was killed. */
     private const int RUN_DEAD_AFTER = 3600;
+    /** Updates are daily; three days without one means the scheduler stopped. */
+    private const int STALE_AFTER = 3 * 86400;
 
     /** @param array{divisions?:int, postomats?:int, settlements?:int, boosted?:int} $counts */
     public static function vars(DictionaryStatus $status, int $now, array $counts, ?\DateTimeZone $timezone = null): array
@@ -55,7 +57,9 @@ final class DictionaryStatusView
 
         return match (true) {
             $status->lastRun === null => 'none',
+            ($status->lastRun['error'] ?? null) === 'interrupted' => 'stopped',
             !$status->lastRun['ok'] => 'error',
+            $now - (int)$status->lastRun['finished'] > self::STALE_AFTER => 'stale',
             default => 'ok',
         };
     }

@@ -12,13 +12,13 @@ final class SettlementRow
 
         return RowHash::with([
             'id' => (int)$uk['id'],
-            'name_uk' => (string)($uk['name'] ?? ''),
-            'name_en' => is_string($en['name'] ?? null) ? $en['name'] : null,
-            'district_uk' => $districtUk,
-            'district_en' => $districtEn,
-            'area_uk' => $areaUk,
-            'area_en' => $areaEn,
-            'post_code' => is_string($uk['postCode1'] ?? null) ? $uk['postCode1'] : null,
+            'name_uk' => Fit::text($uk['name'] ?? '', 255) ?? '',
+            'name_en' => Fit::text($en['name'] ?? null, 255),
+            'district_uk' => Fit::text($districtUk, 255),
+            'district_en' => Fit::text($districtEn, 255),
+            'area_uk' => Fit::text($areaUk, 255),
+            'area_en' => Fit::text($areaEn, 255),
+            'post_code' => Fit::text($uk['postCode1'] ?? null, 10),
             'search_text' => NameNormalizer::searchText(
                 (string)($uk['name'] ?? ''),
                 [...(array)($uk['alternativeNames'] ?? []), ...(isset($en['name']) ? [(string)$en['name']] : [])],

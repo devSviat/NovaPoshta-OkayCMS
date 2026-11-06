@@ -3,6 +3,8 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries;
 
 use Okay\Modules\Sviat\NovaPoshta\Api\NewApi\NewApiClient;
+use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
+use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Store\DictionaryStore;
 
 /**
@@ -34,6 +36,10 @@ final class BoostUpdater
                     $boostById[(int)$item['id']] = $boost;
                     $foundOnPage = true;
                 }
+            }
+            if (!$foundOnPage && $page === 1) {
+                // The list is sorted by boost: none on page 1 means the API changed, not that no city is popular.
+                throw NpApiException::fromNp(NpErrorKind::Malformed, ['No settlement popularity on the first page']);
             }
             if (!$foundOnPage || $page >= (int)($answer['last_page'] ?? $page)) {
                 break;

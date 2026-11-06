@@ -14,6 +14,8 @@ final class DictionaryRunner
     private const int DAILY = 20 * 3600;
     private const int RETRY_AFTER_FAILURE = 3600;
     private const int BOOST_EVERY = 7 * 86400;
+    /** The scheduler task timeout: a run "in progress" for longer was killed. */
+    public const int TASK_TIMEOUT = 3600;
 
     private readonly \Closure $now;
 
@@ -37,6 +39,21 @@ final class DictionaryRunner
     {
         $now = ($this->now)();
         $status = DictionaryStatus::load($this->state);
+        if ($status->runningSince !== null) {
+            // Stock 4.5.3 ignores the scheduler lock result, so a run may still be going:
+            // two full runs at once would delete each other's rows.
+            if ($now - $status->runningSince < self::TASK_TIMEOUT) {
+                return;
+            }
+            // Killed (timeout, out of memory): no `finally` ran, record it as a failure so
+            // the retry waits an hour instead of starting every 5 minutes.
+            $status->lastRun = [
+                'started' => $status->runningSince, 'finished' => $status->runningSince + self::TASK_TIMEOUT,
+                'ok' => false, 'kind' => 'delta', 'counts' => [], 'error' => 'interrupted', 'boost_error' => null,
+            ];
+            $status->runningSince = null;
+            $status->save($this->state);
+        }
         if (!$this->isDue($status, $now)) {
             return;
         }
@@ -61,6 +78,8 @@ final class DictionaryRunner
             $run['finished'] = ($this->now)();
             $status->lastRun = $run;
             $status->runningSince = null;
+            // A button press during the run asks for another one.
+            $status->requestedAt = DictionaryStatus::load($this->state)->requestedAt;
             $status->save($this->state);
         }
     }

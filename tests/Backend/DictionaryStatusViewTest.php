@@ -37,6 +37,8 @@ class DictionaryStatusViewTest extends TestCase
             'killed run' => [['runningSince' => self::NOW - 2 * 3600], 'stopped'],
             'ok' => [['lastRun' => self::lastRun(true, 600), 'divisionsTill' => 1, 'settlementsTime' => 1], 'ok'],
             'failed' => [['lastRun' => self::lastRun(false, 600)], 'error'],
+            'ok but not updated for days' => [['lastRun' => self::lastRun(true, 4 * 86400), 'divisionsTill' => 1, 'settlementsTime' => 1], 'stale'],
+            'killed run recorded' => [['lastRun' => ['started' => 1, 'finished' => self::NOW - 60, 'ok' => false, 'kind' => 'delta', 'counts' => [], 'error' => 'interrupted', 'boost_error' => null]], 'stopped'],
             'queued after a run' => [['lastRun' => self::lastRun(true, 600), 'requestedAt' => self::NOW - 30], 'queued'],
         ];
     }

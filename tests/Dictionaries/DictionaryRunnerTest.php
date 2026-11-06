@@ -192,6 +192,50 @@ class DictionaryRunnerTest extends TestCase
         self::assertContains('fullDivisions base-uk-' . (self::T0 - 1000) . ' -', $this->tick());
     }
 
+    public function testNoSecondRunWhileOneIsRunning(): void
+    {
+        $this->tick();
+        $status = $this->dictStatus();
+        $status->runningSince = $this->now + 2 * self::DAY - 60;
+        $status->save($this->state);
+        $this->now += 2 * self::DAY;
+        $this->publish(base: self::T0 - 1000 + self::DAY, deltaTills: [self::T0 - 1000, self::T0 - 1000 + 40000, self::T0 - 1000 + self::DAY], settlements: self::T0 - 500);
+
+        self::assertSame([], $this->tick(), 'the core lock is not reliable on stock');
+    }
+
+    public function testKilledRunIsRetriedAfterAnHourNotEveryTick(): void
+    {
+        $this->tick();
+        $status = $this->dictStatus();
+        $status->runningSince = $this->now + 2 * self::DAY - 3700;
+        $status->save($this->state);
+        $this->now += 2 * self::DAY;
+
+        self::assertSame([], $this->tick());
+        $killed = $this->dictStatus();
+        self::assertNull($killed->runningSince);
+        self::assertFalse($killed->lastRun['ok']);
+        self::assertSame('interrupted', $killed->lastRun['error']);
+
+        $this->now += 3600;
+        $this->tick();
+        self::assertTrue($this->dictStatus()->lastRun['ok']);
+        self::assertSame($this->now, $this->dictStatus()->lastRun['started']);
+    }
+
+    public function testButtonPressedDuringARunIsKept(): void
+    {
+        $this->steps->onStep = function (): void {
+            $this->runner()->requestRun();
+            $this->steps->onStep = null;
+        };
+
+        $this->tick();
+
+        self::assertNotNull($this->dictStatus()->requestedAt);
+    }
+
     public function testStatusSurvivesBrokenJson(): void
     {
         $this->state->set('dict_status', '{broken');

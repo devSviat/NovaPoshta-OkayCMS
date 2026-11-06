@@ -17,6 +17,7 @@ final class RecordingSteps implements DictionarySteps
     /** @var array<string, \Throwable> step name → failure */
     public array $failures = [];
     public int $boosted = 5;
+    public ?\Closure $onStep = null;
 
     public function siteHasEnglish(): bool
     {
@@ -56,6 +57,9 @@ final class RecordingSteps implements DictionarySteps
     private function step(string $call, mixed $result): mixed
     {
         $this->calls[] = $call;
+        if ($this->onStep) {
+            ($this->onStep)();
+        }
         $name = strtok($call, ' ');
         if (isset($this->failures[$name])) {
             throw $this->failures[$name];

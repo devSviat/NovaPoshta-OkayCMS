@@ -102,6 +102,21 @@ class RowsTest extends TestCase
         self::assertSame($a, DivisionRow::fromNp(self::division(['responsiblePerson' => 'Інша Особа']), null)['row_hash'], 'ignored fields do not count');
     }
 
+    public function testValuesAreFittedToTheColumns(): void
+    {
+        $row = DivisionRow::fromNp(self::division([
+            'name' => str_repeat('ї', 300), 'number' => str_repeat('9', 40),
+            'maxWeightPlaceRecipient' => 1e12, 'maxLengthPlaceRecipient' => 1e12, 'maxDeclaredCostPlace' => 1e15,
+        ]), null);
+
+        self::assertSame(255, mb_strlen($row['name_uk']));
+        self::assertSame(32, mb_strlen($row['number']));
+        self::assertNull($row['max_weight'], 'an impossible limit is unknown, not an error');
+        self::assertNull($row['max_length']);
+        self::assertNull($row['max_declared_cost']);
+        self::assertSame(10, strlen((string)SettlementRow::fromNp(self::settlement(['postCode1' => str_repeat('1', 20)]), null)['post_code']));
+    }
+
     public function testCityOfRegionalSignificance(): void
     {
         $row = SettlementRow::fromNp(self::settlement(), ['name' => 'Kyiv', 'region' => ['id' => 406, 'name' => 'Kyiv region', 'parent' => null], 'alternativeNames' => []]);

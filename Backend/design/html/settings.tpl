@@ -136,7 +136,7 @@
 
 <div class="row">
     <div class="col-lg-8 col-md-12">
-        <div class="alert alert--icon {if $np_dict.state == 'ok'}alert--success{elseif $np_dict.state == 'error'}alert--error{elseif $np_dict.state == 'scheduler_idle' || $np_dict.state == 'stopped'}alert--warning{else}alert--info{/if}" role="status" aria-live="polite">
+        <div class="alert alert--icon {if $np_dict.state == 'ok'}alert--success{elseif $np_dict.state == 'error'}alert--error{elseif $np_dict.state == 'scheduler_idle' || $np_dict.state == 'stopped' || $np_dict.state == 'stale'}alert--warning{else}alert--info{/if}" role="status" aria-live="polite">
             <div class="alert__content">
                 <div class="alert__title">
                     {if $np_dict.state == 'ok'}{$btr->sviat__novaposhta__dict_ok_title|escape}
@@ -145,6 +145,7 @@
                     {elseif $np_dict.state == 'running'}{$btr->sviat__novaposhta__dict_running_title|escape}
                     {elseif $np_dict.state == 'scheduler_idle'}{$btr->sviat__novaposhta__dict_idle_title|escape}
                     {elseif $np_dict.state == 'stopped'}{$btr->sviat__novaposhta__dict_stopped_title|escape}
+                    {elseif $np_dict.state == 'stale'}{$btr->sviat__novaposhta__dict_stale_title|escape}
                     {else}{$btr->sviat__novaposhta__dict_none_title|escape}{/if}
                 </div>
                 <p>
@@ -154,17 +155,18 @@
                     {elseif $np_dict.state == 'running'}{$btr->sviat__novaposhta__dict_running_text|escape}
                     {elseif $np_dict.state == 'scheduler_idle'}{$btr->sviat__novaposhta__dict_idle_text|escape}
                     {elseif $np_dict.state == 'stopped'}{$btr->sviat__novaposhta__dict_stopped_text|escape}
+                    {elseif $np_dict.state == 'stale'}{$btr->sviat__novaposhta__dict_stale_text|escape}
                     {else}{$btr->sviat__novaposhta__dict_none_text|escape}{/if}
                 </p>
-                {if $np_dict.state == 'error' || $np_dict.state == 'scheduler_idle' || $np_dict.state == 'stopped' || $np_dict.state == 'none'}
+                {if $np_dict.state == 'error' || $np_dict.state == 'scheduler_idle' || $np_dict.state == 'stopped' || $np_dict.state == 'stale' || $np_dict.state == 'none'}
                     <p>
                         <b>{$btr->sviat__novaposhta__what_to_do|escape}</b>
                         {if $np_dict.state == 'error'}{$btr->sviat__novaposhta__dict_error_action|escape}
-                        {elseif $np_dict.state == 'scheduler_idle'}{$btr->sviat__novaposhta__dict_idle_action|escape}
+                        {elseif $np_dict.state == 'scheduler_idle' || $np_dict.state == 'stale'}{$btr->sviat__novaposhta__dict_idle_action|escape}
                         {elseif $np_dict.state == 'stopped'}{$btr->sviat__novaposhta__dict_stopped_action|escape}
                         {else}{$btr->sviat__novaposhta__dict_none_action|escape}{/if}
                     </p>
-                    {if $np_dict.state == 'scheduler_idle'}<code class="np_cron">* * * * * php /path/to/site/ok scheduler:run</code>{/if}
+                    {if $np_dict.state == 'scheduler_idle' || $np_dict.state == 'stale'}<code class="np_cron">* * * * * php /path/to/site/ok scheduler:run</code>{/if}
                 {/if}
             </div>
         </div>

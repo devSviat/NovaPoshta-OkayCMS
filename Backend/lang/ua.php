@@ -100,3 +100,5 @@ $lang['sviat__novaposhta__category_postbranch'] = 'Поштові відділе
 $lang['sviat__novaposhta__category_cargobranch'] = 'Вантажні відділення';
 $lang['sviat__novaposhta__category_pudo'] = 'Пункти приймання-видачі';
 $lang['sviat__novaposhta__category_postomat'] = 'Поштомати';
+$lang['sviat__novaposhta__dict_stale_title'] = 'Довідники давно не оновлювались';
+$lang['sviat__novaposhta__dict_stale_text'] = 'Останнє оновлення — понад 3 дні тому, хоча вони оновлюються щодня. Швидше за все, планувальник OkayCMS перестав запускатися.';

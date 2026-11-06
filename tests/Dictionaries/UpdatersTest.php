@@ -163,6 +163,31 @@ class UpdatersTest extends TestCase
         self::assertSame('Київ', $this->store->tables['settlements'][118064]['name_uk']);
     }
 
+    public function testAFileWithFarFewerItemsDeletesNothing(): void
+    {
+        $this->divisions()->full($this->gz([self::division(1), self::division(2), self::division(3), self::division(4)]), null, 10);
+
+        try {
+            $this->divisions()->full($this->gz([self::division(1)]), null, 11);
+            self::fail('a base with a quarter of the rows must not be trusted');
+        } catch (\UnexpectedValueException) {
+        }
+
+        self::assertCount(4, $this->store->tables['divisions']);
+    }
+
+    public function testAnEmptyBaseDeletesNothing(): void
+    {
+        $this->divisions()->full($this->gz([self::division(1), self::division(2)]), null, 10);
+
+        $this->expectException(\UnexpectedValueException::class);
+        try {
+            $this->divisions()->full($this->gz([]), null, 11);
+        } finally {
+            self::assertCount(2, $this->store->tables['divisions']);
+        }
+    }
+
     public function testRowsAreWrittenInBatches(): void
     {
         $items = array_map(static fn(int $i): array => self::division($i), range(1, 1201));

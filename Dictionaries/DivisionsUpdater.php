@@ -24,6 +24,7 @@ final class DivisionsUpdater
             $loader->put(DivisionRow::fromNp($item, $english[$item['id']] ?? null));
         }
         $counts = $loader->finish();
+        $loader->assertPlausibleFullFile();
 
         return new UpdateCounts($counts->added, $counts->changed, $this->store->deleteNotSeen(DictionaryStore::DIVISIONS, $run), $counts->unchanged);
     }

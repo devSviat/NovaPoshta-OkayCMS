@@ -18,6 +18,7 @@ final class TableLoader
     private int $added = 0;
     private int $changed = 0;
     private int $unchanged = 0;
+    private readonly int $storedAtStart;
 
     public function __construct(
         private readonly DictionaryStore $store,
@@ -26,6 +27,7 @@ final class TableLoader
         private readonly bool $touchUnchanged,
     ) {
         $this->hashes = $store->hashes($table);
+        $this->storedAtStart = count($this->hashes);
     }
 
     public function put(array $row): void
@@ -48,6 +50,15 @@ final class TableLoader
         $this->pendingRows[] = $row;
         if (count($this->pendingRows) >= self::BATCH) {
             $this->flushRows();
+        }
+    }
+
+    /** A full file must hold at least half of what is stored: anything less is a broken or reformatted file. */
+    public function assertPlausibleFullFile(): void
+    {
+        $seen = $this->added + $this->changed + $this->unchanged;
+        if ($seen === 0 || $seen < $this->storedAtStart / 2) {
+            throw new \UnexpectedValueException("The {$this->table} file holds {$seen} records against {$this->storedAtStart} stored; nothing was deleted");
         }
     }
 
