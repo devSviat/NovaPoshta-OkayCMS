@@ -8,6 +8,7 @@ use Okay\Core\Request;
 use Okay\Core\Response;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DivisionList;
+use Okay\Modules\Sviat\NovaPoshta\Cart\UahTotal;
 use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
 use Okay\Core\EntityFactory;
 use Okay\Helpers\DeliveriesHelper;
@@ -33,7 +34,7 @@ class CartController
         $this->json($response, ['settlements' => is_string($query) ? $search->find($query, (string)$languages->getLangLabel(), 10, $pickupOnly) : []]);
     }
 
-    public function divisions(Request $request, Response $response, DivisionList $divisions, Cart $cart, Languages $languages)
+    public function divisions(Request $request, Response $response, DivisionList $divisions, Cart $cart, Languages $languages, UahTotal $uahTotal)
     {
         $settlementId = (int)$request->get('settlement_id', 'integer');
         if ($settlementId <= 0) {
@@ -45,7 +46,7 @@ class CartController
         $groupId = $request->get('group_id', 'integer');
         $this->json($response, $divisions->forSettlement(
             $settlementId,
-            CartMetrics::fromCart($cart->get()),
+            $uahTotal->metrics($cart->get()),
             (string)$languages->getLangLabel(),
             $groupId ? (int)$groupId : null,
             (string)$request->get('q'),

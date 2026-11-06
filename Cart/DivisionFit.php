@@ -25,7 +25,8 @@ final class DivisionFit
             $problems[] = FitProblem::TooHeavy;
         }
         $maxCost = self::limit($division->max_declared_cost ?? null, self::MAX_REAL_COST);
-        if ($maxCost !== null && $cart->total > $maxCost + 1e-9) {
+        // NP limits are in hryvnias; the cart total is in the shop's main currency.
+        if ($maxCost !== null && ($cart->totalUah ?? $cart->total) > $maxCost + 1e-9) {
             $problems[] = FitProblem::TooExpensive;
         }
         $maxVolume = self::maxVolume($division);

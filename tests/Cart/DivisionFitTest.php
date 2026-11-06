@@ -60,4 +60,13 @@ class DivisionFitTest extends TestCase
     {
         self::assertSame($problems, DivisionFit::problems(new CartMetrics(1.0, false, 100.0, $volume), $point));
     }
+
+    public function testDeclaredCostLimitIsComparedInHryvnias(): void
+    {
+        // Main currency USD: a 1000 USD cart is 41 000 UAH, over a locker's 29 000 UAH.
+        $cart = new CartMetrics(1.0, false, 1000.0)->inUah(41000.0);
+
+        self::assertSame([FitProblem::TooExpensive], DivisionFit::problems($cart, self::point('20.00', '29000.00')));
+        self::assertSame([], DivisionFit::problems(new CartMetrics(1.0, false, 1000.0), self::point('20.00', '29000.00')), 'without a rate the total is taken as is');
+    }
 }

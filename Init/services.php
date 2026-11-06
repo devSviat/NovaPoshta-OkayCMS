@@ -48,6 +48,7 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteService;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DbCityRefStore;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
+use Okay\Modules\Sviat\NovaPoshta\Cart\UahTotal;
 
 return [
     ApiKey::class => [
@@ -81,6 +82,10 @@ return [
     ShippingSettings::class => [
         'class' => ShippingSettings::class,
         'arguments' => [new SR(Settings::class), new SR(EntityFactory::class)],
+    ],
+    UahTotal::class => [
+        'class' => UahTotal::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(Money::class)],
     ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
@@ -197,6 +202,7 @@ return [
             new SR(SettlementSearch::class),
             new SR(CartQuotes::class),
             new SR(Money::class),
+            new SR(UahTotal::class),
         ],
     ],
     CartSelectionValidator::class => [

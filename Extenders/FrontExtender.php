@@ -12,6 +12,7 @@ use Okay\Core\Modules\Module;
 use Okay\Core\Request;
 use Okay\Core\Settings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
+use Okay\Modules\Sviat\NovaPoshta\Cart\UahTotal;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelection;
 use Okay\Modules\Sviat\NovaPoshta\Cart\AddressFields;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelectionValidator;
@@ -54,6 +55,7 @@ class FrontExtender implements ExtensionInterface
         private readonly SettlementSearch $settlements,
         private readonly CartQuotes $quotes,
         private readonly Money $money,
+        private readonly UahTotal $uahTotal,
     ) {
     }
 
@@ -140,7 +142,7 @@ class FrontExtender implements ExtensionInterface
         if ($error !== null || !is_object($order)) {
             return $error;
         }
-        $result = $this->validator->validate($order, $_POST, CartMetrics::fromCart($this->cart->get()));
+        $result = $this->validator->validate($order, $_POST, $this->uahTotal->metrics($this->cart->get()));
         if (is_string($result)) {
             return $this->translations->getTranslation('sviat__novaposhta__' . $result);
         }
@@ -155,7 +157,7 @@ class FrontExtender implements ExtensionInterface
         if (!is_object($order) || empty($order->id)) {
             return;
         }
-        $selection = $this->selection ?? $this->validator->validate($order, $_POST, CartMetrics::fromCart($this->cart->get()));
+        $selection = $this->selection ?? $this->validator->validate($order, $_POST, $this->uahTotal->metrics($this->cart->get()));
         if ($selection instanceof CartSelection) {
             $this->orders->save((int)$order->id, $selection, $this->pricing);
         }
