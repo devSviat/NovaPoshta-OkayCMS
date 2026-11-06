@@ -5,6 +5,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Init;
 use Okay\Core\Config;
 use Okay\Core\Database;
 use Okay\Core\EntityFactory;
+use Okay\Helpers\DeliveriesHelper;
 use Okay\Core\Languages;
 use Okay\Core\Modules\AbstractInit;
 use Okay\Core\Modules\EntityField;
@@ -16,6 +17,7 @@ use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryRunner;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
+use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Groups\DefaultGroups;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateEntity;
@@ -53,6 +55,12 @@ class Init extends AbstractInit
     {
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
+
+        $this->addFrontBlock('front_cart_delivery', 'cart_delivery.tpl');
+        $this->registerQueueExtension(
+            [DeliveriesHelper::class, 'getCartDeliveriesList'],
+            [FrontExtender::class, 'getCartDeliveriesList']
+        );
 
         // Every 5 minutes is only a cheap check; the runner itself decides whether work is due,
         // so the admin button is served within minutes and the daily update needs no own slot.

@@ -3,7 +3,12 @@
 namespace Okay\Modules\Sviat\NovaPoshta;
 
 use Okay\Core\Database;
+use Okay\Core\Design;
 use Okay\Core\EntityFactory;
+use Okay\Core\FrontTranslations;
+use Okay\Core\Languages;
+use Okay\Core\Modules\Module;
+use Okay\Core\Request;
 use Okay\Core\QueryFactory;
 use Okay\Core\OkayContainer\Reference\ServiceReference as SR;
 use Okay\Core\Settings;
@@ -25,6 +30,7 @@ use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryRunner;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DivisionsUpdater;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\SettlementsUpdater;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Store\DbDictionaryStore;
+use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
@@ -119,5 +125,18 @@ return [
     PopularCities::class => [
         'class' => PopularCities::class,
         'arguments' => [new SR(ModuleState::class), new SR(EntityFactory::class)],
+    ],
+    FrontExtender::class => [
+        'class' => FrontExtender::class,
+        'arguments' => [
+            new SR(Design::class),
+            new SR(Settings::class),
+            new SR(Module::class),
+            new SR(Request::class),
+            new SR(PopularCities::class),
+            new SR(Languages::class),
+            new SR(EntityFactory::class),
+            new SR(FrontTranslations::class),
+        ],
     ],
 ];
