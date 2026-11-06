@@ -19,6 +19,7 @@ final class OldApiClient
     private readonly \Closure $sleep;
     private ?string $fixedKey = null;
     private bool $retries = true;
+    private bool $quickMode = false;
     private int $timeoutSeconds = 20;
 
     public function __construct(
@@ -38,11 +39,16 @@ final class OldApiClient
         return $client;
     }
 
-    /** One short attempt per call: for checks a manager waits for in the browser. */
+    /**
+     * Short timeout, for requests someone waits for in the browser. A dead server is not asked
+     * again; Nova Poshta's "To many requests" on a read is waited out once (it clears within a
+     * second, while two reads 0.4 s apart can already trip it — measured 06.11.2026).
+     */
     public function quick(int $timeoutSeconds): self
     {
         $client = clone $this;
         $client->retries = false;
+        $client->quickMode = true;
         $client->timeoutSeconds = $timeoutSeconds;
 
         return $client;
@@ -65,13 +71,15 @@ final class OldApiClient
         // insertDocuments…): after a timeout it may already be done, and a repeat would do it twice.
         $isRead = str_starts_with(strtolower($method), 'get');
         $retriesLeft = $isRead && $this->retries ? 1 : 0;
+        $rateWaits = 1;
 
         while (true) {
             try {
                 return $this->once($body, $key);
             } catch (NpApiException $e) {
                 $transient = $e->kind === NpErrorKind::RateLimited || $e->kind === NpErrorKind::Unavailable;
-                if ($transient && $retriesLeft-- > 0) {
+                $waitOut = $this->quickMode && $isRead && $e->kind === NpErrorKind::RateLimited && $rateWaits-- > 0;
+                if (($transient && $retriesLeft-- > 0) || $waitOut) {
                     ($this->sleep)();
                     continue;
                 }

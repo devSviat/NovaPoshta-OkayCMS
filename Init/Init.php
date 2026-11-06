@@ -15,8 +15,16 @@ use Okay\Core\Modules\EntityField;
 use Okay\Core\QueryFactory;
 use Okay\Core\Scheduler\Schedule;
 use Okay\Core\ServiceLocator;
+use Okay\Core\Settings;
 use Okay\Entities\LanguagesEntity;
+use Okay\Entities\PaymentsEntity;
+use Okay\Entities\VariantsEntity;
+use Okay\Admin\Requests\BackendProductsRequest;
+use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
+use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
+use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryRunner;
+use Okay\Modules\Sviat\NovaPoshta\Entities\CityRefEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
@@ -34,6 +42,8 @@ class Init extends AbstractInit
 
         $this->createMissingTables(self::tables());
         $this->addDefaultGroups();
+        $this->addCoreFields();
+        self::markSchema();
     }
 
     /**
@@ -54,8 +64,56 @@ class Init extends AbstractInit
         $this->migrateEntityField(SettlementEntity::class, self::hasPickupField());
     }
 
+    /** Price and term in the cart: cash-on-delivery flag on payment methods, item volume. */
+    public function update_0_4_0()
+    {
+        $this->createMissingTables(self::quoteTables());
+        $this->addCoreFields();
+        foreach (self::pricingFields() as $field) {
+            $this->migrateEntityField(OrderDeliveryEntity::class, $field);
+        }
+        self::markSchema();
+    }
+
+    /** Fields the module keeps on core tables, under its own names (§9). */
+    /**
+     * Columns on core tables exist only after install/update has run. Registering them earlier
+     * (new files deployed, "Update" not pressed yet) makes every SELECT of payments, variants and
+     * orders fail — the storefront loses products and payment methods — so init() waits for this.
+     */
+    private const string SCHEMA_SETTING = 'sviat__novaposhta__schema';
+    private const string SCHEMA = '0.4.0';
+
+    private static function markSchema(): void
+    {
+        ServiceLocator::getInstance()->getService(Settings::class)->set(self::SCHEMA_SETTING, self::SCHEMA);
+    }
+
+    private static function schemaReady(): bool
+    {
+        return version_compare((string)ServiceLocator::getInstance()->getService(Settings::class)->get(self::SCHEMA_SETTING), self::SCHEMA, '>=');
+    }
+
+    private function addCoreFields(): void
+    {
+        $this->migrateEntityField(PaymentsEntity::class, new EntityField(CodPayments::FIELD)->setTypeTinyInt(1, false)->setDefault(0));
+        $this->migrateEntityField(VariantsEntity::class, new EntityField(VariantVolume::FIELD)->setTypeDecimal('10,5', false)->setDefault(0));
+    }
+
     public function init()
     {
+        if (self::schemaReady()) {
+            $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
+            $this->registerEntityField(VariantsEntity::class, VariantVolume::FIELD);
+            foreach (self::pricingFields() as $field) {
+                $this->registerEntityField(OrderDeliveryEntity::class, $field->getName());
+            }
+            $this->addBackendBlock('product_variant', 'variant_volume.tpl');
+        }
+        $this->registerChainExtension(
+            [BackendProductsRequest::class, 'postVariants'],
+            [BackendExtender::class, 'cleanVariantVolumes']
+        );
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
 
@@ -63,6 +121,14 @@ class Init extends AbstractInit
         $this->registerQueueExtension(
             [DeliveriesHelper::class, 'getCartDeliveriesList'],
             [FrontExtender::class, 'getCartDeliveriesList']
+        );
+        $this->registerChainExtension(
+            [DeliveriesHelper::class, 'getCartDeliveriesList'],
+            [FrontExtender::class, 'applyQuotes']
+        );
+        $this->registerChainExtension(
+            [DeliveriesHelper::class, 'prepareDeliveryPriceInfo'],
+            [FrontExtender::class, 'orderPrice']
         );
         $this->registerChainExtension(
             [ValidateHelper::class, 'getCartValidateError'],
@@ -99,13 +165,36 @@ class Init extends AbstractInit
                 new EntityField('value')->setTypeMediumText()->setNullable(),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],
-        ] + self::dictionaryTables() + self::orderTables();
+        ] + self::dictionaryTables() + self::orderTables() + self::quoteTables();
     }
 
     /** Precomputed by the dictionary run: city search over ~9.7k such settlements instead of 27.5k. */
     private static function hasPickupField(): EntityField
     {
         return new EntityField('has_pickup')->setTypeTinyInt(1, false)->setDefault(0)->setIndex();
+    }
+
+    /** @return list<EntityField> columns of the order snapshot added in 0.4.0 */
+    public static function pricingFields(): array
+    {
+        return [
+            new EntityField('delivery_price')->setTypeDecimal('10,2'),
+            new EntityField('price_source')->setTypeVarchar(16),
+            new EntityField('delivery_term')->setTypeVarchar(10),
+            new EntityField('cod')->setTypeTinyInt(1, false)->setDefault(0),
+        ];
+    }
+
+    /** @return array<class-string, list<EntityField>> tables added in 0.4.0 */
+    public static function quoteTables(): array
+    {
+        return [
+            CityRefEntity::class => [
+                new EntityField('settlement_id')->setIndexPrimaryKey()->setTypeInt(11, false),
+                new EntityField('city_ref')->setTypeVarchar(36),
+                new EntityField('checked_at')->setTypeInt(11, false),
+            ],
+        ];
     }
 
     /** @return array<class-string, list<EntityField>> tables added in 0.3.0 */
@@ -128,6 +217,7 @@ class Init extends AbstractInit
                 new EntityField('division_category')->setTypeVarchar(32),
                 $name('division_name'),
                 $name('division_address'),
+                ...self::pricingFields(),
                 new EntityField('created_at')->setTypeDatetime(false),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],

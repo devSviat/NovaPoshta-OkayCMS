@@ -165,4 +165,20 @@ class OldApiClientTest extends TestCase
         self::assertSame(NpErrorKind::Unavailable, $this->error(fn() => $this->client()->call('Address', 'getWarehouses'))->kind);
         self::assertCount(2, $this->http->requests());
     }
+
+    public function testQuickReadWaitsOutARateLimitOnce(): void
+    {
+        $this->http->json(200, self::fail200(['To many requests']))->json(200, ['success' => true, 'data' => [['Ref' => 'x']], 'errors' => []]);
+
+        self::assertSame([['Ref' => 'x']], $this->client()->quick(5)->call('Address', 'getWarehouses', ['WarehouseIndex' => '1/1']));
+        self::assertSame(5, $this->http->requests()[1]->timeoutSeconds);
+    }
+
+    public function testQuickReadDoesNotRetryUnavailable(): void
+    {
+        $this->http->push(new TransportException('timeout'));
+
+        self::assertSame(NpErrorKind::Unavailable, $this->error(fn() => $this->client()->quick(5)->call('Address', 'getWarehouses'))->kind);
+        self::assertCount(1, $this->http->requests(), 'the customer is waiting: a dead server is not asked twice');
+    }
 }

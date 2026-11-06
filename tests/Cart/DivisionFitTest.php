@@ -36,4 +36,28 @@ class DivisionFitTest extends TestCase
     {
         self::assertSame($problems, DivisionFit::problems(new CartMetrics($weight, $unknown, $total), $point));
     }
+
+    private static function sized(string $category, mixed $l, mixed $w, mixed $h): object
+    {
+        return (object)['category' => $category, 'max_weight' => '30.00', 'max_declared_cost' => '29000.00', 'max_length' => $l, 'max_width' => $w, 'max_height' => $h];
+    }
+
+    public static function volumeCases(): array
+    {
+        return [
+            'locker cell 60×40×30 takes 0.07' => [0.07, self::sized('Postomat', 60, 40, 30), []],
+            'locker cell is too small for 0.08' => [0.08, self::sized('Postomat', 60, 40, 30), [FitProblem::TooBig]],
+            'locker without sizes uses the largest cell' => [0.08, self::sized('Postomat', 0, 0, 0), [FitProblem::TooBig]],
+            'branch 120×70×70 takes 0.58' => [0.58, self::sized('PostBranch', 120, 70, 70), []],
+            'branch 120×70×70 is too small for 0.6' => [0.6, self::sized('PostBranch', 120, 70, 70), [FitProblem::TooBig]],
+            'branch with absurd sizes has no limit' => [5.0, self::sized('PostBranch', 0, 70, 99999), []],
+            'unknown volume never excludes' => [0.0, self::sized('Postomat', 60, 40, 30), []],
+        ];
+    }
+
+    #[DataProvider('volumeCases')]
+    public function testVolume(float $volume, object $point, array $problems): void
+    {
+        self::assertSame($problems, DivisionFit::problems(new CartMetrics(1.0, false, 100.0, $volume), $point));
+    }
 }

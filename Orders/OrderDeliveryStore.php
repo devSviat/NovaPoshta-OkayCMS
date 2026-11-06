@@ -15,7 +15,8 @@ final class OrderDeliveryStore
     }
 
     /** Names are copied in Ukrainian: the order keeps what was chosen even if the dictionary changes. */
-    public function save(int $orderId, CartSelection $selection): void
+    /** @param array{delivery_price: mixed, price_source: ?string, delivery_term: ?string, cod: int}|null $pricing */
+    public function save(int $orderId, CartSelection $selection, ?array $pricing = null): void
     {
         if (!$selection->applies()) {
             return;
@@ -38,8 +39,14 @@ final class OrderDeliveryStore
             'division_name' => $title,
             'division_address' => $place ?? ($selection->division->address_uk ?: null),
             'updated_at' => $now,
-        ];
+        ] + (self::pricingStored() ? ($pricing ?? []) : []);
         $existing ? $entity->update((int)$existing->id, $row) : $entity->add($row + ['created_at' => $now]);
+    }
+
+    /** The price columns are registered by Init only once the 0.4.0 update has created them. */
+    private static function pricingStored(): bool
+    {
+        return in_array('delivery_price', OrderDeliveryEntity::getFields(), true);
     }
 
     public function forOrder(int $orderId): ?object

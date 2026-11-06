@@ -51,6 +51,7 @@
 
     <p class="np-cart__message" role="status" aria-live="polite" hidden></p>
     <p class="np-cart__choice" hidden></p>
+    <div class="np-cart__quote" role="status" aria-live="polite" hidden></div>
 
     <input type="hidden" class="np-cart__settlement-id" name="novaposhta[{$delivery->id|escape}][settlement_id]" value="{if $np_choice.settlement}{$np_choice.settlement.id|escape}{/if}">
     <input type="hidden" class="np-cart__division-id" name="novaposhta[{$delivery->id|escape}][division_id]" value="{if $np_choice.division}{$np_choice.division.id|escape}{/if}">

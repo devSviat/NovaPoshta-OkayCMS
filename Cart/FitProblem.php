@@ -6,4 +6,5 @@ enum FitProblem: string
 {
     case TooHeavy = 'too_heavy';
     case TooExpensive = 'too_expensive';
+    case TooBig = 'too_big';
 }

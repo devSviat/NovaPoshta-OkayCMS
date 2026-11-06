@@ -59,6 +59,10 @@
         this.more = root.querySelector('.np-cart__more');
         this.message = root.querySelector('.np-cart__message');
         this.choice = root.querySelector('.np-cart__choice');
+        this.quoteBox = root.querySelector('.np-cart__quote');
+        this.deliveryId = root.getAttribute('data-delivery-id');
+        this.quoteRequest = null;
+        this.themePrice = null;
         this.settlementInput = root.querySelector('.np-cart__settlement-id');
         this.divisionInput = root.querySelector('.np-cart__division-id');
         this.settlement = parse(root.getAttribute('data-settlement'));
@@ -74,6 +78,7 @@
         if (this.settlement) {
             this.showChoice();
             this.load();
+            this.requestQuote();
         }
     }
 
@@ -194,6 +199,7 @@
         if (changed) {
             this.division = null;
             this.divisionInput.value = '';
+            this.clearQuote();
             this.groupId = null;
             this.search.value = '';
             syncFilled(this.search);
@@ -216,6 +222,7 @@
         this.say('');
         this.markPopular();
         this.showChoice();
+        this.clearQuote();
     };
 
     Block.prototype.markPopular = function () {
@@ -347,6 +354,7 @@
             option.classList.add('np-cart__option--selected');
             option.setAttribute('aria-selected', 'true');
             self.showChoice();
+            self.requestQuote();
         });
         return option;
     };
@@ -358,6 +366,118 @@
         } else {
             this.choice.hidden = true;
         }
+    };
+
+    /** The theme's own radio for this delivery method (jQuery: themes keep prices in jQuery data). */
+    Block.prototype.themeInput = function () {
+        var $ = window.jQuery;
+        return $ ? $('input[name="delivery_id"][value="' + String(this.deliveryId).replace(/[^0-9]/g, '') + '"]') : null;
+    };
+
+    /** Writes a price where the theme reads it, then lets the theme recount its totals. */
+    /** Remembers what the theme showed before the module touched it, to give it back later. */
+    Block.prototype.captureTheme = function () {
+        var input = this.themeInput();
+        if (this.themePrice === null && input && input.length) {
+            this.themePrice = {
+                price: input.data('delivery_price'),
+                total: input.data('total_price'),
+                free: input.data('is_free_delivery'),
+                text: input.closest('.fn_delivery_item').find('.fn_delivery_price').first().text()
+            };
+        }
+    };
+
+    Block.prototype.restoreTheme = function () {
+        if (this.themePrice) {
+            var original = this.themePrice;
+            this.setThemePrice(original.price, original.total, original.text, original.free);
+        }
+    };
+
+    Block.prototype.setThemePrice = function (price, total, text, free) {
+        var input = this.themeInput();
+        if (!input || !input.length) {
+            return;
+        }
+        this.captureTheme();
+        input.data('delivery_price', price).data('total_price', total).data('is_free_delivery', free ? 1 : 0);
+        input.closest('.fn_delivery_item').find('.fn_delivery_price').text(text);
+        if (input.is(':checked') && typeof okay !== 'undefined' && typeof okay.update_cart_total_price === 'function') {
+            okay.update_cart_total_price();
+        }
+    };
+
+    Block.prototype.clearQuote = function () {
+        if (this.quoteRequest) {
+            this.quoteRequest.abort();
+            this.quoteRequest = null;
+        }
+        this.quoteBox.hidden = true;
+        this.quoteBox.textContent = '';
+        this.restoreTheme();
+    };
+
+    Block.prototype.paymentId = function () {
+        var checked = document.querySelector('input[name="payment_method_id"]:checked');
+        return checked ? checked.value : '';
+    };
+
+    Block.prototype.requestQuote = function () {
+        var self = this;
+        var url = route('Sviat_NovaPoshta_cart_quote');
+        if (!this.division || !url) {
+            return;
+        }
+        if (this.quoteRequest) {
+            this.quoteRequest.abort();
+        }
+        this.quoteRequest = new AbortController();
+        var query = '?delivery_id=' + encodeURIComponent(this.deliveryId) + '&division_id=' + encodeURIComponent(this.division.id) + '&payment_id=' + encodeURIComponent(this.paymentId());
+        var input = this.themeInput();
+        if (input && input.length && !input.data('hide_front_delivery_price') && !input.data('is_free_delivery')) {
+            this.captureTheme();
+            input.closest('.fn_delivery_item').find('.fn_delivery_price').text(this.texts.cart_calculating || '');
+        }
+        fetch(url + query, { credentials: 'same-origin', signal: this.quoteRequest.signal })
+            .then(function (response) { return response.json(); })
+            .then(function (data) { self.showQuote(data || {}); })
+            .catch(function (error) {
+                if (error.name !== 'AbortError') {
+                    self.showQuote({ problem: 'unreachable' });
+                }
+            });
+    };
+
+    Block.prototype.showQuote = function (data) {
+        var lines = [];
+        var problem = data.problem === 'unreachable' || data.problem === 'rejected' || data.problem === 'busy' || data.problem === 'no_city_ref' || data.problem === 'no_uah';
+        if (typeof data.price === 'number') {
+            this.setThemePrice(data.price, data.totalWithDelivery, data.priceText || '', !!data.free);
+        } else {
+            // No price (free, hidden, no sender, bad input or a failure): the theme's own numbers come back.
+            this.restoreTheme();
+            var input = this.themeInput();
+            if (problem && input && input.length && !input.data('hide_front_delivery_price') && !input.data('is_free_delivery')) {
+                input.closest('.fn_delivery_item').find('.fn_delivery_price').text(this.texts.cart_price_by_manager || '');
+            }
+        }
+        if (data.codFeeText) {
+            lines.push(format(this.texts.cart_cod_fee, { fee: data.codFeeText }));
+        }
+        if (data.term) {
+            var date = new Date(data.term + 'T12:00:00');
+            var lang = document.documentElement.lang || 'uk';
+            lines.push(format(this.texts.cart_term, { date: isNaN(date) ? data.term : date.toLocaleDateString(lang, { day: 'numeric', month: 'long' }) }));
+        }
+        if (problem && typeof data.price !== 'number' && data.problem !== 'no_city_ref') {
+            lines.push(this.texts.cart_price_unreachable);
+        }
+        this.quoteBox.textContent = '';
+        var self = this;
+        lines.forEach(function (line) { self.quoteBox.appendChild(el('p', null, line)); });
+        this.quoteBox.classList.toggle('np-cart__quote--problem', problem && typeof data.price !== 'number');
+        this.quoteBox.hidden = lines.length === 0;
     };
 
     Block.prototype.say = function (text) {
@@ -415,7 +535,14 @@
                 blocks.forEach(function (block) {
                     if (block.settlement) {
                         block.load();
+                        block.requestQuote();
                     }
+                });
+            });
+            // Cash on delivery is a payment method (author's decision): its commission changes the price.
+            window.jQuery(document).on('change', 'input[name="payment_method_id"]', function () {
+                blocks.forEach(function (block) {
+                    block.requestQuote();
                 });
             });
         }

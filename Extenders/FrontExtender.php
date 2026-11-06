@@ -22,13 +22,19 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
+use Okay\Core\Money;
+use Okay\Entities\CurrenciesEntity;
+use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
+use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
+use Okay\Modules\Sviat\NovaPoshta\Quote\PriceDecision;
 
 class FrontExtender implements ExtensionInterface
 {
     /** Texts the cart script needs; keys of design/lang/*.php without the prefix. */
     private const array SCRIPT_TEXTS = [
         'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_closes', 'cart_all_day', 'cart_up_to_kg',
-        'cart_too_heavy', 'cart_too_expensive', 'cart_choice', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city',
+        'cart_too_heavy', 'cart_too_expensive', 'cart_choice', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
+        'cart_cod_fee', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager',
     ];
 
     public function __construct(
@@ -44,7 +50,68 @@ class FrontExtender implements ExtensionInterface
         private readonly OrderDeliveryStore $orders,
         private readonly Cart $cart,
         private readonly SettlementSearch $settlements,
+        private readonly CartQuotes $quotes,
+        private readonly Money $money,
     ) {
+    }
+
+    /** How the order was priced, kept from prepareDeliveryPriceInfo to the snapshot (same request). */
+    private ?array $pricing = null;
+
+    /**
+     * ChainExtension of DeliveriesHelper::getCartDeliveriesList: a method priced for the visitor's
+     * point shows that price, also after the theme reloads the cart by AJAX.
+     */
+    public function applyQuotes($deliveries, $cart)
+    {
+        if (!is_array($deliveries) || !is_object($cart)) {
+            return $deliveries;
+        }
+        foreach ($deliveries as $delivery) {
+            // Already free (free_from, or a promo's free shipping earlier in the chain): left as it is.
+            $quote = is_object($delivery) && empty($delivery->is_free_delivery) ? $this->quotes->cachedForChoice($delivery, $cart) : null;
+            if ($quote?->price !== null) {
+                $this->showPrice($delivery, $quote->price, (float)$cart->total_price);
+            }
+        }
+
+        return $deliveries;
+    }
+
+    /** ChainExtension of DeliveriesHelper::prepareDeliveryPriceInfo: the order's delivery price comes from the server's calculation. */
+    public function orderPrice($info, $delivery, $order)
+    {
+        if (!is_array($info) || !is_object($delivery) || !is_object($order) || !$this->quotes->isOwnPointsMethod($delivery)) {
+            return $info;
+        }
+        $divisionId = $this->selection?->applies() ? (int)$this->selection->division->id : CartSelectionValidator::postedIds($_POST, (int)$delivery->id)[1];
+        $cart = $this->cart->get();
+        $quote = $this->quotes->quote($delivery, $divisionId, (int)($order->payment_method_id ?? 0), $cart, forOrder: true);
+        $freeByCore = !((float)($delivery->free_from ?? 0) > (float)($order->total_price ?? 0));
+        $decision = PriceDecision::forOrder($quote, $info, $freeByCore, $freeByCore ? 0.0 : (float)$delivery->price);
+        $this->pricing = $quote === null ? null : [
+            'delivery_price' => $decision['info']['delivery_price'] ?? null,
+            'price_source' => $decision['source'],
+            'delivery_term' => $quote->term?->format('Y-m-d'),
+            'cod' => $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0)) ? 1 : 0,
+        ];
+
+        return $decision['info'];
+    }
+
+    private function showPrice(object $delivery, float $price, float $cartTotal): void
+    {
+        $currencies = $this->entityFactory->get(CurrenciesEntity::class);
+        $currency = $currencies->get((int)($_SESSION['currency_id'] ?? 0)) ?: $currencies->getMainCurrency();
+        DeliveryPriceView::apply(
+            $delivery,
+            $price,
+            $cartTotal,
+            fn(float $amount): string => (string)$this->money->convert($amount),
+            (string)($currency->sign ?? ''),
+            $this->translations->getTranslation('cart_paid_separate'),
+            $this->translations->getTranslation('cart_free'),
+        );
     }
 
     /** The choice checked by getCartValidateError, saved once the order exists (same request). */
@@ -73,7 +140,7 @@ class FrontExtender implements ExtensionInterface
         }
         $selection = $this->selection ?? $this->validator->validate($order, $_POST, CartMetrics::fromCart($this->cart->get()));
         if ($selection instanceof CartSelection) {
-            $this->orders->save((int)$order->id, $selection);
+            $this->orders->save((int)$order->id, $selection, $this->pricing);
         }
     }
 

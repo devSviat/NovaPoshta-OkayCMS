@@ -31,7 +31,8 @@ final class JwtProvider
         $this->now = $now ?? time(...);
     }
 
-    public function token(): string
+    /** @param int $timeoutSeconds for a token that has to be issued now */
+    public function token(int $timeoutSeconds = 20): string
     {
         $key = $this->apiKey->value()
             ?? throw NpApiException::fromNp(NpErrorKind::InvalidKey, ['API key is not set']);
@@ -44,7 +45,7 @@ final class JwtProvider
             return $jwt;
         }
 
-        $jwt = self::issue($this->http, $key);
+        $jwt = self::issue($this->http, $key, $timeoutSeconds);
         $this->store($key, $jwt);
 
         return $jwt;

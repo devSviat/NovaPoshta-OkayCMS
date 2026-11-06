@@ -46,4 +46,17 @@ class CartMetricsTest extends TestCase
         self::assertSame(0.0, $metrics->knownWeight);
         self::assertTrue($metrics->weightUnknown);
     }
+
+    public function testVolumeAndUnitsWithoutData(): void
+    {
+        $metrics = CartMetrics::fromCart((object)['purchases' => [
+            (object)['amount' => 2, 'variant' => (object)['weight' => '1', 'sviat__novaposhta__volume' => '0.01200']],
+            (object)['amount' => 3, 'variant' => (object)['weight' => null, 'sviat__novaposhta__volume' => null]],
+            (object)['amount' => 1, 'variant' => (object)['weight' => '0', 'sviat__novaposhta__volume' => '-1']],
+        ], 'total_price' => 10]);
+
+        self::assertEqualsWithDelta(0.024, $metrics->knownVolume, 1e-9);
+        self::assertSame(4, $metrics->unitsWithoutWeight);
+        self::assertSame(4, $metrics->unitsWithoutVolume);
+    }
 }

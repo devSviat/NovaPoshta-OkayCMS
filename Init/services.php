@@ -9,6 +9,7 @@ use Okay\Core\EntityFactory;
 use Okay\Core\FrontTranslations;
 use Okay\Core\Languages;
 use Okay\Core\Modules\Module;
+use Okay\Core\Money;
 use Okay\Core\Request;
 use Okay\Core\QueryFactory;
 use Okay\Core\OkayContainer\Reference\ServiceReference as SR;
@@ -37,6 +38,14 @@ use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
+use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
+use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
+use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
+use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
+use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteService;
+use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
+use Okay\Modules\Sviat\NovaPoshta\Quote\DbCityRefStore;
+use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 
 return [
     ApiKey::class => [
@@ -66,6 +75,38 @@ return [
     KeyChecker::class => [
         'class' => KeyChecker::class,
         'arguments' => [new SR(CurlTransport::class), new SR(OldApiClient::class), new SR(JwtProvider::class), new SR(ModuleState::class)],
+    ],
+    ShippingSettings::class => [
+        'class' => ShippingSettings::class,
+        'arguments' => [new SR(Settings::class), new SR(EntityFactory::class)],
+    ],
+    BackendExtender::class => [
+        'class' => BackendExtender::class,
+        'arguments' => [],
+    ],
+    DbCityRefStore::class => [
+        'class' => DbCityRefStore::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class)],
+    ],
+    CityRefResolver::class => [
+        'class' => CityRefResolver::class,
+        'arguments' => [new SR(OldApiClient::class), new SR(DbCityRefStore::class)],
+    ],
+    QuoteService::class => [
+        'class' => QuoteService::class,
+        'arguments' => [new SR(NewApiClient::class), new SR(OldApiClient::class), new SR(CityRefResolver::class)],
+    ],
+    CartQuotes::class => [
+        'class' => CartQuotes::class,
+        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class), new SR(Money::class), new SR(ModuleState::class)],
+    ],
+    CodPayments::class => [
+        'class' => CodPayments::class,
+        'arguments' => [new SR(EntityFactory::class)],
+    ],
+    SenderDivisions::class => [
+        'class' => SenderDivisions::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class)],
     ],
     KeySettings::class => [
         'class' => KeySettings::class,
@@ -144,6 +185,8 @@ return [
             new SR(OrderDeliveryStore::class),
             new SR(Cart::class),
             new SR(SettlementSearch::class),
+            new SR(CartQuotes::class),
+            new SR(Money::class),
         ],
     ],
     CartSelectionValidator::class => [

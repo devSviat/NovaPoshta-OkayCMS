@@ -73,6 +73,9 @@
 .np-cart__count { margin-left: .4em; opacity: .7; }
 .np-cart__more, .np-cart__empty, .np-cart__message { margin: 0; font-size: 13px; }
 .np-cart__empty { padding: 10px 12px; }
+.np-cart__quote { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 8px 12px; font-size: 13px; line-height: 1.5; background: rgba(0, 0, 0, .03); border-radius: 4px; }
+.np-cart__quote--problem { background: #fbf2e5; border: 1px solid #e2c08e; }
+.np-cart__quote p { margin: 0; }
 .np-cart__choice { margin: 0; padding: 8px 12px; border-left: 3px solid var(--np-accent); background: rgba(0, 0, 0, .03); }
 .np-cart--loading .np-cart__list { opacity: .5; }
 
