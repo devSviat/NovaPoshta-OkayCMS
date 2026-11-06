@@ -27,6 +27,9 @@ interface DictionaryStore
     /** @param list<int> $ids */
     public function delete(string $table, array $ids): int;
 
+    /** Marks the settlements that have a working pickup point (the cart searches only those). */
+    public function refreshPickup(): void;
+
     /** @param array<int, int> $boostById settlements not listed get 0 */
     public function setBoost(array $boostById): void;
 }

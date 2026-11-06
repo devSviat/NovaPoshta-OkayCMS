@@ -1,0 +1,29 @@
+<?php
+
+$lang['sviat__novaposhta__cart_popular'] = 'Популярные города';
+$lang['sviat__novaposhta__cart_city'] = 'Населённый пункт';
+$lang['sviat__novaposhta__cart_city_placeholder'] = 'Начните вводить название';
+$lang['sviat__novaposhta__cart_groups'] = 'Где получить';
+$lang['sviat__novaposhta__cart_search'] = 'Номер или улица';
+$lang['sviat__novaposhta__cart_search_placeholder'] = 'Например 117 или Крещатик';
+$lang['sviat__novaposhta__cart_points'] = 'Пункты выдачи';
+$lang['sviat__novaposhta__cart_no_results'] = 'Ничего не найдено. Попробуйте номер отделения или название улицы.';
+$lang['sviat__novaposhta__cart_choose'] = 'Выберите пункт выдачи';
+$lang['sviat__novaposhta__cart_shown_of'] = 'Показано %shown% из %total%. Уточните поиск, чтобы найти другие.';
+$lang['sviat__novaposhta__cart_closes'] = 'сегодня до %time%';
+$lang['sviat__novaposhta__cart_all_day'] = 'круглосуточно';
+$lang['sviat__novaposhta__cart_up_to_kg'] = 'до %kg% кг';
+$lang['sviat__novaposhta__cart_too_heavy'] = 'Не помещается: ваш заказ тяжелее, чем принимает этот пункт';
+$lang['sviat__novaposhta__cart_too_expensive'] = 'Не подходит: сумма заказа больше, чем принимает этот пункт';
+$lang['sviat__novaposhta__cart_choice'] = 'Доставим в: %place%';
+$lang['sviat__novaposhta__cart_dictionary_empty'] = 'Выбор отделения Новой Почты временно недоступен. Выберите другой способ доставки или укажите номер отделения в комментарии — менеджер уточнит.';
+$lang['sviat__novaposhta__cart_no_points'] = 'В этом населённом пункте нет пунктов выдачи Новой Почты. Выберите ближайший город.';
+$lang['sviat__novaposhta__cart_search_failed'] = 'Не удалось загрузить список. Проверьте соединение и попробуйте ещё раз.';
+$lang['sviat__novaposhta__error_city'] = 'Выберите населённый пункт для доставки Новой Почтой.';
+$lang['sviat__novaposhta__error_point'] = 'Выберите отделение или почтомат Новой Почты.';
+$lang['sviat__novaposhta__error_point_unavailable'] = 'Выбранный пункт выдачи сейчас недоступен. Выберите другой.';
+$lang['sviat__novaposhta__error_point_too_heavy'] = 'Заказ тяжелее, чем принимает выбранный пункт. Выберите отделение с большим лимитом веса.';
+$lang['sviat__novaposhta__error_point_too_expensive'] = 'Сумма заказа больше, чем принимает выбранный пункт. Выберите отделение.';
+$lang['sviat__novaposhta__order_city'] = 'Населённый пункт';
+$lang['sviat__novaposhta__order_point'] = 'Пункт выдачи';
+$lang['sviat__novaposhta__cart_no_city'] = 'Такой населённый пункт не найден. Проверьте название.';

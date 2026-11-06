@@ -3,7 +3,13 @@
 namespace Okay\Modules\Sviat\NovaPoshta;
 
 use Okay\Core\Database;
+use Okay\Core\Cart;
+use Okay\Core\Design;
 use Okay\Core\EntityFactory;
+use Okay\Core\FrontTranslations;
+use Okay\Core\Languages;
+use Okay\Core\Modules\Module;
+use Okay\Core\Request;
 use Okay\Core\QueryFactory;
 use Okay\Core\OkayContainer\Reference\ServiceReference as SR;
 use Okay\Core\Settings;
@@ -14,6 +20,10 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NewApi\JwtProvider;
 use Okay\Modules\Sviat\NovaPoshta\Api\NewApi\NewApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Backend\KeySettings;
+use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelectionValidator;
+use Okay\Modules\Sviat\NovaPoshta\Cart\DivisionList;
+use Okay\Modules\Sviat\NovaPoshta\Cart\PopularCities;
+use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\BoostUpdater;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Cdn\CdnClient;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\CdnDictionarySteps;
@@ -22,8 +32,10 @@ use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryRunner;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DivisionsUpdater;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\SettlementsUpdater;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Store\DbDictionaryStore;
+use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 
 return [
@@ -103,6 +115,43 @@ return [
     ],
     GroupsStore::class => [
         'class' => GroupsStore::class,
+        'arguments' => [new SR(EntityFactory::class)],
+    ],
+    SettlementSearch::class => [
+        'class' => SettlementSearch::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class)],
+    ],
+    DivisionList::class => [
+        'class' => DivisionList::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class), new SR(GroupsStore::class)],
+    ],
+    PopularCities::class => [
+        'class' => PopularCities::class,
+        'arguments' => [new SR(ModuleState::class), new SR(EntityFactory::class)],
+    ],
+    FrontExtender::class => [
+        'class' => FrontExtender::class,
+        'arguments' => [
+            new SR(Design::class),
+            new SR(Settings::class),
+            new SR(Module::class),
+            new SR(Request::class),
+            new SR(PopularCities::class),
+            new SR(Languages::class),
+            new SR(EntityFactory::class),
+            new SR(FrontTranslations::class),
+            new SR(CartSelectionValidator::class),
+            new SR(OrderDeliveryStore::class),
+            new SR(Cart::class),
+            new SR(SettlementSearch::class),
+        ],
+    ],
+    CartSelectionValidator::class => [
+        'class' => CartSelectionValidator::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(GroupsStore::class), new SR(Module::class), new SR(SettlementSearch::class)],
+    ],
+    OrderDeliveryStore::class => [
+        'class' => OrderDeliveryStore::class,
         'arguments' => [new SR(EntityFactory::class)],
     ],
 ];

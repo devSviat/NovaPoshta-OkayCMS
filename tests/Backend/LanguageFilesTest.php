@@ -38,8 +38,9 @@ class LanguageFilesTest extends TestCase
 
     public function testEveryKeyUsedInTheTemplateExists(): void
     {
-        $template = file_get_contents(dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/Backend/design/html/settings.tpl');
-        preg_match_all('/\$btr->(sviat__novaposhta__\w+)/', $template, $m);
+        $templates = glob(dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/Backend/design/html/*.tpl');
+        self::assertContains('email_delivery.tpl', array_map('basename', $templates));
+        preg_match_all('/\$btr->(sviat__novaposhta__\w+)/', implode("\n", array_map('file_get_contents', $templates)), $m);
 
         self::assertNotEmpty($m[1]);
         self::assertSame([], array_values(array_diff(array_unique($m[1]), array_keys(self::load('ua')))));

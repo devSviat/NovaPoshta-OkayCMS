@@ -102,3 +102,20 @@ $lang['sviat__novaposhta__category_pudo'] = 'Pickup points (PUDO)';
 $lang['sviat__novaposhta__category_postomat'] = 'Parcel lockers';
 $lang['sviat__novaposhta__dict_stale_title'] = 'The dictionaries have not been updated for a while';
 $lang['sviat__novaposhta__dict_stale_text'] = 'The last update was more than 3 days ago, though they update daily. Most likely the OkayCMS scheduler stopped running.';
+
+$lang['sviat__novaposhta__service_type'] = 'What the customer chooses';
+$lang['sviat__novaposhta__service_ww'] = 'Branch or parcel locker — you hand parcels in at a branch';
+$lang['sviat__novaposhta__service_wd'] = 'Address — you hand parcels in at a branch';
+$lang['sviat__novaposhta__service_dw'] = 'Branch or parcel locker — a courier collects parcels from you';
+$lang['sviat__novaposhta__service_dd'] = 'Address — a courier collects parcels from you';
+
+$lang['sviat__novaposhta__popular_box'] = 'Popular city buttons in the cart';
+$lang['sviat__novaposhta__popular_intro'] = 'Buttons above the “Settlement” field: a click fills in the city. The order here is the order in the cart. An empty list means no buttons. Suggestions while typing do not depend on this list: they already put popular cities first.';
+$lang['sviat__novaposhta__popular_saved'] = 'Buttons saved.';
+$lang['sviat__novaposhta__popular_remove'] = 'Remove';
+$lang['sviat__novaposhta__popular_empty'] = 'No buttons — the cart shows only the search field.';
+$lang['sviat__novaposhta__popular_add'] = 'Add a city';
+$lang['sviat__novaposhta__popular_add_placeholder'] = 'Start typing a name';
+$lang['sviat__novaposhta__popular_save'] = 'Save buttons';
+$lang['sviat__novaposhta__order_city'] = 'City';
+$lang['sviat__novaposhta__order_point'] = 'Pickup point';

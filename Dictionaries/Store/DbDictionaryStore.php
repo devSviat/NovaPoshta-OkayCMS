@@ -81,6 +81,12 @@ final class DbDictionaryStore implements DictionaryStore
         return (int)$this->db->affectedRows();
     }
 
+    public function refreshPickup(): void
+    {
+        $this->run($this->queryFactory->newUpdate()->table(self::table(self::SETTLEMENTS) . ' AS s')
+            ->set('s.has_pickup', 'EXISTS (SELECT 1 FROM ' . self::table(self::DIVISIONS) . " AS d WHERE d.settlement_id = s.id AND d.status = 'Working' AND d.prohibited_issuance = 0)"));
+    }
+
     public function setBoost(array $boostById): void
     {
         $table = self::table(self::SETTLEMENTS);

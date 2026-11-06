@@ -1,0 +1,98 @@
+/* Layout only: fields and chips take the theme's classes; colours come from the theme (variables,
+   or read from the theme's own button by the script where a theme has no variables). */
+.np-cart {
+    --np-accent: var(--okay-basic-company, var(--broken-basic-company, var(--vs-accent, #00afee)));
+    --np-border: var(--okay-border-color, var(--broken-border-color, var(--vs-border, #dbdbdb)));
+    --np-text: var(--okay-body-text, var(--broken-body-text, var(--vs-ink, #222)));
+    --np-surface: var(--okay-boxed-color, var(--broken-boxed-color, #fff));
+    --np-warning: #a35a00;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+    font-size: 14px;
+    font-style: normal;
+    color: var(--np-text);
+}
+.np-cart [hidden] { display: none !important; }
+.np-cart__city { position: relative; margin: 0; }
+.np-cart__suggest {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 20;
+    margin: 2px 0 0;
+    padding: 4px 0;
+    list-style: none;
+    background: var(--np-surface);
+    border: 1px solid var(--np-border);
+    border-radius: 4px;
+    box-shadow: var(--okay-shadow-color, 0 2px 5px rgba(0, 0, 0, .2));
+    max-height: 320px;
+    overflow-y: auto;
+}
+.np-cart__suggest-item { padding: 8px 12px; cursor: pointer; line-height: 1.35; }
+.np-cart__suggest-item[aria-selected="true"], .np-cart__suggest-item:hover { background: rgba(0, 0, 0, .05); }
+.np-cart__suggest-region { display: block; font-size: 12px; opacity: .75; }
+.np-cart__suggest-empty { padding: 8px 12px; opacity: .75; }
+.np-cart__points { display: flex; flex-direction: column; gap: 10px; }
+.np-cart__search { margin: 0; }
+.np-cart__list {
+    display: flex;
+    flex-direction: column;
+    max-height: 340px;
+    overflow-y: auto;
+    border: 1px solid var(--np-border);
+    border-radius: 4px;
+    background: var(--np-surface);
+}
+.np-cart__option {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    padding: 10px 12px;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--np-border);
+    cursor: pointer;
+}
+.np-cart__option:last-child { border-bottom: 0; }
+.np-cart__option:hover { background: rgba(0, 0, 0, .03); }
+.np-cart__option--selected { box-shadow: inset 3px 0 0 var(--np-accent); background: rgba(0, 0, 0, .04); }
+.np-cart__option--unfit { cursor: not-allowed; opacity: .6; }
+.np-cart__option-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.np-cart__option-limit { font-size: 12px; opacity: .75; white-space: nowrap; }
+.np-cart__option-place { font-size: 13px; }
+.np-cart__option-note { font-size: 12px; opacity: .8; }
+.np-cart__option--unfit .np-cart__option-note { color: var(--np-warning); opacity: 1; }
+.np-cart__count { margin-left: .4em; opacity: .7; }
+.np-cart__more, .np-cart__empty, .np-cart__message { margin: 0; font-size: 13px; }
+.np-cart__empty { padding: 10px 12px; }
+.np-cart__choice { margin: 0; padding: 8px 12px; border-left: 3px solid var(--np-accent); background: rgba(0, 0, 0, .03); }
+.np-cart--loading .np-cart__list { opacity: .5; }
+
+/* okay_shop-derived themes have no chip component. */
+.np-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.np-chip {
+    min-height: 34px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 14px;
+    color: var(--np-text);
+    background: var(--np-surface);
+    border: 1px solid var(--np-border);
+    border-radius: 17px;
+    cursor: pointer;
+}
+.np-chip:hover { border-color: var(--np-accent); }
+.np-chip--selected {
+    color: var(--np-accent-text, var(--okay-basic-company-text, var(--broken-basic-company-text, #fff)));
+    background: var(--np-accent);
+    border-color: var(--np-accent);
+}
+.np-chip--selected .np-cart__count { opacity: .85; }

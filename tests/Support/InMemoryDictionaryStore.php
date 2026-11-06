@@ -57,6 +57,11 @@ final class InMemoryDictionaryStore implements DictionaryStore
         return $deleted;
     }
 
+    public function refreshPickup(): void
+    {
+        $this->calls[] = 'refreshPickup';
+    }
+
     public function setBoost(array $boostById): void
     {
         $this->calls[] = 'setBoost ' . count($boostById);

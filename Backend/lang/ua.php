@@ -102,3 +102,20 @@ $lang['sviat__novaposhta__category_pudo'] = 'Пункти приймання-в�
 $lang['sviat__novaposhta__category_postomat'] = 'Поштомати';
 $lang['sviat__novaposhta__dict_stale_title'] = 'Довідники давно не оновлювались';
 $lang['sviat__novaposhta__dict_stale_text'] = 'Останнє оновлення — понад 3 дні тому, хоча вони оновлюються щодня. Швидше за все, планувальник OkayCMS перестав запускатися.';
+
+$lang['sviat__novaposhta__service_type'] = 'Що вибирає покупець';
+$lang['sviat__novaposhta__service_ww'] = 'Відділення чи поштомат — посилки здаєте у відділенні';
+$lang['sviat__novaposhta__service_wd'] = 'Адреса — посилки здаєте у відділенні';
+$lang['sviat__novaposhta__service_dw'] = 'Відділення чи поштомат — кур’єр забирає посилки у вас';
+$lang['sviat__novaposhta__service_dd'] = 'Адреса — кур’єр забирає посилки у вас';
+
+$lang['sviat__novaposhta__popular_box'] = 'Кнопки популярних міст у кошику';
+$lang['sviat__novaposhta__popular_intro'] = 'Кнопки над полем «Населений пункт»: клік підставляє місто. Порядок тут — порядок у кошику. Порожній список — кнопок немає. Підказки під час введення від цього не залежать: вони самі ставлять вище популярніші міста.';
+$lang['sviat__novaposhta__popular_saved'] = 'Кнопки збережено.';
+$lang['sviat__novaposhta__popular_remove'] = 'Прибрати';
+$lang['sviat__novaposhta__popular_empty'] = 'Кнопок немає — у кошику лише поле пошуку.';
+$lang['sviat__novaposhta__popular_add'] = 'Додати місто';
+$lang['sviat__novaposhta__popular_add_placeholder'] = 'Почніть вводити назву';
+$lang['sviat__novaposhta__popular_save'] = 'Зберегти кнопки';
+$lang['sviat__novaposhta__order_city'] = 'Населений пункт';
+$lang['sviat__novaposhta__order_point'] = 'Пункт видачі';

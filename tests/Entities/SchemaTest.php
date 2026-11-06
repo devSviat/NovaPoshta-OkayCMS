@@ -39,6 +39,12 @@ class SchemaTest extends TestCase
         self::assertCount(3, Init::dictionaryTables());
     }
 
+    public function testOrderDeliveryTableIsInstalled(): void
+    {
+        self::assertArrayHasKey(\Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class, Init::tables());
+        self::assertArrayHasKey(\Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class, Init::orderTables());
+    }
+
     public function testDictionaryIdsAreNovaPoshtaIdsNotAutoIncrement(): void
     {
         foreach (Init::dictionaryTables() as $entityClass => $fields) {

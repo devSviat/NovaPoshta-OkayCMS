@@ -5,6 +5,10 @@ namespace Okay\Modules\Sviat\NovaPoshta\Init;
 use Okay\Core\Config;
 use Okay\Core\Database;
 use Okay\Core\EntityFactory;
+use Okay\Helpers\DeliveriesHelper;
+use Okay\Helpers\NotifyHelper;
+use Okay\Helpers\OrdersHelper;
+use Okay\Helpers\ValidateHelper;
 use Okay\Core\Languages;
 use Okay\Core\Modules\AbstractInit;
 use Okay\Core\Modules\EntityField;
@@ -15,6 +19,8 @@ use Okay\Entities\LanguagesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryRunner;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
+use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
+use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Groups\DefaultGroups;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateEntity;
@@ -23,9 +29,8 @@ class Init extends AbstractInit
 {
     public function install()
     {
-        // Not a delivery module yet (MODULE_TYPE_DELIVERY comes with the cart):
-        // otherwise a delivery method could be bound to a module that cannot deliver.
         $this->setBackendMainController('NovaPoshtaSettingsAdmin');
+        $this->setModuleType(MODULE_TYPE_DELIVERY);
 
         $this->createMissingTables(self::tables());
         $this->addDefaultGroups();
@@ -41,10 +46,37 @@ class Init extends AbstractInit
         $this->addDefaultGroups();
     }
 
+    /** The cart picks pickup points from 0.3.0 on: the module becomes a delivery module. */
+    public function update_0_3_0()
+    {
+        $this->setModuleType(MODULE_TYPE_DELIVERY);
+        $this->createMissingTables(self::orderTables());
+        $this->migrateEntityField(SettlementEntity::class, self::hasPickupField());
+    }
+
     public function init()
     {
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
+
+        $this->addFrontBlock('front_cart_delivery', 'cart_delivery.tpl');
+        $this->registerQueueExtension(
+            [DeliveriesHelper::class, 'getCartDeliveriesList'],
+            [FrontExtender::class, 'getCartDeliveriesList']
+        );
+        $this->registerChainExtension(
+            [ValidateHelper::class, 'getCartValidateError'],
+            [FrontExtender::class, 'getCartValidateError']
+        );
+        $this->registerQueueExtension(
+            [OrdersHelper::class, 'finalCreateOrderProcedure'],
+            [FrontExtender::class, 'saveOrderDelivery']
+        );
+        foreach ([[OrdersHelper::class, 'getOrderPaymentMethodsList'], [NotifyHelper::class, 'finalEmailOrderUser'], [NotifyHelper::class, 'finalEmailOrderAdmin']] as $hook) {
+            $this->registerQueueExtension($hook, [FrontExtender::class, 'assignOrderDelivery']);
+        }
+        $this->addFrontBlock('front_email_order_user_contact_info', 'email_delivery.tpl');
+        $this->addBackendBlock('email_order_admin_contact_info', 'email_delivery.tpl');
 
         // Every 5 minutes is only a cheap check; the runner itself decides whether work is due,
         // so the admin button is served within minutes and the daily update needs no own slot.
@@ -67,7 +99,39 @@ class Init extends AbstractInit
                 new EntityField('value')->setTypeMediumText()->setNullable(),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],
-        ] + self::dictionaryTables();
+        ] + self::dictionaryTables() + self::orderTables();
+    }
+
+    /** Precomputed by the dictionary run: city search over ~9.7k such settlements instead of 27.5k. */
+    private static function hasPickupField(): EntityField
+    {
+        return new EntityField('has_pickup')->setTypeTinyInt(1, false)->setDefault(0)->setIndex();
+    }
+
+    /** @return array<class-string, list<EntityField>> tables added in 0.3.0 */
+    public static function orderTables(): array
+    {
+        $name = static fn(string $field): EntityField => new EntityField($field)->setTypeVarchar(255);
+
+        return [
+            OrderDeliveryEntity::class => [
+                new EntityField('id')->setIndexPrimaryKey()->setTypeInt(11, false)->setAutoIncrement(),
+                new EntityField('order_id')->setTypeInt(11, false)->setIndexUnique(),
+                new EntityField('delivery_id')->setTypeInt(11, false),
+                new EntityField('mode')->setTypeVarchar(16, false),
+                new EntityField('settlement_id')->setTypeInt(11),
+                $name('settlement_name'),
+                $name('district_name'),
+                $name('area_name'),
+                new EntityField('division_id')->setTypeInt(11),
+                new EntityField('division_number')->setTypeVarchar(32),
+                new EntityField('division_category')->setTypeVarchar(32),
+                $name('division_name'),
+                $name('division_address'),
+                new EntityField('created_at')->setTypeDatetime(false),
+                new EntityField('updated_at')->setTypeDatetime(false),
+            ],
+        ];
     }
 
     /** @return array<class-string, list<EntityField>> tables added in 0.2.0 */
@@ -92,6 +156,7 @@ class Init extends AbstractInit
                 new EntityField('search_text')->setTypeText(),
                 new EntityField('boost')->setTypeInt(11, false)->setDefault(0)->setIndex(),
                 new EntityField('prohibited_issuance')->setTypeTinyInt(1, false)->setDefault(0),
+                self::hasPickupField(),
                 ...$loaded(),
             ],
             DivisionEntity::class => [

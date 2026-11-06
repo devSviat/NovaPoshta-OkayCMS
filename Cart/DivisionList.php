@@ -1,0 +1,219 @@
+<?php
+
+namespace Okay\Modules\Sviat\NovaPoshta\Cart;
+
+use Okay\Core\Database;
+use Okay\Core\QueryFactory;
+use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
+use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
+
+/**
+ * Pickup points of one settlement for the cart: group tabs with counts and one page of the
+ * chosen group. Kyiv alone has ~7 400 parcel lockers, so the rest is reached by searching.
+ */
+final class DivisionList
+{
+    public const int PAGE = 100;
+    private const int MAX_SEARCH = 64;
+
+    public function __construct(
+        private readonly Database $db,
+        private readonly QueryFactory $queryFactory,
+        private readonly GroupsStore $groups,
+    ) {
+    }
+
+    /** @return array{groups: list<array{id:int, name:string, count:int}>, group: ?int, divisions: list<array>, total: int, dictionary?: string} */
+    public function forSettlement(int $settlementId, CartMetrics $cart, string $lang, ?int $groupId, string $query): array
+    {
+        $groupRows = $this->groups->all();
+        $counts = [];
+        foreach ($this->rows($this->base($settlementId)->cols(['d.category', 'COUNT(*) AS n'])->groupBy(['d.category'])) as $row) {
+            $counts[$row->category] = (int)$row->n;
+        }
+        $groups = self::groupCounts($groupRows, $counts);
+        $ids = array_column($groups, 'id');
+        $chosen = in_array($groupId, $ids, true) ? $groupId : ($ids[0] ?? null);
+
+        $result = ['groups' => $groups, 'group' => $chosen, 'divisions' => [], 'total' => 0];
+        if ($chosen === null) {
+            if ($this->isDictionaryEmpty()) {
+                $result['dictionary'] = 'empty';
+            }
+
+            return $result;
+        }
+
+        $categories = self::categoriesOf($groupRows, $chosen);
+        $term = self::searchTerm($query);
+        // Built twice on purpose: aura's clone is shallow and would share the column list.
+        $filtered = function () use ($settlementId, $categories, $term) {
+            $select = $this->base($settlementId)->where('d.category IN (:categories)')->bindValue('categories', $categories);
+            if ($term !== null) {
+                $select->where("(SUBSTRING_INDEX(d.number, '/', -1) LIKE :prefix OR d.name_uk LIKE :part OR d.name_en LIKE :part OR d.address_uk LIKE :part OR d.address_en LIKE :part)")
+                    ->bindValues(['prefix' => $term . '%', 'part' => '%' . $term . '%']);
+            }
+
+            return $select;
+        };
+
+        // All of the group's points, light: those that fit the cart must lead the page even when
+        // their numbers are high (a 35 kg cart in Kyiv: most low-numbered branches take 30 kg).
+        $light = $this->rows($filtered()
+            ->cols(['d.id', 'd.max_weight', 'd.max_declared_cost'])
+            // "11/117": the city code, then the branch number customers know. `+ 0` makes it a
+            // number; CAST(… AS …) would be read by aura as a column alias and break the query.
+            ->orderBy(["SUBSTRING_INDEX(d.number, '/', -1) + 0", 'd.number']));
+        $result['total'] = count($light);
+        $ids = self::pageIds($light, $cart);
+        $byId = [];
+        if ($ids !== []) {
+            foreach ($this->rows($this->queryFactory->newSelect()
+                ->from(DivisionEntity::getTable() . ' AS d')
+                ->cols(['d.id', 'd.number', 'd.category', 'd.name_uk', 'd.name_en', 'd.address_uk', 'd.address_en', 'd.max_weight', 'd.max_declared_cost', 'd.schedule'])
+                ->where('d.id IN (:ids)')
+                ->bindValue('ids', $ids)) as $row) {
+                $byId[(int)$row->id] = $row;
+            }
+        }
+        $points = array_values(array_filter(array_map(static fn(int $id): ?object => $byId[$id] ?? null, $ids)));
+        $result['divisions'] = self::page($points, $cart, $lang, strtolower(date('l')));
+
+        return $result;
+    }
+
+    /**
+     * @param list<object> $groupRows rows of GroupEntity
+     * @param array<string, int> $counts working points per category
+     * @return list<array{id:int, name:string, count:int}> groups the customer can choose, in order
+     */
+    public static function groupCounts(array $groupRows, array $counts): array
+    {
+        $groups = [];
+        foreach ($groupRows as $group) {
+            $count = 0;
+            foreach (self::categoriesOf([$group], (int)$group->id) as $category) {
+                $count += $counts[$category] ?? 0;
+            }
+            if ($count > 0) {
+                $groups[] = ['id' => (int)$group->id, 'name' => (string)$group->name, 'count' => $count];
+            }
+        }
+
+        return $groups;
+    }
+
+    /** @return list<string> categories shown in an enabled group */
+    public static function categoriesOf(array $groupRows, ?int $groupId): array
+    {
+        foreach ($groupRows as $group) {
+            if ((int)$group->id !== $groupId || !(int)$group->enabled) {
+                continue;
+            }
+            $categories = json_decode((string)$group->categories, true);
+
+            return is_array($categories) ? array_keys(array_filter($categories)) : [];
+        }
+
+        return [];
+    }
+
+    /**
+     * Ids of one page: points that fit the cart first, each part in the given (number) order.
+     *
+     * @param list<object> $light rows with id, max_weight, max_declared_cost, in number order
+     * @return list<int>
+     */
+    public static function pageIds(array $light, CartMetrics $cart): array
+    {
+        $fit = [];
+        $unfit = [];
+        foreach ($light as $row) {
+            if (DivisionFit::problems($cart, $row) === []) {
+                $fit[] = (int)$row->id;
+                if (count($fit) === self::PAGE) {
+                    break;
+                }
+            } elseif (count($unfit) < self::PAGE) {
+                $unfit[] = (int)$row->id;
+            }
+        }
+
+        return array_slice([...$fit, ...$unfit], 0, self::PAGE);
+    }
+
+    /** @param list<object> $points rows of DivisionEntity, already in number order */
+    public static function page(array $points, CartMetrics $cart, string $lang, string $weekday): array
+    {
+        $english = $lang === 'en';
+        $page = [];
+        foreach ($points as $point) {
+            $problems = array_map(static fn(FitProblem $p): string => $p->value, DivisionFit::problems($cart, $point));
+            // Empty fields are left out: a page is sent on every keystroke of the search.
+            $name = (string)(($english && $point->name_en ? $point->name_en : $point->name_uk) ?: $point->number);
+            // NP names read "Відділення №3 (до 30 кг на одне місце): вул. Слобожанська, 13".
+            [$title, $place] = array_pad(explode(': ', $name, 2), 2, null);
+            $page[] = array_filter([
+                'id' => (int)$point->id,
+                'category' => (string)$point->category,
+                'title' => $title,
+                'place' => $place ?? (($english && $point->address_en ? $point->address_en : $point->address_uk) ?: null),
+                'maxWeight' => is_numeric($point->max_weight) && (float)$point->max_weight > 0 && (float)$point->max_weight <= 100000 ? (float)$point->max_weight : null,
+                'problems' => $problems,
+                'closesToday' => self::closesToday((string)$point->schedule, $weekday),
+            ], static fn($value): bool => $value !== null && $value !== []);
+        }
+        // Points that fit first; inside each part the number order from the query stays.
+        usort($page, static fn(array $a, array $b): int => isset($a['problems']) <=> isset($b['problems']));
+
+        return $page;
+    }
+
+    public static function searchTerm(string $raw): ?string
+    {
+        $term = mb_substr(trim(preg_replace('/\s+/u', ' ', $raw) ?? ''), 0, self::MAX_SEARCH);
+
+        return $term === '' ? null : addcslashes($term, '\\%_');
+    }
+
+    private function base(int $settlementId): \Aura\SqlQuery\Common\SelectInterface
+    {
+        return $this->queryFactory->newSelect()
+            ->from(DivisionEntity::getTable() . ' AS d')
+            ->where('d.settlement_id = :settlement')
+            ->where("d.status = 'Working'")
+            ->where('d.prohibited_issuance = 0')
+            ->bindValue('settlement', $settlementId);
+    }
+
+    /** @return list<object> */
+    private function rows(\Aura\SqlQuery\Common\SelectInterface $select): array
+    {
+        return $this->db->query($select) === false ? [] : $this->db->results();
+    }
+
+    private function isDictionaryEmpty(): bool
+    {
+        $rows = $this->rows($this->queryFactory->newSelect()->cols(['1 AS x'])->from(DivisionEntity::getTable())->limit(1));
+
+        return $rows === [];
+    }
+
+    private static function closesToday(string $schedule, string $weekday): ?string
+    {
+        foreach (json_decode($schedule, true) ?: [] as $day) {
+            if (($day['day'] ?? null) !== $weekday) {
+                continue;
+            }
+            $from = (string)($day['from'] ?? '');
+            $to = (string)($day['to'] ?? '');
+            if (!preg_match('/^\d{2}:\d{2}$/', $to)) {
+                return null;
+            }
+
+            return $from === '00:00' && ($to === '23:59' || $to === '24:00') ? '24/7' : $to;
+        }
+
+        return null;
+    }
+}

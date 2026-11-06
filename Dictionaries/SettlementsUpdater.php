@@ -31,6 +31,9 @@ final class SettlementsUpdater
         $counts = $loader->finish();
         $loader->assertPlausibleFullFile();
 
-        return new UpdateCounts($counts->added, $counts->changed, $this->store->deleteNotSeen(DictionaryStore::SETTLEMENTS, $run), $counts->unchanged);
+        $deleted = $this->store->deleteNotSeen(DictionaryStore::SETTLEMENTS, $run);
+        $this->store->refreshPickup();
+
+        return new UpdateCounts($counts->added, $counts->changed, $deleted, $counts->unchanged);
     }
 }
