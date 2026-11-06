@@ -314,4 +314,22 @@ class QuoteServiceTest extends TestCase
 
         self::assertSame([2899.55, null, true, 'old', null], [$quote->price, $quote->liftingFee, $quote->liftingRefused, $quote->source, $quote->problem]);
     }
+
+    public function testLiftedCallTimeoutKeepsTheBasePriceWhenLiftingIsNotChosen(): void
+    {
+        $this->oldPriceAnswer(610.5)->http->push(new TransportException('timeout'));
+
+        $quote = $this->service()->quote(self::addressRequest(offerLifting: true));
+
+        self::assertSame([610.5, null, true, 'old', null], [$quote->price, $quote->liftingFee, $quote->liftingRefused, $quote->source, $quote->problem]);
+    }
+
+    public function testLiftedCallTimeoutFailsTheQuoteWhenLiftingIsChosen(): void
+    {
+        $this->oldPriceAnswer(610.5)->http->push(new TransportException('timeout'));
+
+        $quote = $this->service()->quote(self::addressRequest(lifting: true, offerLifting: true));
+
+        self::assertSame([null, 'fallback', 'unreachable'], [$quote->price, $quote->source, $quote->problem]);
+    }
 }

@@ -236,6 +236,7 @@
                 this.street.value = '';
                 this.streetRef.value = '';
                 syncFilled(this.street);
+                this.stopStreets();
             }
         }
         if (this.address) {
@@ -252,6 +253,9 @@
     Block.prototype.dropSettlement = function () {
         if (this.pointsRequest) {
             this.pointsRequest.abort();
+        }
+        if (this.street) {
+            this.stopStreets();
         }
         this.settlement = null;
         this.division = null;
@@ -484,7 +488,7 @@
         var url = route('Sviat_NovaPoshta_cart_quote');
         var target = this.mode === 'address'
             ? (this.settlement ? '&mode=address&settlement_id=' + encodeURIComponent(this.settlement.id)
-                + '&lifting=' + (this.liftingInput && this.liftingInput.checked && !this.lifting.hidden ? 1 : 0)
+                + '&lifting=' + (this.liftingInput && this.liftingInput.checked ? 1 : 0)
                 + '&floor=' + encodeURIComponent(this.floor ? this.floor.value.trim() : '')
                 + '&elevator=' + (this.elevator && this.elevator.checked ? 1 : 0) : null)
             : (this.division ? '&division_id=' + encodeURIComponent(this.division.id) : null);
@@ -614,6 +618,17 @@
             });
     };
 
+    /** A street answer still in flight belongs to the settlement it was asked for. */
+    Block.prototype.stopStreets = function () {
+        clearTimeout(this.streetTimer);
+        if (this.streetRequest) {
+            this.streetRequest.abort();
+            this.streetRequest = null;
+        }
+        this.streetSuggest.hidden = true;
+        this.streetHint.hidden = true;
+    };
+
     Block.prototype.showStreets = function (data) {
         var self = this;
         var streets = data.streets || [];
@@ -623,6 +638,7 @@
             option.setAttribute('role', 'option');
             option.addEventListener('mousedown', function (event) {
                 event.preventDefault();
+                clearTimeout(self.streetTimer);
                 self.street.value = street.name;
                 self.streetRef.value = street.ref;
                 syncFilled(self.street);

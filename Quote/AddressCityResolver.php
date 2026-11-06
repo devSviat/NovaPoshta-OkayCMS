@@ -17,6 +17,8 @@ final class AddressCityResolver
     private const int KNOWN_TTL = 30 * 86400;
     private const int UNKNOWN_TTL = 86400;
     private const int TIMEOUT_SECONDS = 5;
+    private const int PAGE_SIZE = 50;
+    private const int MAX_PAGES = 4;
     private const string TYPES = '/^(місто|село|селище міського типу|селище|смт|хутір)\s+/u';
 
     private readonly \Closure $now;
@@ -50,25 +52,35 @@ final class AddressCityResolver
         }
 
         $name = self::plainName((string)$settlement->name_uk);
-        try {
-            $data = $this->api->quick(self::TIMEOUT_SECONDS)->call('Address', 'searchSettlements', ['CityName' => $name, 'Limit' => '50', 'Page' => '1']);
-        } catch (NpApiException $e) {
-            if ($e->kind !== NpErrorKind::Rejected) {
-                return $cached['ref'] ?? throw new CityRefUnavailable($e->getMessage());
+        $rows = [];
+        $complete = false;
+        // A namesake in the same district may sit on a later page: uniqueness is judged on the whole answer.
+        for ($page = 1; $page <= self::MAX_PAGES; $page++) {
+            try {
+                $data = $this->api->quick(self::TIMEOUT_SECONDS)->call('Address', 'searchSettlements', ['CityName' => $name, 'Limit' => (string)self::PAGE_SIZE, 'Page' => (string)$page]);
+            } catch (NpApiException $e) {
+                if ($e->kind !== NpErrorKind::Rejected) {
+                    return $cached['ref'] ?? throw new CityRefUnavailable($e->getMessage());
+                }
+                $data = [];
             }
-            $data = [];
+            $found = array_values(array_filter((array)($data[0]['Addresses'] ?? []), 'is_array'));
+            $rows = [...$rows, ...$found];
+            if ($found === [] || count($rows) >= (int)($data[0]['TotalCount'] ?? 0)) {
+                $complete = true;
+                break;
+            }
         }
 
         $area = self::strip((string)$settlement->area_uk, ' область');
         $district = self::strip((string)($settlement->district_uk ?? ''), ' район');
         $matches = array_values(array_filter(
-            (array)($data[0]['Addresses'] ?? []),
-            static fn($row): bool => is_array($row)
-                && self::same((string)($row['MainDescription'] ?? ''), $name)
+            $rows,
+            static fn(array $row): bool => self::same((string)($row['MainDescription'] ?? ''), $name)
                 && self::same((string)($row['Area'] ?? ''), $area)
                 && self::same((string)($row['Region'] ?? ''), $district),
         ));
-        $ref = count($matches) === 1 ? (string)($matches[0]['DeliveryCity'] ?? '') : '';
+        $ref = $complete && count($matches) === 1 ? (string)($matches[0]['DeliveryCity'] ?? '') : '';
         $ref = preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $ref) ? $ref : null;
         $this->store->remember($id, $ref, $now);
 

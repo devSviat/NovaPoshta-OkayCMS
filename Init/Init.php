@@ -188,7 +188,6 @@ class Init extends AbstractInit
         return new EntityField('has_pickup')->setTypeTinyInt(1, false)->setDefault(0)->setIndex();
     }
 
-    /** @return list<EntityField> columns of the order snapshot added in 0.4.0 */
     /** @return list<EntityField> columns of the order snapshot added in 0.5.0 (address delivery) */
     public static function addressFields(): array
     {
@@ -205,6 +204,7 @@ class Init extends AbstractInit
         ];
     }
 
+    /** @return list<EntityField> columns of the order snapshot added in 0.4.0 */
     public static function pricingFields(): array
     {
         return [

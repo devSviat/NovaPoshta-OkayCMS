@@ -43,15 +43,15 @@ final class QuoteService
             try {
                 if ($request->address?->offerLifting) {
                     // NP has no "lifting price" method: the extra is the difference of two calculations,
-                    // so the weight limit (30 kg today) stays NP's, not ours (design §6).
+                    // so the weight limit for lifting stays NP's, not ours (design §6).
                     $base = $this->oldPrice($request, false);
                     try {
                         $lifted = $this->oldPrice($request, true);
                     } catch (QuoteProblem $e) {
-                        if ($e->getMessage() !== 'rejected') {
+                        if ($e->getMessage() !== 'rejected' && $request->address->lifting) {
                             throw $e;
                         }
-                        // Too heavy to lift: the delivery itself is still priced, lifting is just not offered.
+                        // Too heavy to lift, or the second call failed: the delivery is still priced, lifting is not offered.
                         $lifted = null;
                         $liftingRefused = true;
                     }

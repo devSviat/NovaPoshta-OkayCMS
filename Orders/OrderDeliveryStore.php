@@ -17,7 +17,7 @@ final class OrderDeliveryStore
     /**
      * Names are copied in Ukrainian: the order keeps what was chosen even if the dictionary changes.
      *
-     * @param array{delivery_price: mixed, price_source: ?string, delivery_term: ?string, cod: int, lifting?: int}|null $pricing
+     * @param array{delivery_price: mixed, price_source: ?string, delivery_term: ?string, cod: int}|null $pricing
      */
     public function save(int $orderId, CartSelection $selection, ?array $pricing = null): void
     {
@@ -71,11 +71,7 @@ final class OrderDeliveryStore
                 'lifting' => $address->lifting ? 1 : 0,
             ];
         }
-        $pricing ??= [];
-        if (!self::stored('street_name')) {
-            unset($pricing['lifting']);
-        }
-        $row = (self::stored('delivery_price') ? $pricing : []) + $row;
+        $row = (self::stored('delivery_price') ? ($pricing ?? []) : []) + $row;
         $existing ? $entity->update((int)$existing->id, $row) : $entity->add($row + ['created_at' => $now]);
     }
 

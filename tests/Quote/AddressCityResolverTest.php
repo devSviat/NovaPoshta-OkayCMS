@@ -112,4 +112,39 @@ class AddressCityResolverTest extends TestCase
         $this->expectException(CityRefUnavailable::class);
         $this->resolver()->forSettlement(self::settlement(5, 'село X', null, 'Київська область'));
     }
+
+    private static function page(int $total, array ...$rows): array
+    {
+        $answer = self::found(...$rows);
+        $answer['data'][0]['TotalCount'] = $total;
+
+        return $answer;
+    }
+
+    public function testNamesakeOnTheNextPageIsNotMissed(): void
+    {
+        $this->http->json(200, self::page(3, ['Іванівка', 'Одеська', 'Березівський', 'bbbbbbbb-0000-4000-8000-000000000001'], ['Іванівка', 'Львівська', 'Стрийський', 'dddddddd-0000-4000-8000-000000000001']));
+        $this->http->json(200, self::page(3, ['Іванівка', 'Одеська', 'Березівський', 'cccccccc-0000-4000-8000-000000000001']));
+
+        self::assertNull($this->resolver()->forSettlement(self::settlement(1, 'село Іванівка', 'Березівський район', 'Одеська область')));
+        self::assertSame('2', json_decode((string)$this->http->requests()[1]->body, true)['methodProperties']['Page']);
+    }
+
+    public function testUniqueAcrossAllPagesIsFound(): void
+    {
+        $this->http->json(200, self::page(2, ['Іванівка', 'Одеська', 'Березівський', 'bbbbbbbb-0000-4000-8000-000000000001']));
+        $this->http->json(200, self::page(2, ['Іванівка', 'Львівська', 'Стрийський', 'dddddddd-0000-4000-8000-000000000001']));
+
+        self::assertSame('bbbbbbbb-0000-4000-8000-000000000001', $this->resolver()->forSettlement(self::settlement(1, 'село Іванівка', 'Березівський район', 'Одеська область')));
+    }
+
+    public function testTooManyNamesakesToReadAreNotGuessed(): void
+    {
+        for ($i = 0; $i < 4; $i++) {
+            $this->http->json(200, self::page(1000, ['Іванівка', $i === 0 ? 'Одеська' : 'Львівська', $i === 0 ? 'Березівський' : 'Стрийський', 'bbbbbbbb-0000-4000-8000-00000000000' . $i]));
+        }
+
+        self::assertNull($this->resolver()->forSettlement(self::settlement(1, 'село Іванівка', 'Березівський район', 'Одеська область')));
+        self::assertCount(4, $this->http->requests());
+    }
 }
