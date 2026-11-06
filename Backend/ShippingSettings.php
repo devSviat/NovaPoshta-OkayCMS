@@ -16,6 +16,7 @@ final class ShippingSettings
     public const string VOLUME = 'sviat__novaposhta__default_volume';
     public const string COD_KIND = 'sviat__novaposhta__cod_kind';
     public const string SHOW_TERM = 'sviat__novaposhta__show_term';
+    public const string SHOW_LIFTING = 'sviat__novaposhta__show_lifting';
 
     private const float MAX_WEIGHT = 1000.0;
     private const float MAX_VOLUME = 10.0;
@@ -75,6 +76,7 @@ final class ShippingSettings
                 self::WEIGHT => $weight,
                 self::VOLUME => $volume,
                 self::SHOW_TERM => empty($post['show_term']) ? 0 : 1,
+                self::SHOW_LIFTING => empty($post['show_lifting']) ? 0 : 1,
             ],
             'errors' => $errors,
         ];

@@ -16,6 +16,8 @@ final readonly class ShippingConfig
         public float $defaultVolume,
         public CodKind $codKind,
         public bool $showTerm,
+        /** Offer paid floor lifting for address delivery in the cart (off by default, design §6). */
+        public bool $showLifting = false,
     ) {
     }
 
@@ -32,6 +34,7 @@ final readonly class ShippingConfig
             $volume > 0 ? $volume : self::DEFAULT_VOLUME,
             CodKind::tryFrom((string)$get(ShippingSettings::COD_KIND)) ?? CodKind::Money,
             (bool)$get(ShippingSettings::SHOW_TERM),
+            (bool)$get(ShippingSettings::SHOW_LIFTING),
         );
     }
 }

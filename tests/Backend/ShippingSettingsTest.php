@@ -16,7 +16,7 @@ class ShippingSettingsTest extends TestCase
 
     public function testValidInputIsStored(): void
     {
-        $parsed = self::parse(['sender_division_id' => '2200878', 'default_weight' => '1,5', 'default_volume' => '0.002', 'show_term' => '1']);
+        $parsed = self::parse(['sender_division_id' => '2200878', 'default_weight' => '1,5', 'default_volume' => '0.002', 'show_term' => '1', 'show_lifting' => '1']);
 
         self::assertSame([], $parsed['errors']);
         self::assertSame([
@@ -24,6 +24,7 @@ class ShippingSettingsTest extends TestCase
             ShippingSettings::WEIGHT => 1.5,
             ShippingSettings::VOLUME => 0.002,
             ShippingSettings::SHOW_TERM => 1,
+            ShippingSettings::SHOW_LIFTING => 1,
         ], $parsed['values']);
     }
 
@@ -68,12 +69,14 @@ class ShippingSettingsTest extends TestCase
         self::assertSame(0.001, $config->defaultVolume);
         self::assertSame(CodKind::Money, $config->codKind);
         self::assertFalse($config->showTerm);
+        self::assertFalse($config->showLifting);
 
-        $stored = [ShippingSettings::SENDER => '42', ShippingSettings::WEIGHT => '2.5', ShippingSettings::VOLUME => '0.01', ShippingSettings::COD_KIND => 'control', ShippingSettings::SHOW_TERM => '1'];
+        $stored = [ShippingSettings::SENDER => '42', ShippingSettings::WEIGHT => '2.5', ShippingSettings::VOLUME => '0.01', ShippingSettings::COD_KIND => 'control', ShippingSettings::SHOW_TERM => '1', ShippingSettings::SHOW_LIFTING => '1'];
         $config = ShippingConfig::fromSettings(static fn(string $name) => $stored[$name] ?? null);
         self::assertSame(42, $config->senderDivisionId);
         self::assertSame(2.5, $config->defaultWeight);
         self::assertSame(CodKind::Control, $config->codKind);
         self::assertTrue($config->showTerm);
+        self::assertTrue($config->showLifting);
     }
 }

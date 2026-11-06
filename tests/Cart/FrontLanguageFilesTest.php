@@ -49,8 +49,10 @@ class FrontLanguageFilesTest extends TestCase
     public function testEveryValidationErrorHasAText(): void
     {
         $ua = self::load('ua');
-        preg_match_all("/return '(error_\\w+)';/", (string)file_get_contents(dirname(self::dir()) . '/Cart/CartSelectionValidator.php'), $m);
-        $keys = array_merge(array_filter($m[1]), ['error_point_too_heavy', 'error_point_too_expensive']);
+        $code = (string)file_get_contents(dirname(self::dir()) . '/Cart/CartSelectionValidator.php') . (string)file_get_contents(dirname(self::dir()) . '/Cart/AddressInput.php');
+        preg_match_all("/(?:return |\\\$fail\\()'(error_\\w+)'(?=;|\\))/", $code, $m);
+        self::assertContains('error_lifting_floor', $m[1]);
+        $keys = array_merge(array_filter($m[1]), ['error_point_too_heavy', 'error_point_too_expensive', 'error_point_too_big']);
 
         foreach ($keys as $key) {
             self::assertArrayHasKey('sviat__novaposhta__' . $key, $ua);

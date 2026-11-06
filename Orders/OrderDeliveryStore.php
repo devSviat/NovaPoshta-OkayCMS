@@ -18,7 +18,7 @@ final class OrderDeliveryStore
     /** @param array{delivery_price: mixed, price_source: ?string, delivery_term: ?string, cod: int}|null $pricing */
     public function save(int $orderId, CartSelection $selection, ?array $pricing = null): void
     {
-        if (!$selection->applies()) {
+        if (!$selection->applies() || $selection->division === null) {
             return;
         }
         $now = date('Y-m-d H:i:s');

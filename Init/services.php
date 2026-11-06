@@ -201,7 +201,7 @@ return [
     ],
     CartSelectionValidator::class => [
         'class' => CartSelectionValidator::class,
-        'arguments' => [new SR(EntityFactory::class), new SR(GroupsStore::class), new SR(Module::class), new SR(SettlementSearch::class)],
+        'arguments' => [new SR(EntityFactory::class), new SR(GroupsStore::class), new SR(Module::class), new SR(SettlementSearch::class), new SR(ShippingSettings::class)],
     ],
     OrderDeliveryStore::class => [
         'class' => OrderDeliveryStore::class,
