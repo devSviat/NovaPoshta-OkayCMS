@@ -128,7 +128,7 @@
         this.active = -1;
         this.suggest.textContent = '';
         if (items.length === 0) {
-            var none = el('li', 'np-cart__suggest-empty', this.texts.cart_no_results);
+            var none = el('li', 'np-cart__suggest-empty', this.texts.cart_no_city);
             none.setAttribute('aria-disabled', 'true');
             this.suggest.appendChild(none);
         }

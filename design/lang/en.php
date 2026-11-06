@@ -26,3 +26,4 @@ $lang['sviat__novaposhta__error_point_too_heavy'] = 'The order is heavier than t
 $lang['sviat__novaposhta__error_point_too_expensive'] = 'The order total is above what the chosen point accepts. Choose a branch.';
 $lang['sviat__novaposhta__order_city'] = 'City';
 $lang['sviat__novaposhta__order_point'] = 'Pickup point';
+$lang['sviat__novaposhta__cart_no_city'] = 'No such city or village found. Check the name.';

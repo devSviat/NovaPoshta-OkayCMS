@@ -19,6 +19,7 @@ final class CartSelectionValidator
         private readonly EntityFactory $entityFactory,
         private readonly GroupsStore $groups,
         private readonly Module $module,
+        private readonly SettlementSearch $settlements,
     ) {
     }
 
@@ -41,17 +42,22 @@ final class CartSelectionValidator
             $division ?: null,
             $this->groups->all(),
             $cart,
+            $this->settlements->hasAny(),
         );
     }
 
     /** @param list<object> $groupRows */
-    public static function check(?object $delivery, int $moduleId, ?object $settlement, ?object $division, array $groupRows, CartMetrics $cart): CartSelection|string
+    public static function check(?object $delivery, int $moduleId, ?object $settlement, ?object $division, array $groupRows, CartMetrics $cart, bool $dictionaryReady = true): CartSelection|string
     {
         if ($delivery === null || (int)($delivery->module_id ?? 0) !== $moduleId || $moduleId === 0) {
             return CartSelection::none();
         }
         $settings = is_array($delivery->settings ?? null) ? $delivery->settings : [];
         if (DeliveryMode::fromServiceType($settings['service_type'] ?? null) !== DeliveryMode::Points) {
+            return CartSelection::none();
+        }
+        // Before the first dictionary run the cart asks for the branch in the order comment.
+        if (!$dictionaryReady) {
             return CartSelection::none();
         }
         if ($settlement === null) {

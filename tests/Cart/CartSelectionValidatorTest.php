@@ -37,9 +37,9 @@ class CartSelectionValidatorTest extends TestCase
         ]);
     }
 
-    private static function check(?object $delivery, ?object $settlement, ?object $division, ?CartMetrics $cart = null): CartSelection|string
+    private static function check(?object $delivery, ?object $settlement, ?object $division, ?CartMetrics $cart = null, bool $dictionaryReady = true): CartSelection|string
     {
-        return CartSelectionValidator::check($delivery, self::MODULE, $settlement, $division, self::groupRows(), $cart ?? new CartMetrics(2, false, 1000));
+        return CartSelectionValidator::check($delivery, self::MODULE, $settlement, $division, self::groupRows(), $cart ?? new CartMetrics(2, false, 1000), $dictionaryReady);
     }
 
     public function testValidChoice(): void
@@ -71,6 +71,12 @@ class CartSelectionValidatorTest extends TestCase
     public function testMissingSettlement(): void
     {
         self::assertSame('error_city', self::check(self::delivery(), null, null));
+    }
+
+    public function testEmptyDictionaryLetsTheOrderThroughWithoutAPoint(): void
+    {
+        // The cart then tells the customer to name the branch in the comment.
+        self::assertFalse(self::check(self::delivery(), null, null, null, false)->applies());
     }
 
     public function testMissingPoint(): void

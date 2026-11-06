@@ -16,6 +16,7 @@ use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelection;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelectionValidator;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 use Okay\Modules\Sviat\NovaPoshta\Cart\PopularCities;
+use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
 use Okay\Modules\Sviat\NovaPoshta\Cart\ThemeClasses;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
@@ -27,7 +28,7 @@ class FrontExtender implements ExtensionInterface
     /** Texts the cart script needs; keys of design/lang/*.php without the prefix. */
     private const array SCRIPT_TEXTS = [
         'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_closes', 'cart_all_day', 'cart_up_to_kg',
-        'cart_too_heavy', 'cart_too_expensive', 'cart_choice', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed',
+        'cart_too_heavy', 'cart_too_expensive', 'cart_choice', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city',
     ];
 
     public function __construct(
@@ -42,6 +43,7 @@ class FrontExtender implements ExtensionInterface
         private readonly CartSelectionValidator $validator,
         private readonly OrderDeliveryStore $orders,
         private readonly Cart $cart,
+        private readonly SettlementSearch $settlements,
     ) {
     }
 
@@ -104,6 +106,7 @@ class FrontExtender implements ExtensionInterface
         }
 
         $this->design->assign('np_module_id', $moduleId);
+        $this->design->assign('np_unavailable', !$this->settlements->hasAny());
         $this->design->assign('np_theme', ThemeClasses::for((string)$this->settings->get('theme')));
         $this->design->assign('np_popular', $this->popularCities->buttons($lang));
         // JSON is built here: Smarty 5 does not allow PHP functions such as json_encode as modifiers.

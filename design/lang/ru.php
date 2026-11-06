@@ -26,3 +26,4 @@ $lang['sviat__novaposhta__error_point_too_heavy'] = 'Заказ тяжелее, 
 $lang['sviat__novaposhta__error_point_too_expensive'] = 'Сумма заказа больше, чем принимает выбранный пункт. Выберите отделение.';
 $lang['sviat__novaposhta__order_city'] = 'Населённый пункт';
 $lang['sviat__novaposhta__order_point'] = 'Пункт выдачи';
+$lang['sviat__novaposhta__cart_no_city'] = 'Такой населённый пункт не найден. Проверьте название.';

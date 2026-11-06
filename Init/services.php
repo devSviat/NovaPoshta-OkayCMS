@@ -143,11 +143,12 @@ return [
             new SR(CartSelectionValidator::class),
             new SR(OrderDeliveryStore::class),
             new SR(Cart::class),
+            new SR(SettlementSearch::class),
         ],
     ],
     CartSelectionValidator::class => [
         'class' => CartSelectionValidator::class,
-        'arguments' => [new SR(EntityFactory::class), new SR(GroupsStore::class), new SR(Module::class)],
+        'arguments' => [new SR(EntityFactory::class), new SR(GroupsStore::class), new SR(Module::class), new SR(SettlementSearch::class)],
     ],
     OrderDeliveryStore::class => [
         'class' => OrderDeliveryStore::class,

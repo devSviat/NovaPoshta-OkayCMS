@@ -15,6 +15,14 @@ final class SettlementSearch
     ) {
     }
 
+    /** False until the dictionary run has loaded settlements that have pickup points. */
+    public function hasAny(): bool
+    {
+        $select = $this->queryFactory->newSelect()->cols(['1 AS x'])->from(SettlementEntity::getTable())->where('has_pickup = 1')->limit(1);
+
+        return $this->db->query($select) !== false && $this->db->results() !== [];
+    }
+
     /** @return list<array{id:int, name:string, district:?string, area:?string}> */
     public function find(string $raw, string $lang, int $limit = 10): array
     {

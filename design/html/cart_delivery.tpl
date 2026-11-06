@@ -1,5 +1,8 @@
 {if $np_module_id && $delivery->module_id == $np_module_id && isset($np_prefill[$delivery->id])}
 {$np_choice = $np_prefill[$delivery->id]}
+{if $np_unavailable}
+<p class="np-cart-unavailable" role="status">{$lang->sviat__novaposhta__cart_dictionary_empty|escape}</p>
+{else}
 <div class="np-cart np-cart--{$np_theme.family|escape}"
      data-delivery-id="{$delivery->id|escape}"
      data-settlement="{$np_choice.settlement_json|escape}"
@@ -52,4 +55,5 @@
     <input type="hidden" class="np-cart__settlement-id" name="novaposhta[{$delivery->id|escape}][settlement_id]" value="{if $np_choice.settlement}{$np_choice.settlement.id|escape}{/if}">
     <input type="hidden" class="np-cart__division-id" name="novaposhta[{$delivery->id|escape}][division_id]" value="{if $np_choice.division}{$np_choice.division.id|escape}{/if}">
 </div>
+{/if}
 {/if}
