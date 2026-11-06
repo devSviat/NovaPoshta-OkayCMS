@@ -48,16 +48,39 @@ class DivisionListTest extends TestCase
         self::assertSame([], DivisionList::categoriesOf(self::groupRows(), 99));
     }
 
-    public function testUnfitPointsGoLastWithTheirReasons(): void
+    public function testPageKeepsTheOrderItIsGivenAndExplainsUnfitPoints(): void
     {
         $page = DivisionList::page(
             [self::point(1, '1', 'PostBranch', ['max_weight' => '10.00']), self::point(2, '2', 'PostBranch')],
             new CartMetrics(12.4, false, 100), 'ua', 'friday',
         );
 
-        self::assertSame([2, 1], array_column($page, 'id'));
-        self::assertSame(['too_heavy'], $page[1]['problems']);
-        self::assertArrayNotHasKey('problems', $page[0], 'no problems → no field');
+        self::assertSame([1, 2], array_column($page, 'id'), 'the order is decided by pageIds');
+        self::assertSame(['too_heavy'], $page[0]['problems']);
+        self::assertArrayNotHasKey('problems', $page[1], 'no problems → no field');
+    }
+
+    public function testSearchedNumberComesBeforeAddressMatches(): void
+    {
+        // "13": branch №13 first, then numbers starting with 13, then "вул. Слобожанська, 13" (author, 06.11.2026).
+        $light = [
+            (object)['id' => 1, 'max_weight' => '30', 'max_declared_cost' => '0', 'match_rank' => 2],
+            (object)['id' => 3, 'max_weight' => '30', 'max_declared_cost' => '0', 'match_rank' => 2],
+            (object)['id' => 13, 'max_weight' => '30', 'max_declared_cost' => '0', 'match_rank' => 0],
+            (object)['id' => 130, 'max_weight' => '30', 'max_declared_cost' => '0', 'match_rank' => 1],
+        ];
+
+        self::assertSame([13, 130, 1, 3], DivisionList::pageIds($light, new CartMetrics(1, false, 100)));
+    }
+
+    public function testAnExactNumberThatDoesNotFitStillComesFirst(): void
+    {
+        $light = [
+            (object)['id' => 3, 'max_weight' => '30', 'max_declared_cost' => '0', 'match_rank' => 2],
+            (object)['id' => 13, 'max_weight' => '10', 'max_declared_cost' => '0', 'match_rank' => 0],
+        ];
+
+        self::assertSame([13, 3], DivisionList::pageIds($light, new CartMetrics(12, false, 100)), 'the customer asked for it; it is shown greyed with the reason');
     }
 
     public function testNovaPoshtaNameIsSplitIntoTitleAndPlace(): void

@@ -59,8 +59,18 @@ final class DivisionList
 
         // All of the group's points, light: those that fit the cart must lead the page even when
         // their numbers are high (a 35 kg cart in Kyiv: most low-numbered branches take 30 kg).
-        $light = $this->rows($filtered()
-            ->cols(['d.id', 'd.max_weight', 'd.max_declared_cost'])
+        $cols = ['d.id', 'd.max_weight', 'd.max_declared_cost'];
+        $exact = self::exactNumber($query);
+        if ($term !== null) {
+            // Customers know branch numbers better than addresses: the number they typed first,
+            // then numbers starting with it, then address and name matches (author, 06.11.2026).
+            $cols[] = "(CASE WHEN SUBSTRING_INDEX(d.number, '/', -1) = :exact THEN 0 WHEN SUBSTRING_INDEX(d.number, '/', -1) LIKE :prefix THEN 1 ELSE 2 END) AS match_rank";
+        }
+        $lightSelect = $filtered()->cols($cols);
+        if ($term !== null) {
+            $lightSelect->bindValue('exact', $exact);
+        }
+        $light = $this->rows($lightSelect
             // "11/117": the city code, then the branch number customers know. `+ 0` makes it a
             // number; CAST(… AS …) would be read by aura as a column alias and break the query.
             ->orderBy(["SUBSTRING_INDEX(d.number, '/', -1) + 0", 'd.number']));
@@ -119,30 +129,39 @@ final class DivisionList
     }
 
     /**
-     * Ids of one page: points that fit the cart first, each part in the given (number) order.
+     * Ids of one page. Search matches come in rank order (`match_rank`: the typed number, numbers
+     * starting with it, the rest); inside a rank, points that fit the cart come first; otherwise
+     * the given (number) order stays.
      *
-     * @param list<object> $light rows with id, max_weight, max_declared_cost, in number order
+     * @param list<object> $light rows with id, max_weight, max_declared_cost, optional match_rank, in number order
      * @return list<int>
      */
     public static function pageIds(array $light, CartMetrics $cart): array
     {
-        $fit = [];
-        $unfit = [];
+        $buckets = [];
         foreach ($light as $row) {
-            if (DivisionFit::problems($cart, $row) === []) {
-                $fit[] = (int)$row->id;
-                if (count($fit) === self::PAGE) {
-                    break;
-                }
-            } elseif (count($unfit) < self::PAGE) {
-                $unfit[] = (int)$row->id;
+            $rank = (int)($row->match_rank ?? 0);
+            $buckets[$rank][DivisionFit::problems($cart, $row) === [] ? 0 : 1][] = (int)$row->id;
+        }
+        ksort($buckets);
+        $ids = [];
+        foreach ($buckets as $parts) {
+            array_push($ids, ...($parts[0] ?? []), ...($parts[1] ?? []));
+            if (count($ids) >= self::PAGE) {
+                break;
             }
         }
 
-        return array_slice([...$fit, ...$unfit], 0, self::PAGE);
+        return array_slice($ids, 0, self::PAGE);
     }
 
-    /** @param list<object> $points rows of DivisionEntity, already in number order */
+    /** The branch number as typed ("№ 13" → "13"), for the exact-number rank. */
+    private static function exactNumber(string $query): string
+    {
+        return preg_replace('/\D+/', '', mb_substr($query, 0, 64)) ?? '';
+    }
+
+    /** @param list<object> $points rows of DivisionEntity, already in page order (pageIds) */
     public static function page(array $points, CartMetrics $cart, string $lang, string $weekday): array
     {
         $english = $lang === 'en';
@@ -163,8 +182,6 @@ final class DivisionList
                 'closesToday' => self::closesToday((string)$point->schedule, $weekday),
             ], static fn($value): bool => $value !== null && $value !== []);
         }
-        // Points that fit first; inside each part the number order from the query stays.
-        usort($page, static fn(array $a, array $b): int => isset($a['problems']) <=> isset($b['problems']));
 
         return $page;
     }
