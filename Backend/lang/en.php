@@ -148,7 +148,7 @@ $lang['sviat__novaposhta__cod_no_payments'] = 'There are no payment methods yet.
 $lang['sviat__novaposhta__variant_volume'] = 'Volume, m³ (NP)';
 $lang['sviat__novaposhta__variant_volume_hint'] = 'Packed volume in cubic metres: 40×30×10 cm = 0.012. Empty means unknown.';
 $lang['sviat__novaposhta__order_term'] = 'Estimated delivery date';
-$lang['sviat__novaposhta__order_price_fallback'] = 'The delivery price could not be calculated: Nova Poshta did not respond. The order has the delivery method\'s own price — confirm it with the customer.';
+$lang['sviat__novaposhta__order_price_fallback'] = 'Nova Poshta gave no delivery price, so no delivery is charged in this order. Tell the customer its cost.';
 $lang['sviat__novaposhta__shipping_show_lifting'] = 'Floor lifting in the cart';
 $lang['sviat__novaposhta__shipping_show_lifting_note'] = 'For address delivery. Customers see the option only when lifting costs extra (a heavy parcel) or some goods have no weight. The price comes from the Nova Poshta calculator.';
 $lang['sviat__novaposhta__order_address'] = 'Address';
@@ -159,3 +159,4 @@ $lang['sviat__novaposhta__order_entrance'] = 'entrance';
 $lang['sviat__novaposhta__order_floor'] = 'floor';
 $lang['sviat__novaposhta__order_elevator'] = 'lift available';
 $lang['sviat__novaposhta__order_note'] = 'Note';
+$lang['sviat__novaposhta__order_title'] = 'Nova Poshta';

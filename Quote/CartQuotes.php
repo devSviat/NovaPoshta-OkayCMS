@@ -21,6 +21,7 @@ use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 final class CartQuotes
 {
     private const string SESSION_SLOT = 'sviat__novaposhta__quotes';
+    private const int RETRY_UNREACHABLE_AFTER = 60;
 
     public function __construct(
         private readonly QuoteService $service,
@@ -98,7 +99,7 @@ final class CartQuotes
         QuoteSession::choose($bag, (int)$delivery->id, $targetKey, $cod, $lifting);
         $key = QuoteKey::for((int)$delivery->id, $targetKey, $cod, $cart, $lifting);
         $now = time();
-        $cached = QuoteSession::get($bag, $key, $now);
+        $cached = QuoteSession::get($bag, $key, $now, $forOrder ? null : self::RETRY_UNREACHABLE_AFTER);
         if ($cached !== null) {
             $this->store($bag);
 
@@ -121,7 +122,7 @@ final class CartQuotes
         if (!$uah) {
             $this->store($bag);
 
-            return new DeliveryQuote(null, null, 'fallback', 'no_uah');
+            return new DeliveryQuote(null, null, $wantPrice ? 'fallback' : 'none', 'no_uah');
         }
         if (!$forOrder && !$this->takeBudget($now)) {
             $this->store($bag);
@@ -131,7 +132,7 @@ final class CartQuotes
 
         [$recipient, $problem] = $target($config);
         if ($recipient === null) {
-            $quote = new DeliveryQuote(null, null, 'fallback', $problem);
+            $quote = new DeliveryQuote(null, null, $wantPrice ? 'fallback' : 'none', $problem);
         } else {
             $settings = self::settings($delivery);
             $quote = $this->service->quote(new QuoteRequest(
@@ -148,10 +149,8 @@ final class CartQuotes
             ));
             $quote = $this->inMainCurrency($quote, $uah);
         }
-        // An unreachable Nova Poshta is asked again next time instead of keeping the failure for an hour.
-        if ($quote->problem !== 'unreachable') {
-            QuoteSession::put($bag, $key, $quote, $now);
-        }
+        // Kept even when unreachable: checkout must charge what the cart showed, not a price NP gives a minute later.
+        QuoteSession::put($bag, $key, $quote, $now);
         $this->store($bag);
 
         return $quote;

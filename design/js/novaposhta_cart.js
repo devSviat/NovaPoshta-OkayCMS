@@ -92,6 +92,7 @@
         this.cityTimer = null;
         this.searchTimer = null;
         this.bind();
+        this.showUnpricedSummary();
         if (this.mode === 'address') {
             this.bindAddress();
         }
@@ -99,6 +100,7 @@
             if (this.address) {
                 this.address.hidden = false;
             }
+            this.markPopular();
             this.showChoice();
             this.load();
             this.requestQuote();
@@ -350,6 +352,9 @@
         if (data.divisions.length === 0) {
             this.list.appendChild(el('p', 'np-cart__empty', this.texts.cart_no_results));
         }
+        if (data.divisions.length > 0 && data.divisions.every(function (point) { return (point.problems || []).length > 0; })) {
+            this.list.appendChild(el('p', 'np-cart__empty', this.texts.cart_none_fit));
+        }
         data.divisions.forEach(function (point) { self.list.appendChild(self.option(point)); });
 
         this.more.hidden = data.total <= data.divisions.length;
@@ -378,14 +383,19 @@
             option.appendChild(el('span', 'np-cart__option-place', point.place));
         }
         var notes = [];
+        var lead = null;
         (point.problems || []).forEach(function (problem) {
-            notes.push(self.texts['cart_' + problem]);
+            var text = self.texts['cart_' + problem] || '';
+            var prefix = (text.match(/^[^:]*:\s*/) || [''])[0];
+            // "Не вміщається: …" once: a reason with the same lead-in continues the previous one.
+            notes.push(lead !== null && prefix !== '' && prefix === lead ? text.slice(prefix.length) : text);
+            lead = prefix;
         });
         if (!unfit && point.closesToday) {
             notes.push(point.closesToday === '24/7' ? this.texts.cart_all_day : format(this.texts.cart_closes, { time: point.closesToday }));
         }
         if (notes.length) {
-            option.appendChild(el('span', 'np-cart__option-note', notes.join(' · ')));
+            option.appendChild(el('span', 'np-cart__option-note', notes.join(unfit ? '; ' : ' · ')));
         }
 
         option.addEventListener('click', function () {
@@ -434,7 +444,6 @@
         return $ ? $('input[name="delivery_id"][value="' + String(this.deliveryId).replace(/[^0-9]/g, '') + '"]') : null;
     };
 
-    /** Writes a price where the theme reads it, then lets the theme recount its totals. */
     /** Remembers what the theme showed before the module touched it, to give it back later. */
     Block.prototype.captureTheme = function () {
         var input = this.themeInput();
@@ -455,6 +464,19 @@
         }
     };
 
+    /** Not charged: the order summary says the manager will tell instead of the theme's "0". */
+    Block.prototype.showUnpricedSummary = function () {
+        var input = this.themeInput();
+        var text = this.texts.cart_price_by_manager || '';
+        if (!input || !input.length || !input.is(':checked') || input.data('is_free_delivery') || Number(input.data('delivery_price')) !== 0) {
+            return;
+        }
+        if (text !== '' && input.closest('.fn_delivery_item').find('.fn_delivery_price').first().text().trim() === text) {
+            window.jQuery('#fn_total_delivery_price').text(text);
+        }
+    };
+
+    /** Writes a price where the theme reads it, then lets the theme recount its totals. */
     Block.prototype.setThemePrice = function (price, total, text, free) {
         var input = this.themeInput();
         if (!input || !input.length) {
@@ -465,6 +487,12 @@
         input.closest('.fn_delivery_item').find('.fn_delivery_price').text(text);
         if (input.is(':checked') && typeof okay !== 'undefined' && typeof okay.update_cart_total_price === 'function') {
             okay.update_cart_total_price();
+            // The theme fills the "до оплати" amounts only when the delivery method changes.
+            var $ = window.jQuery;
+            $(typeof okay.convert === 'function' ? '.fn_payment_method__item' : []).each(function () {
+                var currency = $(this).find('input[name="payment_method_id"]').data('currency_id');
+                $(this).find('.fn_payment_price').text(okay.convert(total, currency));
+            });
         }
     };
 
@@ -518,8 +546,10 @@
     Block.prototype.showQuote = function (data) {
         var lines = [];
         var problem = data.problem === 'unreachable' || data.problem === 'rejected' || data.problem === 'busy' || data.problem === 'no_city_ref' || data.problem === 'no_uah';
+        var priced = typeof data.price === 'number' && !data.unpriced;
         if (typeof data.price === 'number') {
             this.setThemePrice(data.price, data.totalWithDelivery, data.priceText || '', !!data.free);
+            this.showUnpricedSummary();
         } else {
             // No price (free, hidden, no sender, bad input or a failure): the theme's own numbers come back.
             this.restoreTheme();
@@ -538,16 +568,16 @@
         }
         if (this.mode === 'address' && data.problem === 'no_city_ref') {
             lines.push(this.texts.cart_no_address);
-        } else if (data.problem === 'rejected' && typeof data.price !== 'number') {
+        } else if (data.problem === 'rejected' && !priced) {
             lines.push(this.texts.cart_price_rejected);
-        } else if (problem && typeof data.price !== 'number' && data.problem !== 'no_city_ref') {
+        } else if (problem && !priced && data.problem !== 'no_city_ref') {
             lines.push(this.texts.cart_price_unreachable);
         }
         this.showLifting(data);
         this.quoteBox.textContent = '';
         var self = this;
         lines.forEach(function (line) { self.quoteBox.appendChild(el('p', null, line)); });
-        this.quoteBox.classList.toggle('np-cart__quote--problem', problem && typeof data.price !== 'number');
+        this.quoteBox.classList.toggle('np-cart__quote--problem', problem && !priced);
         this.quoteBox.hidden = lines.length === 0;
     };
 
@@ -732,6 +762,7 @@
         if (window.jQuery) {
             window.jQuery(document).on('change', 'input[name="delivery_id"]', function () {
                 blocks.forEach(function (block) {
+                    block.showUnpricedSummary();
                     if (block.settlement) {
                         block.load();
                         block.requestQuote();

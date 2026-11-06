@@ -89,7 +89,7 @@ return [
     ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
-        'arguments' => [],
+        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class)],
     ],
     DbCityRefStore::class => [
         'class' => DbCityRefStore::class,

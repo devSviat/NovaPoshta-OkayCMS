@@ -15,6 +15,10 @@
             <dt><span data-language="sviat__novaposhta__order_lifting">{$lang->sviat__novaposhta__order_lifting|escape}</span></dt>
             <dd>{$lang->sviat__novaposhta__order_lifting_yes|escape}</dd>
         {/if}
+        {if $np_order_delivery.priceUnconfirmed}
+            <dt><span data-language="sviat__novaposhta__order_delivery_cost">{$lang->sviat__novaposhta__order_delivery_cost|escape}</span></dt>
+            <dd>{$lang->sviat__novaposhta__cart_price_by_manager|escape}</dd>
+        {/if}
         {if $np_order_delivery.term}
             <dt><span data-language="sviat__novaposhta__order_term">{$lang->sviat__novaposhta__order_term|escape}</span></dt>
             <dd>{$np_order_delivery.term|escape}</dd>
@@ -40,6 +44,12 @@
             <tr>
                 <td><span data-language="sviat__novaposhta__order_lifting">{$lang->sviat__novaposhta__order_lifting|escape}</span></td>
                 <td>{$lang->sviat__novaposhta__order_lifting_yes|escape}</td>
+            </tr>
+        {/if}
+        {if $np_order_delivery.priceUnconfirmed}
+            <tr>
+                <td><span data-language="sviat__novaposhta__order_delivery_cost">{$lang->sviat__novaposhta__order_delivery_cost|escape}</span></td>
+                <td>{$lang->sviat__novaposhta__cart_price_by_manager|escape}</td>
             </tr>
         {/if}
         {if $np_order_delivery.term}

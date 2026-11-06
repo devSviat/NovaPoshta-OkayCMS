@@ -11,10 +11,17 @@ final class QuoteSession
     private const int TTL = 3600;
     private const int MAX_QUOTES = 10;
 
-    public static function get(array $bag, string $key, int $now): ?DeliveryQuote
+    /**
+     * @param ?int $retryUnreachableAfter seconds after which an "unreachable" answer counts as missing, so the
+     *     cart asks Nova Poshta again; checkout passes null and keeps what the cart showed.
+     */
+    public static function get(array $bag, string $key, int $now, ?int $retryUnreachableAfter = null): ?DeliveryQuote
     {
         $row = $bag['quotes'][$key] ?? null;
         if (!is_array($row) || !is_int($row['at'] ?? null) || $now - $row['at'] >= self::TTL) {
+            return null;
+        }
+        if ($retryUnreachableAfter !== null && ($row['problem'] ?? null) === 'unreachable' && $now - $row['at'] >= $retryUnreachableAfter) {
             return null;
         }
         $term = is_string($row['term'] ?? null) ? \DateTimeImmutable::createFromFormat('!Y-m-d', $row['term']) : null;

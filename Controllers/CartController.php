@@ -20,6 +20,8 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\StreetSearch;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
+use Okay\Core\FrontTranslations;
+use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
 
 /**
  * Public cart endpoints. They read only the Nova Poshta dictionary and the visitor's own
@@ -29,7 +31,7 @@ class CartController
 {
     public function settlements(Request $request, Response $response, SettlementSearch $search, Languages $languages)
     {
-        $query = $request->get('q');
+        $query = self::typed($request);
         $pickupOnly = $request->get('mode') !== 'address';
         $this->json($response, ['settlements' => is_string($query) ? $search->find($query, (string)$languages->getLangLabel(), 10, $pickupOnly) : []]);
     }
@@ -49,7 +51,7 @@ class CartController
             $uahTotal->metrics($cart->get()),
             (string)$languages->getLangLabel(),
             $groupId ? (int)$groupId : null,
-            (string)$request->get('q'),
+            is_string($query = self::typed($request)) ? $query : '',
         ));
     }
 
@@ -58,7 +60,7 @@ class CartController
      * The method's numbers come from the core's own cart list, so every module extending it
      * (a promo's free shipping) shapes the answer exactly as it shapes the page.
      */
-    public function quote(Request $request, Response $response, CartQuotes $quotes, Cart $cart, EntityFactory $entityFactory, Money $money, DeliveriesHelper $deliveriesHelper, ShippingSettings $shipping)
+    public function quote(Request $request, Response $response, CartQuotes $quotes, Cart $cart, EntityFactory $entityFactory, Money $money, DeliveriesHelper $deliveriesHelper, ShippingSettings $shipping, FrontTranslations $translations)
     {
         $deliveryId = (int)$request->get('delivery_id', 'integer');
         $delivery = $deliveryId > 0 ? $entityFactory->get(DeliveriesEntity::class)->get($deliveryId) : null;
@@ -85,7 +87,7 @@ class CartController
             $response->setStatusCode(429);
         }
 
-        $answer = ['price' => null, 'priceText' => null, 'totalWithDelivery' => null, 'free' => false, 'codFee' => null, 'codFeeText' => null, 'term' => $quote->term?->format('Y-m-d'), 'problem' => $quote->problem, 'liftingOffered' => false, 'liftingFeeText' => null];
+        $answer = ['price' => null, 'unpriced' => false, 'priceText' => null, 'totalWithDelivery' => null, 'free' => false, 'codFee' => null, 'codFeeText' => null, 'term' => $quote->term?->format('Y-m-d'), 'problem' => $quote->problem, 'liftingOffered' => false, 'liftingFeeText' => null];
         // Lifting is offered only when it costs extra, or when the weight of some goods is unknown (design §6).
         if ($request->get('mode') === 'address' && $shipping->read()->showLifting && !$quote->liftingRefused
             && ($quote->liftingFee !== null || CartMetrics::fromCart($cartData)->weightUnknown)) {
@@ -96,7 +98,12 @@ class CartController
         }
         $payments = $entityFactory->get(PaymentsEntity::class)->mappedBy('id')->find(['enabled' => 1]);
         $item = $deliveriesHelper->getCartDeliveriesList($cartData, $payments)[$deliveryId] ?? null;
-        if ($item && ($quote->price !== null || !empty($item->is_free_delivery))) {
+        // An unreachable Nova Poshta is not kept in the session, so the list above may still carry the admin price.
+        if ($item && $quote->unpriced()) {
+            DeliveryPriceView::unpriced($item, (float)$cartData->total_price, $translations->getTranslation('sviat__novaposhta__cart_price_by_manager'));
+        }
+        if ($item && ($quote->price !== null || !empty($item->is_free_delivery) || $quote->unpriced())) {
+            $answer['unpriced'] = $quote->unpriced() && empty($item->is_free_delivery);
             $answer['price'] = (float)$item->price;
             $answer['priceText'] = (string)$item->delivery_price_text;
             $answer['totalWithDelivery'] = (float)$item->total_price_with_delivery;
@@ -114,7 +121,7 @@ class CartController
     {
         $settlementId = (int)$request->get('settlement_id', 'integer');
         $settlement = $settlementId > 0 ? $entityFactory->get(SettlementEntity::class)->get($settlementId) : null;
-        $query = $request->get('q');
+        $query = self::typed($request);
         if (!$settlement || !is_string($query) || empty($cart->get()->purchases)) {
             $response->setStatusCode(400);
             $this->json($response, ['error' => 'input']);
@@ -141,5 +148,14 @@ class CartController
     private function json(Response $response, array $data): void
     {
         $response->setContent(json_encode($data, JSON_UNESCAPED_UNICODE), RESPONSE_JSON);
+    }
+
+    /**
+     * The search text as typed. Request::get() HTML-encodes by default, which turns "Кам'янець" into
+     * "Кам&#039;янець" and finds nothing; the value is only bound into queries and sent back as JSON.
+     */
+    private static function typed(Request $request): mixed
+    {
+        return $request->get('q', null, null, false);
     }
 }

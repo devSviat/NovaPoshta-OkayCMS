@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
-/** Which delivery price an order gets: the server's calculation, or the core's (admin) price. */
+/** Which delivery price an order gets: the server's calculation, none when it failed, or the core's (admin) price. */
 final class PriceDecision
 {
     /**
@@ -19,7 +19,13 @@ final class PriceDecision
         if ($coreDefault !== null && abs((float)($coreInfo['delivery_price'] ?? 0) - $coreDefault) > 0.001) {
             return ['info' => $coreInfo, 'source' => 'external'];
         }
-        if ($quote->price === null || $freeByCore) {
+        if ($freeByCore) {
+            return ['info' => $coreInfo, 'source' => $quote->source];
+        }
+        if ($quote->unpriced()) {
+            return ['info' => ['delivery_price' => 0.0] + $coreInfo, 'source' => $quote->source];
+        }
+        if ($quote->price === null) {
             return ['info' => $coreInfo, 'source' => $quote->source];
         }
 

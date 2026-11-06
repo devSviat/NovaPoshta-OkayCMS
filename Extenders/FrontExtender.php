@@ -36,7 +36,7 @@ class FrontExtender implements ExtensionInterface
     private const array SCRIPT_TEXTS = [
         'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_closes', 'cart_all_day', 'cart_up_to_kg',
         'cart_too_heavy', 'cart_too_expensive', 'cart_choice', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
-        'cart_cod_fee', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager',
+        'cart_cod_fee', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager', 'cart_none_fit',
         'cart_street_failed', 'cart_no_street', 'cart_address_choice', 'cart_flat_short', 'cart_no_address', 'cart_lifting_paid', 'cart_lifting_unknown', 'cart_note_left', 'cart_price_rejected',
     ];
 
@@ -76,6 +76,8 @@ class FrontExtender implements ExtensionInterface
             $quote = is_object($delivery) && empty($delivery->is_free_delivery) ? $this->quotes->cachedForChoice($delivery, $cart) : null;
             if ($quote?->price !== null) {
                 $this->showPrice($delivery, $quote->price, (float)$cart->total_price);
+            } elseif ($quote?->unpriced()) {
+                DeliveryPriceView::unpriced($delivery, (float)$cart->total_price, $this->translations->getTranslation('sviat__novaposhta__cart_price_by_manager'));
             }
         }
 
@@ -171,7 +173,7 @@ class FrontExtender implements ExtensionInterface
     public function assignOrderDelivery($result, $order)
     {
         $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
-        $this->design->assign('np_order_delivery', $row ? OrderDeliveryView::lines($row) : null);
+        $this->design->assign('np_order_delivery', $row ? OrderDeliveryView::lines($row, (float)($order->delivery_price ?? 0)) : null);
         $this->design->assign('np_order_family', ThemeClasses::for((string)$this->settings->get('theme'))['family']);
     }
 
