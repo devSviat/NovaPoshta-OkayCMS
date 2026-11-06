@@ -17,6 +17,10 @@ use Okay\Core\Scheduler\Schedule;
 use Okay\Core\ServiceLocator;
 use Okay\Entities\LanguagesEntity;
 use Okay\Entities\PaymentsEntity;
+use Okay\Entities\VariantsEntity;
+use Okay\Admin\Requests\BackendProductsRequest;
+use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
+use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryRunner;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
@@ -67,11 +71,18 @@ class Init extends AbstractInit
     private function addCoreFields(): void
     {
         $this->migrateEntityField(PaymentsEntity::class, new EntityField(CodPayments::FIELD)->setTypeTinyInt(1, false)->setDefault(0));
+        $this->migrateEntityField(VariantsEntity::class, new EntityField(VariantVolume::FIELD)->setTypeDecimal('10,5', false)->setDefault(0));
     }
 
     public function init()
     {
         $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
+        $this->registerEntityField(VariantsEntity::class, VariantVolume::FIELD);
+        $this->addBackendBlock('product_variant', 'variant_volume.tpl');
+        $this->registerChainExtension(
+            [BackendProductsRequest::class, 'postVariants'],
+            [BackendExtender::class, 'cleanVariantVolumes']
+        );
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
 

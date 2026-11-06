@@ -28,7 +28,7 @@ class FrontExtender implements ExtensionInterface
     /** Texts the cart script needs; keys of design/lang/*.php without the prefix. */
     private const array SCRIPT_TEXTS = [
         'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_closes', 'cart_all_day', 'cart_up_to_kg',
-        'cart_too_heavy', 'cart_too_expensive', 'cart_choice', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city',
+        'cart_too_heavy', 'cart_too_expensive', 'cart_choice', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
     ];
 
     public function __construct(

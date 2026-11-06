@@ -145,3 +145,5 @@ $lang['sviat__novaposhta__cod_payments'] = 'Способи оплати — пі
 $lang['sviat__novaposhta__cod_payments_note'] = 'Коли покупець вибирає позначений спосіб, кошик рахує доставку з післяплатою.';
 $lang['sviat__novaposhta__cod_payment_disabled'] = 'вимкнений';
 $lang['sviat__novaposhta__cod_no_payments'] = 'Способів оплати ще немає.';
+$lang['sviat__novaposhta__variant_volume'] = 'Об\'єм, м³ (НП)';
+$lang['sviat__novaposhta__variant_volume_hint'] = 'Об\'єм упаковки в метрах кубічних: 40×30×10 см = 0.012. Порожньо — невідомо.';

@@ -145,3 +145,5 @@ $lang['sviat__novaposhta__cod_payments'] = 'Способы оплаты — на
 $lang['sviat__novaposhta__cod_payments_note'] = 'Когда покупатель выбирает отмеченный способ, корзина считает доставку с наложенным платежом.';
 $lang['sviat__novaposhta__cod_payment_disabled'] = 'выключен';
 $lang['sviat__novaposhta__cod_no_payments'] = 'Способов оплаты ещё нет.';
+$lang['sviat__novaposhta__variant_volume'] = 'Объём, м³ (НП)';
+$lang['sviat__novaposhta__variant_volume_hint'] = 'Объём упаковки в кубических метрах: 40×30×10 см = 0.012. Пусто — неизвестно.';

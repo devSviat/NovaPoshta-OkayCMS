@@ -27,3 +27,5 @@ $lang['sviat__novaposhta__error_point_too_expensive'] = 'Сума замовле
 $lang['sviat__novaposhta__order_city'] = 'Населений пункт';
 $lang['sviat__novaposhta__order_point'] = 'Пункт видачі';
 $lang['sviat__novaposhta__cart_no_city'] = 'Такого населеного пункту не знайдено. Перевірте назву.';
+$lang['sviat__novaposhta__cart_too_big'] = 'Не вміщається: ваше замовлення більше за об\'ємом, ніж приймає цей пункт';
+$lang['sviat__novaposhta__error_point_too_big'] = 'Замовлення не вміщається у вибраний пункт за об\'ємом. Виберіть відділення.';

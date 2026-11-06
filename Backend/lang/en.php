@@ -145,3 +145,5 @@ $lang['sviat__novaposhta__cod_payments'] = 'Payment methods that are cash on del
 $lang['sviat__novaposhta__cod_payments_note'] = 'When the customer picks a marked method, the cart prices delivery with cash on delivery.';
 $lang['sviat__novaposhta__cod_payment_disabled'] = 'disabled';
 $lang['sviat__novaposhta__cod_no_payments'] = 'There are no payment methods yet.';
+$lang['sviat__novaposhta__variant_volume'] = 'Volume, m³ (NP)';
+$lang['sviat__novaposhta__variant_volume_hint'] = 'Packed volume in cubic metres: 40×30×10 cm = 0.012. Empty means unknown.';
