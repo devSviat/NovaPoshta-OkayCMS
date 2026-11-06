@@ -18,6 +18,8 @@ final class OldApiClient
 
     private readonly \Closure $sleep;
     private ?string $fixedKey = null;
+    private bool $retries = true;
+    private int $timeoutSeconds = 20;
 
     public function __construct(
         private readonly HttpTransport $http,
@@ -36,6 +38,16 @@ final class OldApiClient
         return $client;
     }
 
+    /** One short attempt per call: for checks a manager waits for in the browser. */
+    public function quick(int $timeoutSeconds): self
+    {
+        $client = clone $this;
+        $client->retries = false;
+        $client->timeoutSeconds = $timeoutSeconds;
+
+        return $client;
+    }
+
     /** @return array the `data` part of the answer */
     public function call(string $model, string $method, array $properties = []): array
     {
@@ -49,10 +61,10 @@ final class OldApiClient
             'methodProperties' => $properties === [] ? new \stdClass() : $properties,
         ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 
-        // save/update/delete change data at Nova Poshta: after a timeout the change may
-        // already be done, so a repeat could create a second shipment.
-        $isMutation = in_array(strtolower($method), ['save', 'update', 'delete'], true);
-        $retriesLeft = $isMutation ? 0 : 1;
+        // Only reads are repeated. Anything else may change data at Nova Poshta (save, delete,
+        // insertDocuments…): after a timeout it may already be done, and a repeat would do it twice.
+        $isRead = str_starts_with(strtolower($method), 'get');
+        $retriesLeft = $isRead && $this->retries ? 1 : 0;
 
         while (true) {
             try {
@@ -72,7 +84,7 @@ final class OldApiClient
     {
         $secrets = [$key];
         try {
-            $response = $this->http->send(new HttpRequest('POST', self::URL, ['Content-Type' => 'application/json'], $body));
+            $response = $this->http->send(new HttpRequest('POST', self::URL, ['Content-Type' => 'application/json'], $body, $this->timeoutSeconds));
         } catch (TransportException $e) {
             throw NpApiException::fromNp(NpErrorKind::Unavailable, [$e->getMessage()], [], $secrets);
         }

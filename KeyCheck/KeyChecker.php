@@ -15,6 +15,9 @@ final class KeyChecker
 {
     private const string STATE = 'key_check';
 
+    /** Both checks run while the manager waits for the page; keep them well under proxy timeouts (60 s). */
+    public const int TIMEOUT_SECONDS = 8;
+
     private readonly \Closure $now;
 
     public function __construct(
@@ -50,7 +53,7 @@ final class KeyChecker
     private function checkNewApi(string $key): KeyAccess
     {
         try {
-            $this->jwt->store($key, JwtProvider::issue($this->http, $key));
+            $this->jwt->store($key, JwtProvider::issue($this->http, $key, self::TIMEOUT_SECONDS));
 
             return KeyAccess::Ok;
         } catch (NpApiException $e) {
@@ -62,7 +65,7 @@ final class KeyChecker
     {
         try {
             // Needs a valid key and touches nothing: the shop's own sender counterparties.
-            $this->oldApi->withKey($key)->call('Counterparty', 'getCounterparties', ['CounterpartyProperty' => 'Sender', 'Page' => 1]);
+            $this->oldApi->withKey($key)->quick(self::TIMEOUT_SECONDS)->call('Counterparty', 'getCounterparties', ['CounterpartyProperty' => 'Sender', 'Page' => 1]);
 
             return KeyAccess::Ok;
         } catch (NpApiException $e) {

@@ -21,10 +21,15 @@ final class ApiKey
         return $key === '' ? null : $key;
     }
 
-    /** Strips what copying from the business cabinet or a messenger tends to add. */
+    /**
+     * Strips what copying from the business cabinet, a messenger or a document tends to add:
+     * any Unicode space, invisible format characters (BOM, zero-width) and quotes of any style.
+     */
     public static function normalize(string $raw): string
     {
-        return trim($raw, " \t\n\r\0\x0B\"'");
+        $edge = '[\s\p{Z}\p{Cf}"\'«»“”„‘’]+';
+
+        return preg_replace("/^{$edge}|{$edge}$/u", '', $raw) ?? trim($raw);
     }
 
     /** Ties cached data (the JWT) to the key without storing the key next to it. */

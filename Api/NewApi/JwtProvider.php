@@ -65,13 +65,13 @@ final class JwtProvider
     }
 
     /** Asks Nova Poshta for a token right now, without the cache. */
-    public static function issue(HttpTransport $http, string $apiKey): string
+    public static function issue(HttpTransport $http, string $apiKey, int $timeoutSeconds = 20): string
     {
         $secrets = [$apiKey];
         try {
             $response = $http->send(new HttpRequest('GET', self::AUTHORIZATION_URL . '?' . http_build_query(['apiKey' => $apiKey]), [
                 'Accept' => 'application/json',
-            ]));
+            ], null, $timeoutSeconds));
         } catch (TransportException $e) {
             throw NpApiException::fromNp(NpErrorKind::Unavailable, [$e->getMessage()], [], $secrets);
         }

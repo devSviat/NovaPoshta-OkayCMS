@@ -50,6 +50,8 @@ class KeySettingsViewTest extends TestCase
             'unreachable' => [A::Unreachable, A::Unreachable, 'unreachable', ['unreachable', 'unreachable']],
             'invalid wins over unreachable' => [A::Unreachable, A::InvalidKey, 'invalid', ['unreachable', 'invalid_key']],
             'denied wins over unreachable' => [A::Denied, A::Unreachable, 'denied', ['denied', 'unreachable']],
+            'old api refused' => [A::Ok, A::Denied, 'denied_old', ['ok', 'denied']],
+            'both refused' => [A::Denied, A::Denied, 'denied', ['denied', 'denied']],
         ];
     }
 

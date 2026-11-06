@@ -45,7 +45,8 @@ final class KeySettingsView
         // The worst finding decides: an invalid key tells more than an unanswered request.
         return match (true) {
             in_array(KeyAccess::InvalidKey, $access, true) => 'invalid',
-            in_array(KeyAccess::Denied, $access, true) => 'denied',
+            $result->newApi === KeyAccess::Denied => 'denied',
+            $result->oldApi === KeyAccess::Denied => 'denied_old',
             in_array(KeyAccess::Unreachable, $access, true) => 'unreachable',
             default => 'ok',
         };

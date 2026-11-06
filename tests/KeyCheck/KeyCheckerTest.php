@@ -116,6 +116,19 @@ class KeyCheckerTest extends TestCase
         self::assertSame(KeyAccess::Unreachable, $result->oldApi);
     }
 
+    public function testCheckUsesShortTimeoutsAndNoRetries(): void
+    {
+        $this->http->push(new TransportException('timeout'), new TransportException('timeout'), new TransportException('timeout'));
+
+        $this->checker()->check(F::KEY);
+
+        self::assertCount(2, $this->http->requests(), 'one request per API, no retry: the manager waits for the page');
+        foreach ($this->http->requests() as $request) {
+            self::assertLessThanOrEqual(KeyChecker::TIMEOUT_SECONDS, $request->timeoutSeconds);
+        }
+        self::assertLessThanOrEqual(10, KeyChecker::TIMEOUT_SECONDS);
+    }
+
     public function testResultRoundTrip(): void
     {
         $result = new KeyCheckResult(KeyAccess::Denied, KeyAccess::Ok, new \DateTimeImmutable('@' . self::NOW));

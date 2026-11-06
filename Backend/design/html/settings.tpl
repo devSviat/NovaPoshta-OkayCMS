@@ -44,12 +44,13 @@
 
 <div class="row">
     <div class="col-lg-8 col-md-12">
-        <div class="alert alert--icon {if $np_key.state == 'ok'}alert--success{elseif $np_key.state == 'invalid'}alert--error{elseif $np_key.state == 'denied' || $np_key.state == 'unreachable'}alert--warning{else}alert--info{/if}" role="status" aria-live="polite">
+        <div class="alert alert--icon {if $np_key.state == 'ok'}alert--success{elseif $np_key.state == 'invalid'}alert--error{elseif $np_key.state == 'denied' || $np_key.state == 'denied_old' || $np_key.state == 'unreachable'}alert--warning{else}alert--info{/if}" role="status" aria-live="polite">
             <div class="alert__content">
                 <div class="alert__title">
                     {if $np_key.state == 'ok'}{$btr->sviat__novaposhta__state_ok_title|escape}
                     {elseif $np_key.state == 'invalid'}{$btr->sviat__novaposhta__state_invalid_title|escape}
                     {elseif $np_key.state == 'denied'}{$btr->sviat__novaposhta__state_denied_title|escape}
+                    {elseif $np_key.state == 'denied_old'}{$btr->sviat__novaposhta__state_denied_old_title|escape}
                     {elseif $np_key.state == 'unreachable'}{$btr->sviat__novaposhta__state_unreachable_title|escape}
                     {elseif $np_key.state == 'unchecked'}{$btr->sviat__novaposhta__state_unchecked_title|escape}
                     {else}{$btr->sviat__novaposhta__state_none_title|escape}{/if}
@@ -58,6 +59,7 @@
                     {if $np_key.state == 'ok'}{$btr->sviat__novaposhta__state_ok_text|escape}
                     {elseif $np_key.state == 'invalid'}{$btr->sviat__novaposhta__state_invalid_text|escape}
                     {elseif $np_key.state == 'denied'}{$btr->sviat__novaposhta__state_denied_text|escape}
+                    {elseif $np_key.state == 'denied_old'}{$btr->sviat__novaposhta__state_denied_old_text|escape}
                     {elseif $np_key.state == 'unreachable'}{$btr->sviat__novaposhta__state_unreachable_text|escape}
                     {elseif $np_key.state == 'unchecked'}{$btr->sviat__novaposhta__state_unchecked_text|escape}
                     {else}{$btr->sviat__novaposhta__state_none_text|escape}{/if}
@@ -70,6 +72,7 @@
                         <b>{$btr->sviat__novaposhta__what_to_do|escape}</b>
                         {if $np_key.state == 'invalid'}{$btr->sviat__novaposhta__state_invalid_action|escape}
                         {elseif $np_key.state == 'denied'}{$btr->sviat__novaposhta__state_denied_action|escape}
+                    {elseif $np_key.state == 'denied_old'}{$btr->sviat__novaposhta__state_denied_old_action|escape}
                         {elseif $np_key.state == 'unreachable'}{$btr->sviat__novaposhta__state_unreachable_action|escape}
                         {elseif $np_key.state == 'unchecked'}{$btr->sviat__novaposhta__state_unchecked_action|escape}
                         {else}{$btr->sviat__novaposhta__state_none_action|escape}{/if}

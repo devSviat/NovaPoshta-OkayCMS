@@ -130,7 +130,7 @@ class OldApiClientTest extends TestCase
 
     public static function mutations(): array
     {
-        return [['save'], ['Update'], ['DELETE']];
+        return [['save'], ['Update'], ['DELETE'], ['insertDocuments'], ['removeDocuments'], ['deleteScanSheet']];
     }
 
     #[DataProvider('mutations')]

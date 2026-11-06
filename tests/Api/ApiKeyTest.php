@@ -18,6 +18,10 @@ class ApiKeyTest extends TestCase
             'double quotes' => ['"' . self::KEY . '"', self::KEY],
             'single quotes and tab' => ["\t'" . self::KEY . "' ", self::KEY],
             'clean' => [self::KEY, self::KEY],
+            'nbsp and zero-width space' => ["\u{00A0}" . self::KEY . "\u{200B}", self::KEY],
+            'BOM' => ["\u{FEFF}" . self::KEY, self::KEY],
+            'guillemets' => ['«' . self::KEY . '»', self::KEY],
+            'smart quotes' => ['“' . self::KEY . '”', self::KEY],
         ];
     }
 
