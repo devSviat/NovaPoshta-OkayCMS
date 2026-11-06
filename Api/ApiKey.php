@@ -1,0 +1,45 @@
+<?php
+
+namespace Okay\Modules\Sviat\NovaPoshta\Api;
+
+use Okay\Core\Settings;
+
+/** The shop's Nova Poshta API key from the module settings. Never log or render it unmasked. */
+final class ApiKey
+{
+    public const string SETTING = 'sviat__novaposhta__api_key';
+
+    public function __construct(private readonly Settings $settings)
+    {
+    }
+
+    public function value(): ?string
+    {
+        $raw = $this->settings->get(self::SETTING);
+        $key = is_string($raw) ? self::normalize($raw) : '';
+
+        return $key === '' ? null : $key;
+    }
+
+    /**
+     * Strips what copying from the business cabinet, a messenger or a document tends to add:
+     * any Unicode space, invisible format characters (BOM, zero-width) and quotes of any style.
+     */
+    public static function normalize(string $raw): string
+    {
+        $edge = '[\s\p{Z}\p{Cf}"\'«»“”„‘’]+';
+
+        return preg_replace("/^{$edge}|{$edge}$/u", '', $raw) ?? trim($raw);
+    }
+
+    /** Ties cached data (the JWT) to the key without storing the key next to it. */
+    public static function fingerprint(string $key): string
+    {
+        return hash('sha256', strtolower($key));
+    }
+
+    public static function masked(string $key): string
+    {
+        return '••••' . substr($key, -4);
+    }
+}
