@@ -6,6 +6,8 @@ use Okay\Core\Config;
 use Okay\Core\Database;
 use Okay\Core\EntityFactory;
 use Okay\Helpers\DeliveriesHelper;
+use Okay\Helpers\OrdersHelper;
+use Okay\Helpers\ValidateHelper;
 use Okay\Core\Languages;
 use Okay\Core\Modules\AbstractInit;
 use Okay\Core\Modules\EntityField;
@@ -60,6 +62,14 @@ class Init extends AbstractInit
         $this->registerQueueExtension(
             [DeliveriesHelper::class, 'getCartDeliveriesList'],
             [FrontExtender::class, 'getCartDeliveriesList']
+        );
+        $this->registerChainExtension(
+            [ValidateHelper::class, 'getCartValidateError'],
+            [FrontExtender::class, 'getCartValidateError']
+        );
+        $this->registerQueueExtension(
+            [OrdersHelper::class, 'finalCreateOrderProcedure'],
+            [FrontExtender::class, 'saveOrderDelivery']
         );
 
         // Every 5 minutes is only a cheap check; the runner itself decides whether work is due,

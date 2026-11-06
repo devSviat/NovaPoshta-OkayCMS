@@ -44,6 +44,18 @@ class FrontLanguageFilesTest extends TestCase
         self::assertSame([], array_values(array_diff(array_unique($used), array_keys($ua))));
     }
 
+    public function testEveryValidationErrorHasAText(): void
+    {
+        $ua = self::load('ua');
+        preg_match_all("/return '(error_\\w+)';/", (string)file_get_contents(dirname(self::dir()) . '/Cart/CartSelectionValidator.php'), $m);
+        $keys = array_merge(array_filter($m[1]), ['error_point_too_heavy', 'error_point_too_expensive']);
+
+        foreach ($keys as $key) {
+            self::assertArrayHasKey('sviat__novaposhta__' . $key, $ua);
+        }
+        self::assertGreaterThanOrEqual(5, count($keys));
+    }
+
     public function testScriptReadsOnlyTextsItIsGiven(): void
     {
         preg_match_all('/texts\.(cart_\w+)/', (string)file_get_contents(self::dir() . '/js/novaposhta_cart.js'), $m);

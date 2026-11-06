@@ -2,6 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Extenders;
 
+use Okay\Core\Cart;
 use Okay\Core\Design;
 use Okay\Core\EntityFactory;
 use Okay\Core\FrontTranslations;
@@ -10,11 +11,15 @@ use Okay\Core\Modules\Extender\ExtensionInterface;
 use Okay\Core\Modules\Module;
 use Okay\Core\Request;
 use Okay\Core\Settings;
+use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
+use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelection;
+use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelectionValidator;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 use Okay\Modules\Sviat\NovaPoshta\Cart\PopularCities;
 use Okay\Modules\Sviat\NovaPoshta\Cart\ThemeClasses;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 
 class FrontExtender implements ExtensionInterface
 {
@@ -33,7 +38,40 @@ class FrontExtender implements ExtensionInterface
         private readonly Languages $languages,
         private readonly EntityFactory $entityFactory,
         private readonly FrontTranslations $translations,
+        private readonly CartSelectionValidator $validator,
+        private readonly OrderDeliveryStore $orders,
+        private readonly Cart $cart,
     ) {
+    }
+
+    /** The choice checked by getCartValidateError, saved once the order exists (same request). */
+    private ?CartSelection $selection = null;
+
+    /** ChainExtension of ValidateHelper::getCartValidateError: the cart form is checked on the server. */
+    public function getCartValidateError($error, $order)
+    {
+        if ($error !== null || !is_object($order)) {
+            return $error;
+        }
+        $result = $this->validator->validate($order, $_POST, CartMetrics::fromCart($this->cart->get()));
+        if (is_string($result)) {
+            return $this->translations->getTranslation('sviat__novaposhta__' . $result);
+        }
+        $this->selection = $result;
+
+        return null;
+    }
+
+    /** QueueExtension of OrdersHelper::finalCreateOrderProcedure. */
+    public function saveOrderDelivery($result, $order)
+    {
+        if (!is_object($order) || empty($order->id)) {
+            return;
+        }
+        $selection = $this->selection ?? $this->validator->validate($order, $_POST, CartMetrics::fromCart($this->cart->get()));
+        if ($selection instanceof CartSelection) {
+            $this->orders->save((int)$order->id, $selection);
+        }
     }
 
     /** Hands the cart template what its Nova Poshta blocks need; only for this module's delivery methods. */
@@ -69,9 +107,13 @@ class FrontExtender implements ExtensionInterface
     private function prefill(array $deliveryIds, string $lang): array
     {
         $posted = $this->request->post('novaposhta');
+        // Without a posted form, the customer's previous order offers its point again.
+        $user = $this->design->getVar('user');
+        $last = !is_array($posted) && is_object($user) ? $this->orders->lastForUser((int)($user->id ?? 0)) : null;
         $prefill = [];
         foreach ($deliveryIds as $deliveryId) {
-            $choice = is_array($posted[$deliveryId] ?? null) ? $posted[$deliveryId] : [];
+            $choice = is_array($posted[$deliveryId] ?? null) ? $posted[$deliveryId]
+                : ($last ? ['settlement_id' => $last->settlement_id, 'division_id' => $last->division_id] : []);
             $described = $this->describe((int)($choice['settlement_id'] ?? 0), (int)($choice['division_id'] ?? 0), $lang);
             $prefill[(int)$deliveryId] = $described + [
                 'settlement_json' => $described['settlement'] ? json_encode($described['settlement'], JSON_UNESCAPED_UNICODE) : '',
