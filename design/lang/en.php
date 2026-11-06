@@ -34,3 +34,4 @@ $lang['sviat__novaposhta__cart_price_unreachable'] = 'Could not calculate delive
 $lang['sviat__novaposhta__cart_term'] = 'Estimated delivery date: %date%';
 $lang['sviat__novaposhta__cart_calculating'] = 'calculating…';
 $lang['sviat__novaposhta__cart_price_by_manager'] = 'the manager will confirm';
+$lang['sviat__novaposhta__order_term'] = 'Estimated delivery date';

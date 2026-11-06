@@ -147,3 +147,5 @@ $lang['sviat__novaposhta__cod_payment_disabled'] = 'вимкнений';
 $lang['sviat__novaposhta__cod_no_payments'] = 'Способів оплати ще немає.';
 $lang['sviat__novaposhta__variant_volume'] = 'Об\'єм, м³ (НП)';
 $lang['sviat__novaposhta__variant_volume_hint'] = 'Об\'єм упаковки в метрах кубічних: 40×30×10 см = 0.012. Порожньо — невідомо.';
+$lang['sviat__novaposhta__order_term'] = 'Орієнтовна дата доставки';
+$lang['sviat__novaposhta__order_price_fallback'] = 'Ціну доставки не вдалося порахувати: Нова Пошта не відповідала. У замовленні ціна способу доставки — уточніть її з покупцем.';

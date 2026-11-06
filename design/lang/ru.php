@@ -34,3 +34,4 @@ $lang['sviat__novaposhta__cart_price_unreachable'] = 'Не удалось пос
 $lang['sviat__novaposhta__cart_term'] = 'Ориентировочная дата доставки: %date%';
 $lang['sviat__novaposhta__cart_calculating'] = 'считаем…';
 $lang['sviat__novaposhta__cart_price_by_manager'] = 'уточнит менеджер';
+$lang['sviat__novaposhta__order_term'] = 'Ориентировочная дата доставки';
