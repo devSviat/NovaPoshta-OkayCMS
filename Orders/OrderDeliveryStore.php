@@ -39,8 +39,14 @@ final class OrderDeliveryStore
             'division_name' => $title,
             'division_address' => $place ?? ($selection->division->address_uk ?: null),
             'updated_at' => $now,
-        ] + ($pricing ?? []);
+        ] + (self::pricingStored() ? ($pricing ?? []) : []);
         $existing ? $entity->update((int)$existing->id, $row) : $entity->add($row + ['created_at' => $now]);
+    }
+
+    /** The price columns are registered by Init only once the 0.4.0 update has created them. */
+    private static function pricingStored(): bool
+    {
+        return in_array('delivery_price', OrderDeliveryEntity::getFields(), true);
     }
 
     public function forOrder(int $orderId): ?object

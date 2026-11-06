@@ -68,7 +68,8 @@ class FrontExtender implements ExtensionInterface
             return $deliveries;
         }
         foreach ($deliveries as $delivery) {
-            $quote = is_object($delivery) ? $this->quotes->cachedForChoice($delivery, $cart) : null;
+            // Already free (free_from, or a promo's free shipping earlier in the chain): left as it is.
+            $quote = is_object($delivery) && empty($delivery->is_free_delivery) ? $this->quotes->cachedForChoice($delivery, $cart) : null;
             if ($quote?->price !== null) {
                 $this->showPrice($delivery, $quote->price, (float)$cart->total_price);
             }
@@ -85,9 +86,9 @@ class FrontExtender implements ExtensionInterface
         }
         $divisionId = $this->selection?->applies() ? (int)$this->selection->division->id : CartSelectionValidator::postedIds($_POST, (int)$delivery->id)[1];
         $cart = $this->cart->get();
-        $quote = $this->quotes->quote($delivery, $divisionId, (int)($order->payment_method_id ?? 0), $cart);
+        $quote = $this->quotes->quote($delivery, $divisionId, (int)($order->payment_method_id ?? 0), $cart, forOrder: true);
         $freeByCore = !((float)($delivery->free_from ?? 0) > (float)($order->total_price ?? 0));
-        $decision = PriceDecision::forOrder($quote, $info, $freeByCore);
+        $decision = PriceDecision::forOrder($quote, $info, $freeByCore, $freeByCore ? 0.0 : (float)$delivery->price);
         $this->pricing = $quote === null ? null : [
             'delivery_price' => $decision['info']['delivery_price'] ?? null,
             'price_source' => $decision['source'],

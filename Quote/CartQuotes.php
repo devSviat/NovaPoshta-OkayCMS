@@ -5,6 +5,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 use Okay\Core\EntityFactory;
 use Okay\Core\Modules\Module;
 use Okay\Core\Money;
+use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Entities\CurrenciesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
@@ -28,13 +29,17 @@ final class CartQuotes
         private readonly CodPayments $codPayments,
         private readonly Module $module,
         private readonly Money $money,
+        private readonly ModuleState $state,
     ) {
     }
 
-    /** @return DeliveryQuote|null null when this module does not price this method or point */
-    public function quote(object $delivery, int $divisionId, int $paymentId, object $cart): ?DeliveryQuote
+    /**
+     * @param bool $forOrder checkout: one call per order, already a gate — no visitor limits
+     * @return DeliveryQuote|null null when this module does not price this method, point or cart
+     */
+    public function quote(object $delivery, int $divisionId, int $paymentId, object $cart, bool $forOrder = false): ?DeliveryQuote
     {
-        if (!$this->isOwnPointsMethod($delivery)) {
+        if (!$this->isOwnPointsMethod($delivery) || empty($cart->purchases)) {
             return null;
         }
         $division = $divisionId > 0 ? $this->entityFactory->get(DivisionEntity::class)->get($divisionId) : null;
@@ -67,7 +72,18 @@ final class CartQuotes
 
             return new DeliveryQuote(null, null, 'none', null);
         }
-        if (!QuoteThrottle::allow($bag, $now)) {
+        if (!$forOrder && !QuoteThrottle::allow($bag, $now)) {
+            $this->store($bag);
+
+            return new DeliveryQuote(null, null, 'fallback', 'busy');
+        }
+        $uah = $this->entityFactory->get(CurrenciesEntity::class)->findOne(['code' => 'UAH']);
+        if (!$uah) {
+            $this->store($bag);
+
+            return new DeliveryQuote(null, null, 'fallback', 'no_uah');
+        }
+        if (!$forOrder && !$this->takeBudget($now)) {
             $this->store($bag);
 
             return new DeliveryQuote(null, null, 'fallback', 'busy');
@@ -78,13 +94,14 @@ final class CartQuotes
             (string)($settings['service_type'] ?? 'WarehouseWarehouse'),
             $sender,
             $division,
-            Parcel::fromMetrics(CartMetrics::fromCart($cart), $config),
+            // Nova Poshta takes the declared value in hryvnias; the cart total is in the main currency.
+            Parcel::fromMetrics(CartMetrics::fromCart($cart), $config, (float)$this->money->convert((float)($cart->total_price ?? 0), (int)$uah->id, false, false, 2)),
             $cod,
             $config->codKind,
             $wantPrice,
             $wantTerm,
         ));
-        $quote = $this->inMainCurrency($quote);
+        $quote = $this->inMainCurrency($quote, $uah);
         // An unreachable Nova Poshta is asked again next time instead of keeping the failure for an hour.
         if ($quote->problem !== 'unreachable') {
             QuoteSession::put($bag, $key, $quote, $now);
@@ -126,18 +143,23 @@ final class CartQuotes
     }
 
     /** Nova Poshta prices in hryvnias; delivery prices in OkayCMS are in the shop's main currency. */
-    private function inMainCurrency(DeliveryQuote $quote): DeliveryQuote
+    private function inMainCurrency(DeliveryQuote $quote, object $uah): DeliveryQuote
     {
         if ($quote->price === null) {
             return $quote;
         }
-        $uah = $this->entityFactory->get(CurrenciesEntity::class)->findOne(['code' => 'UAH']);
-        if (!$uah) {
-            return new DeliveryQuote(null, $quote->term, 'fallback', 'no_uah');
-        }
-        $convert = fn(float $amount): float => round((float)$this->money->convert($amount, (int)$uah->id, false, true), 2);
+        // Precision 2 explicitly: by default Money rounds to the UAH currency's `cents`, which may be 0.
+        $convert = fn(float $amount): float => round((float)$this->money->convert($amount, (int)$uah->id, false, true, 2), 2);
 
         return new DeliveryQuote($convert($quote->price), $quote->term, $quote->source, $quote->problem, $quote->codFee === null ? null : $convert($quote->codFee));
+    }
+
+    private function takeBudget(int $now): bool
+    {
+        [$allowed, $state] = QuoteBudget::take($this->state->get('quote_budget'), $now);
+        $this->state->set('quote_budget', $state);
+
+        return $allowed;
     }
 
     private static function settings(object $delivery): array

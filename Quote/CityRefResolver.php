@@ -28,6 +28,7 @@ final class CityRefResolver
         $this->now = $now ?? static fn(): int => time();
     }
 
+    /** @throws CityRefUnavailable when Nova Poshta does not answer and nothing is known yet */
     public function forSettlement(int $settlementId): ?string
     {
         $now = ($this->now)();
@@ -45,7 +46,7 @@ final class CityRefResolver
                     continue;
                 }
                 // Nova Poshta is not reachable now: say nothing new, keep what was known.
-                return $cached['ref'] ?? null;
+                return $cached['ref'] ?? throw new CityRefUnavailable($e->getMessage());
             }
             $row = $rows[0] ?? null;
             $ref = is_array($row) ? (string)($row['CityRef'] ?? '') : '';

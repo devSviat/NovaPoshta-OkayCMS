@@ -98,7 +98,7 @@ return [
     ],
     CartQuotes::class => [
         'class' => CartQuotes::class,
-        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class), new SR(Money::class)],
+        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class), new SR(Money::class), new SR(ModuleState::class)],
     ],
     CodPayments::class => [
         'class' => CodPayments::class,

@@ -93,7 +93,10 @@ class CityRefResolverTest extends TestCase
     {
         $this->http->push(new TransportException('timeout'));
 
-        self::assertNull($this->resolver()->forSettlement(118064));
+        try {
+            $this->resolver()->forSettlement(118064);
+        } catch (\Okay\Modules\Sviat\NovaPoshta\Quote\CityRefUnavailable) {
+        }
         self::assertNull($this->store->cached(118064));
     }
 
@@ -119,5 +122,13 @@ class CityRefResolverTest extends TestCase
             ->json(200, $this->warehouse('11/1', self::KYIV));
 
         self::assertSame(self::KYIV, $this->resolver()->forSettlement(118064));
+    }
+
+    public function testUnreachableWithoutAKnownRefIsNotUnknown(): void
+    {
+        $this->http->push(new TransportException('timeout'));
+
+        $this->expectException(\Okay\Modules\Sviat\NovaPoshta\Quote\CityRefUnavailable::class);
+        $this->resolver()->forSettlement(118064);
     }
 }

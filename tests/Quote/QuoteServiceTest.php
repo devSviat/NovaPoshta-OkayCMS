@@ -194,4 +194,44 @@ class QuoteServiceTest extends TestCase
 
         self::assertSame('fallback', $this->service()->quote(self::request())->source);
     }
+
+    public function testRefLookupHittingAnOutageIsUnreachable(): void
+    {
+        $this->refs->rows = [];
+        $this->refs->remember(121300, self::LVIV, self::NOW);
+        $this->refs->numbers[118064] = ['11/1'];
+        $this->http->push(new TransportException('timeout'));
+
+        self::assertSame('unreachable', $this->service()->quote(self::request(cod: true))->problem);
+    }
+
+    public function testUnknownSenderStopsBeforeTheRecipientLookup(): void
+    {
+        $this->refs->rows = [];
+        $this->refs->remember(121300, null, self::NOW);
+        $this->refs->numbers[118064] = ['11/1'];
+
+        self::assertSame('no_city_ref', $this->service()->quote(self::request(cod: true))->problem);
+        self::assertSame([], $this->http->requests());
+    }
+
+    public function testImpossibleDateIsRejectedNotFatal(): void
+    {
+        $this->jwt()->http->json(200, ['services' => [['cost' => 95]]])
+            ->json(200, ['success' => true, 'data' => [['DeliveryDate' => ['date' => '2026-13-40 18:00:00.000000']]], 'errors' => []]);
+
+        $quote = $this->service()->quote(self::request(term: true));
+
+        self::assertNull($quote->term);
+        self::assertSame(95.0, $quote->price);
+    }
+
+    public function testTokenRequestHasTheShortTimeoutToo(): void
+    {
+        $this->jwt()->http->json(200, ['services' => [['cost' => 95]]]);
+
+        $this->service()->quote(self::request());
+
+        self::assertSame(5, $this->http->requests()[0]->timeoutSeconds);
+    }
 }

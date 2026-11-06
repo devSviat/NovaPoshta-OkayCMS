@@ -375,12 +375,10 @@
     };
 
     /** Writes a price where the theme reads it, then lets the theme recount its totals. */
-    Block.prototype.setThemePrice = function (price, total, text, free) {
+    /** Remembers what the theme showed before the module touched it, to give it back later. */
+    Block.prototype.captureTheme = function () {
         var input = this.themeInput();
-        if (!input || !input.length) {
-            return;
-        }
-        if (this.themePrice === null) {
+        if (this.themePrice === null && input && input.length) {
             this.themePrice = {
                 price: input.data('delivery_price'),
                 total: input.data('total_price'),
@@ -388,6 +386,21 @@
                 text: input.closest('.fn_delivery_item').find('.fn_delivery_price').first().text()
             };
         }
+    };
+
+    Block.prototype.restoreTheme = function () {
+        if (this.themePrice) {
+            var original = this.themePrice;
+            this.setThemePrice(original.price, original.total, original.text, original.free);
+        }
+    };
+
+    Block.prototype.setThemePrice = function (price, total, text, free) {
+        var input = this.themeInput();
+        if (!input || !input.length) {
+            return;
+        }
+        this.captureTheme();
         input.data('delivery_price', price).data('total_price', total).data('is_free_delivery', free ? 1 : 0);
         input.closest('.fn_delivery_item').find('.fn_delivery_price').text(text);
         if (input.is(':checked') && typeof okay !== 'undefined' && typeof okay.update_cart_total_price === 'function') {
@@ -402,10 +415,7 @@
         }
         this.quoteBox.hidden = true;
         this.quoteBox.textContent = '';
-        if (this.themePrice) {
-            var original = this.themePrice;
-            this.setThemePrice(original.price, original.total, original.text, original.free);
-        }
+        this.restoreTheme();
     };
 
     Block.prototype.paymentId = function () {
@@ -425,7 +435,8 @@
         this.quoteRequest = new AbortController();
         var query = '?delivery_id=' + encodeURIComponent(this.deliveryId) + '&division_id=' + encodeURIComponent(this.division.id) + '&payment_id=' + encodeURIComponent(this.paymentId());
         var input = this.themeInput();
-        if (input && input.length && !input.data('hide_front_delivery_price')) {
+        if (input && input.length && !input.data('hide_front_delivery_price') && !input.data('is_free_delivery')) {
+            this.captureTheme();
             input.closest('.fn_delivery_item').find('.fn_delivery_price').text(this.texts.cart_calculating || '');
         }
         fetch(url + query, { credentials: 'same-origin', signal: this.quoteRequest.signal })
@@ -442,14 +453,14 @@
         var lines = [];
         var problem = data.problem === 'unreachable' || data.problem === 'rejected' || data.problem === 'busy' || data.problem === 'no_city_ref' || data.problem === 'no_uah';
         if (typeof data.price === 'number') {
-            this.setThemePrice(data.price, data.totalWithDelivery, data.priceText || '', data.price === 0);
-        } else if (problem && this.themePrice === null) {
+            this.setThemePrice(data.price, data.totalWithDelivery, data.priceText || '', !!data.free);
+        } else {
+            // No price (free, hidden, no sender, bad input or a failure): the theme's own numbers come back.
+            this.restoreTheme();
             var input = this.themeInput();
-            if (input && input.length) {
+            if (problem && input && input.length && !input.data('hide_front_delivery_price') && !input.data('is_free_delivery')) {
                 input.closest('.fn_delivery_item').find('.fn_delivery_price').text(this.texts.cart_price_by_manager || '');
             }
-        } else if (this.themePrice) {
-            this.setThemePrice(this.themePrice.price, this.themePrice.total, this.themePrice.text, this.themePrice.free);
         }
         if (data.codFeeText) {
             lines.push(format(this.texts.cart_cod_fee, { fee: data.codFeeText }));

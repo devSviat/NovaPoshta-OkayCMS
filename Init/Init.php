@@ -15,6 +15,7 @@ use Okay\Core\Modules\EntityField;
 use Okay\Core\QueryFactory;
 use Okay\Core\Scheduler\Schedule;
 use Okay\Core\ServiceLocator;
+use Okay\Core\Settings;
 use Okay\Entities\LanguagesEntity;
 use Okay\Entities\PaymentsEntity;
 use Okay\Entities\VariantsEntity;
@@ -42,6 +43,7 @@ class Init extends AbstractInit
         $this->createMissingTables(self::tables());
         $this->addDefaultGroups();
         $this->addCoreFields();
+        self::markSchema();
     }
 
     /**
@@ -70,9 +72,28 @@ class Init extends AbstractInit
         foreach (self::pricingFields() as $field) {
             $this->migrateEntityField(OrderDeliveryEntity::class, $field);
         }
+        self::markSchema();
     }
 
     /** Fields the module keeps on core tables, under its own names (§9). */
+    /**
+     * Columns on core tables exist only after install/update has run. Registering them earlier
+     * (new files deployed, "Update" not pressed yet) makes every SELECT of payments, variants and
+     * orders fail — the storefront loses products and payment methods — so init() waits for this.
+     */
+    private const string SCHEMA_SETTING = 'sviat__novaposhta__schema';
+    private const string SCHEMA = '0.4.0';
+
+    private static function markSchema(): void
+    {
+        ServiceLocator::getInstance()->getService(Settings::class)->set(self::SCHEMA_SETTING, self::SCHEMA);
+    }
+
+    private static function schemaReady(): bool
+    {
+        return version_compare((string)ServiceLocator::getInstance()->getService(Settings::class)->get(self::SCHEMA_SETTING), self::SCHEMA, '>=');
+    }
+
     private function addCoreFields(): void
     {
         $this->migrateEntityField(PaymentsEntity::class, new EntityField(CodPayments::FIELD)->setTypeTinyInt(1, false)->setDefault(0));
@@ -81,9 +102,14 @@ class Init extends AbstractInit
 
     public function init()
     {
-        $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
-        $this->registerEntityField(VariantsEntity::class, VariantVolume::FIELD);
-        $this->addBackendBlock('product_variant', 'variant_volume.tpl');
+        if (self::schemaReady()) {
+            $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
+            $this->registerEntityField(VariantsEntity::class, VariantVolume::FIELD);
+            foreach (self::pricingFields() as $field) {
+                $this->registerEntityField(OrderDeliveryEntity::class, $field->getName());
+            }
+            $this->addBackendBlock('product_variant', 'variant_volume.tpl');
+        }
         $this->registerChainExtension(
             [BackendProductsRequest::class, 'postVariants'],
             [BackendExtender::class, 'cleanVariantVolumes']
@@ -149,7 +175,7 @@ class Init extends AbstractInit
     }
 
     /** @return list<EntityField> columns of the order snapshot added in 0.4.0 */
-    private static function pricingFields(): array
+    public static function pricingFields(): array
     {
         return [
             new EntityField('delivery_price')->setTypeDecimal('10,2'),

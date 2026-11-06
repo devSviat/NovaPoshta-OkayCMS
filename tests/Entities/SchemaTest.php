@@ -25,7 +25,14 @@ class SchemaTest extends TestCase
                 }
             }
 
-            self::assertSame($plain, (new \ReflectionProperty($entityClass, 'fields'))->getValue(), $entityClass);
+            $entityFields = (new \ReflectionProperty($entityClass, 'fields'))->getValue();
+            // Registered by Init::init() once the 0.4.0 update has created them (upgrade window).
+            if ($entityClass === \Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class) {
+                $late = array_map(static fn(EntityField $f): string => $f->getName(), Init::pricingFields());
+                self::assertSame([], array_values(array_intersect($late, $entityFields)), 'registered late, not static');
+                $plain = array_values(array_diff($plain, $late));
+            }
+            self::assertSame($plain, $entityFields, $entityClass);
             $entityLang = (new \ReflectionProperty($entityClass, 'langFields'))->getValue() ?? [];
             self::assertSame($lang, $entityLang, $entityClass);
         }

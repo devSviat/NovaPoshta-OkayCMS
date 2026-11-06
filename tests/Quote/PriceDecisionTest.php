@@ -47,4 +47,12 @@ class PriceDecisionTest extends TestCase
 
         self::assertSame(99.0, PriceDecision::forOrder($fresh, self::CORE)['info']['delivery_price']);
     }
+
+    public function testPriceSetByAnotherModuleIsKept(): void
+    {
+        // e.g. a promo's free shipping: the core alone would give 70, the chain already gave 0.
+        $promo = ['delivery_price' => 0, 'separate_delivery' => 0];
+
+        self::assertSame(['info' => $promo, 'source' => 'external'], PriceDecision::forOrder(new DeliveryQuote(172.0, null, 'new', null), $promo, coreDefault: 70.0));
+    }
 }

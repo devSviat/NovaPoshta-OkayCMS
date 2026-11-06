@@ -54,7 +54,7 @@ final class NewApiClient
         $tokenRenewed = false;
 
         while (true) {
-            $jwt = $this->jwt->token();
+            $jwt = $this->jwt->token($this->timeoutSeconds);
             try {
                 return $this->once($method, $url, $body, $jwt);
             } catch (NpApiException $e) {

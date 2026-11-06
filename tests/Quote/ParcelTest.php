@@ -40,4 +40,9 @@ class ParcelTest extends TestCase
         self::assertSame(10, new Parcel(1.0, 0.0, 1.0)->cubeSideMm(), 'never below 1 cm');
         self::assertSame(289, new Parcel(1.0, 0.024, 1.0)->cubeSideMm());
     }
+
+    public function testDeclaredCostIsGivenSeparately(): void
+    {
+        self::assertSame(41000.0, Parcel::fromMetrics(new CartMetrics(1.0, false, 1000.0), self::config(), 41000.0)->declaredCost);
+    }
 }

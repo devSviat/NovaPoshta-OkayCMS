@@ -17,12 +17,13 @@ final readonly class Parcel
     ) {
     }
 
-    public static function fromMetrics(CartMetrics $cart, ShippingConfig $config): self
+    /** @param ?float $declaredCost in hryvnias; the cart total is in the shop's main currency */
+    public static function fromMetrics(CartMetrics $cart, ShippingConfig $config, ?float $declaredCost = null): self
     {
         return new self(
             max(self::MIN_WEIGHT, $cart->knownWeight + $config->defaultWeight * $cart->unitsWithoutWeight),
             $cart->knownVolume > 0 ? $cart->knownVolume : $config->defaultVolume,
-            $cart->total,
+            $declaredCost ?? $cart->total,
         );
     }
 

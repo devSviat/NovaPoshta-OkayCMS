@@ -115,19 +115,25 @@ final class QuoteService
         ]))[0] ?? null;
         $date = is_array($row) ? (string)($row['DeliveryDate']['date'] ?? '') : '';
 
-        return preg_match('/^\d{4}-\d{2}-\d{2}/', $date) ? new \DateTimeImmutable(substr($date, 0, 10)) : throw new QuoteProblem('rejected');
+        $day = \DateTimeImmutable::createFromFormat('!Y-m-d', substr($date, 0, 10));
+        $errors = \DateTimeImmutable::getLastErrors();
+
+        return $day && ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0)) ? $day : throw new QuoteProblem('rejected');
     }
 
     /** @return array{CitySender: string, CityRecipient: string} */
     private function cities(QuoteRequest $request): array
     {
-        $sender = $this->cityRefs->forSettlement((int)$request->sender->settlement_id);
-        $recipient = $this->cityRefs->forSettlement((int)$request->recipient->settlement_id);
-        if ($sender === null || $recipient === null) {
-            throw new QuoteProblem('no_city_ref');
-        }
+        return ['CitySender' => $this->cityRef((int)$request->sender->settlement_id), 'CityRecipient' => $this->cityRef((int)$request->recipient->settlement_id)];
+    }
 
-        return ['CitySender' => $sender, 'CityRecipient' => $recipient];
+    private function cityRef(int $settlementId): string
+    {
+        try {
+            return $this->cityRefs->forSettlement($settlementId) ?? throw new QuoteProblem('no_city_ref');
+        } catch (CityRefUnavailable) {
+            throw new QuoteProblem('unreachable');
+        }
     }
 
     private function guard(callable $call): array
