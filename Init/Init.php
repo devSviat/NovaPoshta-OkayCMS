@@ -16,6 +16,8 @@ use Okay\Core\QueryFactory;
 use Okay\Core\Scheduler\Schedule;
 use Okay\Core\ServiceLocator;
 use Okay\Entities\LanguagesEntity;
+use Okay\Entities\PaymentsEntity;
+use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryRunner;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
@@ -34,6 +36,7 @@ class Init extends AbstractInit
 
         $this->createMissingTables(self::tables());
         $this->addDefaultGroups();
+        $this->addCoreFields();
     }
 
     /**
@@ -54,8 +57,21 @@ class Init extends AbstractInit
         $this->migrateEntityField(SettlementEntity::class, self::hasPickupField());
     }
 
+    /** Price and term in the cart: cash-on-delivery flag on payment methods, item volume. */
+    public function update_0_4_0()
+    {
+        $this->addCoreFields();
+    }
+
+    /** Fields the module keeps on core tables, under its own names (§9). */
+    private function addCoreFields(): void
+    {
+        $this->migrateEntityField(PaymentsEntity::class, new EntityField(CodPayments::FIELD)->setTypeTinyInt(1, false)->setDefault(0));
+    }
+
     public function init()
     {
+        $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
 

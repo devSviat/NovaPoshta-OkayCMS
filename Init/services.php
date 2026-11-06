@@ -39,6 +39,7 @@ use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
+use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 
 return [
     ApiKey::class => [
@@ -72,6 +73,10 @@ return [
     ShippingSettings::class => [
         'class' => ShippingSettings::class,
         'arguments' => [new SR(Settings::class), new SR(EntityFactory::class)],
+    ],
+    CodPayments::class => [
+        'class' => CodPayments::class,
+        'arguments' => [new SR(EntityFactory::class)],
     ],
     SenderDivisions::class => [
         'class' => SenderDivisions::class,

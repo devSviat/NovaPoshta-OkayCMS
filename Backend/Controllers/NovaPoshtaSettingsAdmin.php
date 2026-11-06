@@ -13,6 +13,7 @@ use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Core\EntityFactory;
+use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Cart\PopularCities;
 use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryCounts;
@@ -37,6 +38,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         ShippingSettings $shippingSettings,
         SenderDivisions $senderDivisions,
         EntityFactory $entityFactory,
+        CodPayments $codPayments,
     ) {
         $submission = null;
         // Stock 4.5.3 checks session_id only after the controller has run, so a forged
@@ -58,6 +60,11 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
                     } else {
                         $this->design->assign('np_shipping_errors', $errors);
                     }
+                    break;
+                case 'cod':
+                    $shippingSettings->saveCodKind($this->request->post('cod_kind'));
+                    $codPayments->save($this->request->post('cod_payments'));
+                    $this->design->assign('np_cod_saved', true);
                     break;
                 case 'groups':
                     $input = GroupsInput::parse($_POST);
@@ -89,6 +96,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         $config = $shippingSettings->read();
         $sender = $config->senderDivisionId ? $entityFactory->get(DivisionEntity::class)->get($config->senderDivisionId) : null;
         $senderCity = $sender ? $entityFactory->get(SettlementEntity::class)->get((int)$sender->settlement_id) : null;
+        $this->design->assign('np_cod', ['kind' => $config->codKind->value, 'payments' => $codPayments->all()]);
         $this->design->assign('np_shipping', [
             'config' => $config,
             'city' => $senderCity ? ['id' => (int)$senderCity->id, 'name' => (string)($lang === 'en' && $senderCity->name_en ? $senderCity->name_en : $senderCity->name_uk)] : null,
