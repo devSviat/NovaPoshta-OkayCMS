@@ -15,6 +15,7 @@ final class DivisionList
 {
     public const int PAGE = 100;
     private const int MAX_SEARCH = 64;
+    private const int MAX_WORDS = 5;
 
     public function __construct(
         private readonly Database $db,
@@ -45,13 +46,14 @@ final class DivisionList
         }
 
         $categories = self::categoriesOf($groupRows, $chosen);
-        $term = self::searchTerm($query);
+        $words = self::searchWords($query);
         // Built twice on purpose: aura's clone is shallow and would share the column list.
-        $filtered = function () use ($settlementId, $categories, $term) {
+        $filtered = function () use ($settlementId, $categories, $words) {
             $select = $this->base($settlementId)->where('d.category IN (:categories)')->bindValue('categories', $categories);
-            if ($term !== null) {
-                $select->where("(SUBSTRING_INDEX(d.number, '/', -1) LIKE :prefix OR d.name_uk LIKE :part OR d.name_en LIKE :part OR d.address_uk LIKE :part OR d.address_en LIKE :part)")
-                    ->bindValues(['prefix' => $term . '%', 'part' => '%' . $term . '%']);
+            // Every word must be found somewhere: "Дорогожицька 4" is the street and the house in one address.
+            foreach ($words ?? [] as $i => $word) {
+                $select->where("(SUBSTRING_INDEX(d.number, '/', -1) LIKE :wp{$i} OR d.name_uk LIKE :w{$i} OR d.name_en LIKE :w{$i} OR d.address_uk LIKE :w{$i} OR d.address_en LIKE :w{$i})")
+                    ->bindValues(["wp{$i}" => $word . '%', "w{$i}" => '%' . $word . '%']);
             }
 
             return $select;
@@ -61,14 +63,14 @@ final class DivisionList
         // their numbers are high (a 35 kg cart in Kyiv: most low-numbered branches take 30 kg).
         $cols = ['d.id', 'd.max_weight', 'd.max_declared_cost'];
         $exact = self::exactNumber($query);
-        if ($term !== null) {
+        if ($words !== null) {
             // Customers know branch numbers better than addresses: the number they typed first,
             // then numbers starting with it, then address and name matches (author, 06.11.2026).
             $cols[] = "(CASE WHEN SUBSTRING_INDEX(d.number, '/', -1) = :exact THEN 0 WHEN SUBSTRING_INDEX(d.number, '/', -1) LIKE :prefix THEN 1 ELSE 2 END) AS match_rank";
         }
         $lightSelect = $filtered()->cols($cols);
-        if ($term !== null) {
-            $lightSelect->bindValue('exact', $exact);
+        if ($words !== null) {
+            $lightSelect->bindValue('exact', $exact)->bindValue('prefix', $words[0] . '%');
         }
         $light = $this->rows($lightSelect
             // "11/117": the city code, then the branch number customers know. `+ 0` makes it a
@@ -186,11 +188,16 @@ final class DivisionList
         return $page;
     }
 
-    public static function searchTerm(string $raw): ?string
+    /**
+     * The typed search as words for LIKE, at most 5. "№" and commas only separate: "№ 13" is branch 13.
+     * @return ?non-empty-list<string>
+     */
+    public static function searchWords(string $raw): ?array
     {
-        $term = mb_substr(trim(preg_replace('/\s+/u', ' ', $raw) ?? ''), 0, self::MAX_SEARCH);
+        $text = mb_substr(trim(preg_replace('/[\s,№#]+/u', ' ', $raw) ?? ''), 0, self::MAX_SEARCH);
+        $words = array_slice(array_values(array_filter(explode(' ', $text), static fn(string $w): bool => $w !== '')), 0, self::MAX_WORDS);
 
-        return $term === '' ? null : addcslashes($term, '\\%_');
+        return $words === [] ? null : array_map(static fn(string $w): string => addcslashes($w, '\\%_'), $words);
     }
 
     private function base(int $settlementId): \Aura\SqlQuery\Common\SelectInterface

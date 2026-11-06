@@ -128,9 +128,19 @@ class DivisionListTest extends TestCase
 
     public function testSearchTextIsMadeSafeForLike(): void
     {
-        self::assertSame('50\\%', DivisionList::searchTerm(' 50% '));
-        self::assertNull(DivisionList::searchTerm('   '));
-        self::assertSame(64, mb_strlen((string)DivisionList::searchTerm(str_repeat('ї', 200))));
+        self::assertSame(['50\\%'], DivisionList::searchWords(' 50% '));
+        self::assertNull(DivisionList::searchWords('   '));
+        self::assertSame(64, mb_strlen(implode('', DivisionList::searchWords(str_repeat('ї', 200)) ?? [])));
+    }
+
+    public function testSearchIsSplitIntoWords(): void
+    {
+        self::assertSame(['13'], DivisionList::searchWords('№ 13'));
+        self::assertSame(['13'], DivisionList::searchWords('№13'));
+        self::assertSame(['Дорогожицька', '4'], DivisionList::searchWords('Дорогожицька 4'));
+        self::assertSame(['Дорогожицька', '4'], DivisionList::searchWords('Дорогожицька, 4'));
+        self::assertNull(DivisionList::searchWords(' № , '));
+        self::assertCount(5, DivisionList::searchWords('а б в г д е є ж'));
     }
 
     public function testFittingPointsFromAnywhereInTheGroupFillThePageFirst(): void
