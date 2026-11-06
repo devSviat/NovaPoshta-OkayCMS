@@ -26,7 +26,8 @@ class CartController
     public function settlements(Request $request, Response $response, SettlementSearch $search, Languages $languages)
     {
         $query = $request->get('q');
-        $this->json($response, ['settlements' => is_string($query) ? $search->find($query, (string)$languages->getLangLabel()) : []]);
+        $pickupOnly = $request->get('mode') !== 'address';
+        $this->json($response, ['settlements' => is_string($query) ? $search->find($query, (string)$languages->getLangLabel(), 10, $pickupOnly) : []]);
     }
 
     public function divisions(Request $request, Response $response, DivisionList $divisions, Cart $cart, Languages $languages)

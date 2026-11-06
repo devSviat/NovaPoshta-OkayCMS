@@ -24,7 +24,8 @@ final class SettlementSearch
     }
 
     /** @return list<array{id:int, name:string, district:?string, area:?string}> */
-    public function find(string $raw, string $lang, int $limit = 10): array
+    /** @param bool $pickupOnly points mode: only places with pickup points; address mode: every settlement */
+    public function find(string $raw, string $lang, int $limit = 10, bool $pickupOnly = true): array
     {
         $query = SettlementQuery::parse($raw);
         if ($query === null) {
@@ -35,9 +36,11 @@ final class SettlementSearch
         $select = $this->queryFactory->newSelect()
             ->cols(['s.id', 's.name_uk', 's.name_en', 's.district_uk', 's.district_en', 's.area_uk', 's.area_en'])
             ->from(SettlementEntity::getTable() . ' AS s')
-            // Only places a parcel can actually be picked up in (flag kept by the dictionary run).
-            ->where('s.has_pickup = 1')
             ->limit($limit);
+        if ($pickupOnly) {
+            // Only places a parcel can actually be picked up in (flag kept by the dictionary run).
+            $select->where('s.has_pickup = 1');
+        }
         foreach ($query->words as $i => $word) {
             $select->where("s.search_text LIKE :w{$i}")->bindValue("w{$i}", '%' . $word . '%');
         }
