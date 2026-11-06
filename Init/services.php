@@ -43,6 +43,7 @@ use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
 use Okay\Modules\Sviat\NovaPoshta\Quote\AddressCityResolver;
+use Okay\Modules\Sviat\NovaPoshta\Cart\StreetSearch;
 use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteService;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DbCityRefStore;
@@ -96,6 +97,10 @@ return [
     AddressCityResolver::class => [
         'class' => AddressCityResolver::class,
         'arguments' => [new SR(OldApiClient::class), new SR(DbCityRefStore::class), new SR(CityRefResolver::class)],
+    ],
+    StreetSearch::class => [
+        'class' => StreetSearch::class,
+        'arguments' => [new SR(OldApiClient::class), new SR(AddressCityResolver::class)],
     ],
     QuoteService::class => [
         'class' => QuoteService::class,

@@ -154,10 +154,21 @@ final class CartQuotes
         return new DeliveryQuote($convert($quote->price), $quote->term, $quote->source, $quote->problem, $quote->codFee === null ? null : $convert($quote->codFee));
     }
 
-    private function takeBudget(int $now): bool
+    private function takeBudget(int $now, string $name = 'quote_budget', int $limit = QuoteBudget::LIMIT): bool
     {
-        [$allowed, $state] = QuoteBudget::take($this->state->get('quote_budget'), $now);
-        $this->state->set('quote_budget', $state);
+        [$allowed, $state] = QuoteBudget::take($this->state->get($name), $now, $limit);
+        $this->state->set($name, $state);
+
+        return $allowed;
+    }
+
+    /** Street suggestions run per keystroke: limits of their own, so typing does not spend the price ones. */
+    public function allowStreetLookup(): bool
+    {
+        $bag = $this->bag();
+        $now = time();
+        $allowed = QuoteThrottle::allow($bag, $now, 'street_calls', 60) && $this->takeBudget($now, 'street_budget', 600);
+        $this->store($bag);
 
         return $allowed;
     }

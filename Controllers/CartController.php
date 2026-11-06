@@ -16,6 +16,8 @@ use Okay\Core\Money;
 use Okay\Entities\CurrenciesEntity;
 use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
+use Okay\Modules\Sviat\NovaPoshta\Cart\StreetSearch;
+use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 
 /**
  * Public cart endpoints. They read only the Nova Poshta dictionary and the visitor's own
@@ -87,6 +89,27 @@ class CartController
             }
         }
         $this->json($response, $answer);
+    }
+
+    /** Street suggestions for address delivery (`ajax/novaposhta/streets?settlement_id=&q=`). */
+    public function streets(Request $request, Response $response, StreetSearch $streets, CartQuotes $quotes, Cart $cart, EntityFactory $entityFactory)
+    {
+        $settlementId = (int)$request->get('settlement_id', 'integer');
+        $settlement = $settlementId > 0 ? $entityFactory->get(SettlementEntity::class)->get($settlementId) : null;
+        $query = $request->get('q');
+        if (!$settlement || !is_string($query) || empty($cart->get()->purchases)) {
+            $response->setStatusCode(400);
+            $this->json($response, ['error' => 'input']);
+
+            return;
+        }
+        if (!$quotes->allowStreetLookup()) {
+            $response->setStatusCode(429);
+            $this->json($response, ['streets' => [], 'problem' => 'busy']);
+
+            return;
+        }
+        $this->json($response, $streets->find($settlement, $query));
     }
 
     private function json(Response $response, array $data): void

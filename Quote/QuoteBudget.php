@@ -12,7 +12,7 @@ final class QuoteBudget
     public const int WINDOW = 600;
 
     /** @return array{0: bool, 1: string} allowed, and the state to store */
-    public static function take(?string $state, int $now): array
+    public static function take(?string $state, int $now, int $limit = self::LIMIT): array
     {
         $data = json_decode((string)$state, true);
         $start = is_array($data) && is_int($data['start'] ?? null) ? $data['start'] : null;
@@ -21,7 +21,7 @@ final class QuoteBudget
             $start = $now;
             $count = 0;
         }
-        $allowed = $count < self::LIMIT;
+        $allowed = $count < $limit;
         if ($allowed) {
             $count++;
         }

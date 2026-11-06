@@ -88,4 +88,17 @@ class QuoteSessionTest extends TestCase
         self::assertFalse(QuoteThrottle::allow($bag, self::NOW + 30));
         self::assertTrue(QuoteThrottle::allow($bag, self::NOW + 601));
     }
+
+    public function testStreetLookupsHaveTheirOwnSlotAndLimit(): void
+    {
+        $bag = [];
+        for ($i = 0; $i < 20; $i++) {
+            QuoteThrottle::allow($bag, self::NOW);
+        }
+        for ($i = 0; $i < 60; $i++) {
+            self::assertTrue(QuoteThrottle::allow($bag, self::NOW, 'street_calls', 60));
+        }
+        self::assertFalse(QuoteThrottle::allow($bag, self::NOW, 'street_calls', 60));
+        self::assertFalse(QuoteThrottle::allow($bag, self::NOW), 'the quote slot is spent separately');
+    }
 }
