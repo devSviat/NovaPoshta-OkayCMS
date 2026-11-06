@@ -4,6 +4,8 @@ namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
 use Okay\Core\EntityFactory;
 use Okay\Core\Modules\Module;
+use Okay\Core\Money;
+use Okay\Entities\CurrenciesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
@@ -25,11 +27,12 @@ final class CartQuotes
         private readonly EntityFactory $entityFactory,
         private readonly CodPayments $codPayments,
         private readonly Module $module,
+        private readonly Money $money,
     ) {
     }
 
     /** @return DeliveryQuote|null null when this module does not price this method or point */
-    public function quote(object $delivery, int $divisionId, int $paymentId, object $cart, bool $calculate = true): ?DeliveryQuote
+    public function quote(object $delivery, int $divisionId, int $paymentId, object $cart): ?DeliveryQuote
     {
         if (!$this->isOwnPointsMethod($delivery)) {
             return null;
@@ -51,7 +54,7 @@ final class CartQuotes
         $key = QuoteKey::for((int)$delivery->id, $divisionId, $cod, $cart);
         $now = time();
         $cached = QuoteSession::get($bag, $key, $now);
-        if ($cached !== null || !$calculate) {
+        if ($cached !== null) {
             $this->store($bag);
 
             return $cached;
@@ -81,6 +84,7 @@ final class CartQuotes
             $wantPrice,
             $wantTerm,
         ));
+        $quote = $this->inMainCurrency($quote);
         // An unreachable Nova Poshta is asked again next time instead of keeping the failure for an hour.
         if ($quote->problem !== 'unreachable') {
             QuoteSession::put($bag, $key, $quote, $now);
@@ -90,10 +94,27 @@ final class CartQuotes
         return $quote;
     }
 
+    /** A fresh quote for the visitor's last choice on this method and the cart as it is now; never calls Nova Poshta. */
+    public function cachedForChoice(object $delivery, object $cart): ?DeliveryQuote
+    {
+        $bag = $this->bag();
+        $chosen = QuoteSession::chosen($bag, (int)$delivery->id);
+        if ($chosen === null || !$this->isOwnPointsMethod($delivery)) {
+            return null;
+        }
+
+        return QuoteSession::get($bag, QuoteKey::for((int)$delivery->id, $chosen['divisionId'], $chosen['cod'], $cart), time());
+    }
+
     /** @return array{divisionId:int, cod:bool}|null what the visitor last chose for this method */
     public function chosen(int $deliveryId): ?array
     {
         return QuoteSession::chosen($this->bag(), $deliveryId);
+    }
+
+    public function isCodPayment(int $paymentId): bool
+    {
+        return $this->codPayments->isCod($paymentId);
     }
 
     public function isOwnPointsMethod(object $delivery): bool
@@ -102,6 +123,21 @@ final class CartQuotes
 
         return $moduleId > 0 && (int)($delivery->module_id ?? 0) === $moduleId
             && DeliveryMode::fromServiceType(self::settings($delivery)['service_type'] ?? null) === DeliveryMode::Points;
+    }
+
+    /** Nova Poshta prices in hryvnias; delivery prices in OkayCMS are in the shop's main currency. */
+    private function inMainCurrency(DeliveryQuote $quote): DeliveryQuote
+    {
+        if ($quote->price === null) {
+            return $quote;
+        }
+        $uah = $this->entityFactory->get(CurrenciesEntity::class)->findOne(['code' => 'UAH']);
+        if (!$uah) {
+            return new DeliveryQuote(null, $quote->term, 'fallback', 'no_uah');
+        }
+        $convert = fn(float $amount): float => round((float)$this->money->convert($amount, (int)$uah->id, false, true), 2);
+
+        return new DeliveryQuote($convert($quote->price), $quote->term, $quote->source, $quote->problem, $quote->codFee === null ? null : $convert($quote->codFee));
     }
 
     private static function settings(object $delivery): array

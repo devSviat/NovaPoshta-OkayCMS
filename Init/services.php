@@ -9,6 +9,7 @@ use Okay\Core\EntityFactory;
 use Okay\Core\FrontTranslations;
 use Okay\Core\Languages;
 use Okay\Core\Modules\Module;
+use Okay\Core\Money;
 use Okay\Core\Request;
 use Okay\Core\QueryFactory;
 use Okay\Core\OkayContainer\Reference\ServiceReference as SR;
@@ -97,7 +98,7 @@ return [
     ],
     CartQuotes::class => [
         'class' => CartQuotes::class,
-        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class)],
+        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class), new SR(Money::class)],
     ],
     CodPayments::class => [
         'class' => CodPayments::class,
@@ -184,6 +185,8 @@ return [
             new SR(OrderDeliveryStore::class),
             new SR(Cart::class),
             new SR(SettlementSearch::class),
+            new SR(CartQuotes::class),
+            new SR(Money::class),
         ],
     ],
     CartSelectionValidator::class => [

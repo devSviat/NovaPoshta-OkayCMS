@@ -67,6 +67,9 @@ class Init extends AbstractInit
     {
         $this->createMissingTables(self::quoteTables());
         $this->addCoreFields();
+        foreach (self::pricingFields() as $field) {
+            $this->migrateEntityField(OrderDeliveryEntity::class, $field);
+        }
     }
 
     /** Fields the module keeps on core tables, under its own names (§9). */
@@ -92,6 +95,14 @@ class Init extends AbstractInit
         $this->registerQueueExtension(
             [DeliveriesHelper::class, 'getCartDeliveriesList'],
             [FrontExtender::class, 'getCartDeliveriesList']
+        );
+        $this->registerChainExtension(
+            [DeliveriesHelper::class, 'getCartDeliveriesList'],
+            [FrontExtender::class, 'applyQuotes']
+        );
+        $this->registerChainExtension(
+            [DeliveriesHelper::class, 'prepareDeliveryPriceInfo'],
+            [FrontExtender::class, 'orderPrice']
         );
         $this->registerChainExtension(
             [ValidateHelper::class, 'getCartValidateError'],
@@ -137,6 +148,17 @@ class Init extends AbstractInit
         return new EntityField('has_pickup')->setTypeTinyInt(1, false)->setDefault(0)->setIndex();
     }
 
+    /** @return list<EntityField> columns of the order snapshot added in 0.4.0 */
+    private static function pricingFields(): array
+    {
+        return [
+            new EntityField('delivery_price')->setTypeDecimal('10,2'),
+            new EntityField('price_source')->setTypeVarchar(16),
+            new EntityField('delivery_term')->setTypeVarchar(10),
+            new EntityField('cod')->setTypeTinyInt(1, false)->setDefault(0),
+        ];
+    }
+
     /** @return array<class-string, list<EntityField>> tables added in 0.4.0 */
     public static function quoteTables(): array
     {
@@ -169,6 +191,7 @@ class Init extends AbstractInit
                 new EntityField('division_category')->setTypeVarchar(32),
                 $name('division_name'),
                 $name('division_address'),
+                ...self::pricingFields(),
                 new EntityField('created_at')->setTypeDatetime(false),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],

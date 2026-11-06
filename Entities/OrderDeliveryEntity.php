@@ -21,6 +21,10 @@ class OrderDeliveryEntity extends Entity
         'division_category',
         'division_name',
         'division_address',
+        'delivery_price',
+        'price_source',
+        'delivery_term',
+        'cod',
         'created_at',
         'updated_at',
     ];
