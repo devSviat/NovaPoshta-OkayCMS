@@ -31,9 +31,6 @@ final class KeyChecker
     {
         $key = ApiKey::normalize($rawKey);
         $at = new \DateTimeImmutable('@' . ($this->now)());
-        if (!ApiKey::isWellFormed($key)) {
-            return new KeyCheckResult(KeyAccess::BadFormat, KeyAccess::BadFormat, $at);
-        }
 
         return new KeyCheckResult($this->checkNewApi($key), $this->checkOldApi($key), $at);
     }

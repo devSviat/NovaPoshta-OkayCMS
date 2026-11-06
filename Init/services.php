@@ -10,6 +10,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\Http\CurlTransport;
 use Okay\Modules\Sviat\NovaPoshta\Api\NewApi\JwtProvider;
 use Okay\Modules\Sviat\NovaPoshta\Api\NewApi\NewApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
+use Okay\Modules\Sviat\NovaPoshta\Backend\KeySettings;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 
@@ -41,5 +42,9 @@ return [
     KeyChecker::class => [
         'class' => KeyChecker::class,
         'arguments' => [new SR(CurlTransport::class), new SR(OldApiClient::class), new SR(JwtProvider::class), new SR(ModuleState::class)],
+    ],
+    KeySettings::class => [
+        'class' => KeySettings::class,
+        'arguments' => [new SR(Settings::class), new SR(ApiKey::class), new SR(KeyChecker::class)],
     ],
 ];

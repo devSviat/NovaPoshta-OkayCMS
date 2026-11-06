@@ -25,24 +25,6 @@ class ApiKeyTest extends TestCase
     public function testPastedKeyIsNormalized(string $raw, string $expected): void
     {
         self::assertSame($expected, ApiKey::normalize($raw));
-        self::assertTrue(ApiKey::isWellFormed(ApiKey::normalize($raw)));
-    }
-
-    public static function malformed(): array
-    {
-        return [
-            '31 chars' => [substr(self::KEY, 0, 31)],
-            '33 chars' => [self::KEY . 'a'],
-            'non-hex' => ['g' . substr(self::KEY, 1)],
-            'empty' => [''],
-            'inner space' => ['76a0a855c068a512 4fb19d539fa1e70'],
-        ];
-    }
-
-    #[DataProvider('malformed')]
-    public function testMalformedKeyIsRejected(string $key): void
-    {
-        self::assertFalse(ApiKey::isWellFormed($key));
     }
 
     public function testMaskedShowsOnlyLastFour(): void

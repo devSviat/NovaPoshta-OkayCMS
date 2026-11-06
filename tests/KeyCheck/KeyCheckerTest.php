@@ -52,16 +52,6 @@ class KeyCheckerTest extends TestCase
         return ['success' => true, 'data' => [['Ref' => 'sender']], 'errors' => []];
     }
 
-    public function testBadFormatMakesNoRequests(): void
-    {
-        $result = $this->checker()->check('not a key');
-
-        self::assertSame(KeyAccess::BadFormat, $result->newApi);
-        self::assertSame(KeyAccess::BadFormat, $result->oldApi);
-        self::assertFalse($result->isUsable());
-        self::assertCount(0, $this->http->requests());
-    }
-
     public function testBothOk(): void
     {
         $jwt = F::jwt(self::NOW + 3600);

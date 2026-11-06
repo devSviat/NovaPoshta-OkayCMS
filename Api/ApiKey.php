@@ -27,12 +27,6 @@ final class ApiKey
         return trim($raw, " \t\n\r\0\x0B\"'");
     }
 
-    /** Business-cabinet keys are 32 hex characters. */
-    public static function isWellFormed(string $key): bool
-    {
-        return preg_match('/^[0-9a-f]{32}$/i', $key) === 1;
-    }
-
     /** Ties cached data (the JWT) to the key without storing the key next to it. */
     public static function fingerprint(string $key): string
     {

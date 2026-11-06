@@ -10,5 +10,4 @@ enum KeyAccess: string
     case Denied = 'denied';
     /** Nova Poshta did not answer: nothing is known about the key. */
     case Unreachable = 'unreachable';
-    case BadFormat = 'bad_format';
 }
