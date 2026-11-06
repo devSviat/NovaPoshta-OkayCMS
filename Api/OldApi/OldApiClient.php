@@ -1,0 +1,109 @@
+<?php
+
+namespace Okay\Modules\Sviat\NovaPoshta\Api\OldApi;
+
+use Okay\Modules\Sviat\NovaPoshta\Api\ApiKey;
+use Okay\Modules\Sviat\NovaPoshta\Api\Http\HttpRequest;
+use Okay\Modules\Sviat\NovaPoshta\Api\Http\HttpTransport;
+use Okay\Modules\Sviat\NovaPoshta\Api\Http\TransportException;
+use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
+use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
+
+/** JSON API v2.0: only what the new API cannot do yet (COD, payment control, address shipments). */
+final class OldApiClient
+{
+    public const string URL = 'https://api.novaposhta.ua/v2.0/json/';
+
+    private const string INVALID_KEY_CODE = '20000201204';
+
+    private readonly \Closure $sleep;
+    private ?string $fixedKey = null;
+
+    public function __construct(
+        private readonly HttpTransport $http,
+        private readonly ApiKey $apiKey,
+        ?\Closure $sleep = null,
+    ) {
+        $this->sleep = $sleep ?? static fn() => sleep(1);
+    }
+
+    /** A client for a key that is not saved yet (checking a key before storing it). */
+    public function withKey(string $apiKey): self
+    {
+        $client = clone $this;
+        $client->fixedKey = $apiKey;
+
+        return $client;
+    }
+
+    /** @return array the `data` part of the answer */
+    public function call(string $model, string $method, array $properties = []): array
+    {
+        $key = $this->fixedKey ?? $this->apiKey->value()
+            ?? throw NpApiException::fromNp(NpErrorKind::InvalidKey, ['API key is not set']);
+
+        $body = json_encode([
+            'apiKey' => $key,
+            'modelName' => $model,
+            'calledMethod' => $method,
+            'methodProperties' => $properties === [] ? new \stdClass() : $properties,
+        ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+
+        // save/update/delete change data at Nova Poshta: after a timeout the change may
+        // already be done, so a repeat could create a second shipment.
+        $isMutation = in_array(strtolower($method), ['save', 'update', 'delete'], true);
+        $retriesLeft = $isMutation ? 0 : 1;
+
+        while (true) {
+            try {
+                return $this->once($body, $key);
+            } catch (NpApiException $e) {
+                $transient = $e->kind === NpErrorKind::RateLimited || $e->kind === NpErrorKind::Unavailable;
+                if ($transient && $retriesLeft-- > 0) {
+                    ($this->sleep)();
+                    continue;
+                }
+                throw $e;
+            }
+        }
+    }
+
+    private function once(string $body, string $key): array
+    {
+        $secrets = [$key];
+        try {
+            $response = $this->http->send(new HttpRequest('POST', self::URL, ['Content-Type' => 'application/json'], $body));
+        } catch (TransportException $e) {
+            throw NpApiException::fromNp(NpErrorKind::Unavailable, [$e->getMessage()], [], $secrets);
+        }
+
+        if ($response->status >= 500) {
+            throw NpApiException::fromNp(NpErrorKind::Unavailable, ["HTTP {$response->status}"], [], $secrets);
+        }
+        if ($response->status === 429) {
+            throw NpApiException::fromNp(NpErrorKind::RateLimited, ['HTTP 429'], [], $secrets);
+        }
+
+        $answer = $response->json();
+        if ($response->status !== 200 || $answer === null || !array_key_exists('success', $answer)) {
+            throw NpApiException::fromNp(NpErrorKind::Malformed, ["HTTP {$response->status}"], [], $secrets);
+        }
+
+        if ($answer['success'] === true) {
+            return (array)($answer['data'] ?? []);
+        }
+
+        $texts = array_values(array_map(strval(...), (array)($answer['errors'] ?? [])));
+        $codes = array_values(array_map(strval(...), (array)($answer['errorCodes'] ?? [])));
+        $joined = implode(' ', $texts);
+
+        $kind = match (true) {
+            in_array(self::INVALID_KEY_CODE, $codes, true), stripos($joined, 'API key') !== false => NpErrorKind::InvalidKey,
+            // "To many requests" is NP's own spelling.
+            stripos($joined, 'to many requests') !== false, stripos($joined, 'too many requests') !== false => NpErrorKind::RateLimited,
+            default => NpErrorKind::Rejected,
+        };
+
+        throw NpApiException::fromNp($kind, $texts ?: ['Nova Poshta refused the request'], $codes, $secrets);
+    }
+}
