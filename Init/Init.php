@@ -46,6 +46,7 @@ class Init extends AbstractInit
     {
         $this->setModuleType(MODULE_TYPE_DELIVERY);
         $this->createMissingTables(self::orderTables());
+        $this->migrateEntityField(SettlementEntity::class, self::hasPickupField());
     }
 
     public function init()
@@ -75,6 +76,12 @@ class Init extends AbstractInit
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],
         ] + self::dictionaryTables() + self::orderTables();
+    }
+
+    /** Precomputed by the dictionary run: city search over ~9.7k such settlements instead of 27.5k. */
+    private static function hasPickupField(): EntityField
+    {
+        return new EntityField('has_pickup')->setTypeTinyInt(1, false)->setDefault(0)->setIndex();
     }
 
     /** @return array<class-string, list<EntityField>> tables added in 0.3.0 */
@@ -125,6 +132,7 @@ class Init extends AbstractInit
                 new EntityField('search_text')->setTypeText(),
                 new EntityField('boost')->setTypeInt(11, false)->setDefault(0)->setIndex(),
                 new EntityField('prohibited_issuance')->setTypeTinyInt(1, false)->setDefault(0),
+                self::hasPickupField(),
                 ...$loaded(),
             ],
             DivisionEntity::class => [

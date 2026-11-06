@@ -88,7 +88,7 @@ class UpdatersTest extends TestCase
 
         self::assertSame(1, $counts->deleted);
         self::assertSame([1], array_keys($this->store->tables['divisions']));
-        self::assertSame('deleteNotSeen divisions', end($this->store->calls));
+        self::assertContains('deleteNotSeen divisions', $this->store->calls);
     }
 
     public function testInterruptedFullRunDeletesNothing(): void
@@ -188,12 +188,26 @@ class UpdatersTest extends TestCase
         }
     }
 
+    public function testPickupFlagsFollowEveryUpdate(): void
+    {
+        $this->divisions()->full($this->gz([self::division(1), self::division(2)]), null, 10);
+        self::assertContains('refreshPickup', $this->store->calls);
+
+        $this->store->calls = [];
+        $this->divisions()->delta($this->gz([self::division(3)]), null, 11);
+        self::assertContains('refreshPickup', $this->store->calls);
+
+        $this->store->calls = [];
+        (new SettlementsUpdater($this->store))->full($this->gz([['id' => 5, 'name' => 'село Х', 'region' => null]]), null, 12);
+        self::assertContains('refreshPickup', $this->store->calls, 'a new settlement needs its flag too');
+    }
+
     public function testRowsAreWrittenInBatches(): void
     {
         $items = array_map(static fn(int $i): array => self::division($i), range(1, 1201));
 
         $this->divisions()->full($this->gz($items), null, 10);
 
-        self::assertSame(['upsert divisions 500', 'upsert divisions 500', 'upsert divisions 201', 'deleteNotSeen divisions'], $this->store->calls);
+        self::assertSame(['upsert divisions 500', 'upsert divisions 500', 'upsert divisions 201', 'deleteNotSeen divisions', 'refreshPickup'], $this->store->calls);
     }
 }

@@ -26,7 +26,10 @@ final class DivisionsUpdater
         $counts = $loader->finish();
         $loader->assertPlausibleFullFile();
 
-        return new UpdateCounts($counts->added, $counts->changed, $this->store->deleteNotSeen(DictionaryStore::DIVISIONS, $run), $counts->unchanged);
+        $deleted = $this->store->deleteNotSeen(DictionaryStore::DIVISIONS, $run);
+        $this->store->refreshPickup();
+
+        return new UpdateCounts($counts->added, $counts->changed, $deleted, $counts->unchanged);
     }
 
     /** A daily delta: records with `deletedAt` go, the rest are written with their status. */
@@ -46,6 +49,7 @@ final class DivisionsUpdater
         }
         $counts = $loader->finish();
         $deleted = $deletedIds === [] ? 0 : $this->store->delete(DictionaryStore::DIVISIONS, $deletedIds);
+        $this->store->refreshPickup();
 
         return new UpdateCounts($counts->added, $counts->changed, $deleted, $counts->unchanged);
     }

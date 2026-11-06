@@ -19,6 +19,7 @@ class SettlementEntity extends Entity
         'search_text',
         'boost',
         'prohibited_issuance',
+        'has_pickup',
         'row_hash',
         'seen_run',
         'updated_at',
