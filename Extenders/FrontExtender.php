@@ -20,6 +20,7 @@ use Okay\Modules\Sviat\NovaPoshta\Cart\ThemeClasses;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
 
 class FrontExtender implements ExtensionInterface
 {
@@ -72,6 +73,18 @@ class FrontExtender implements ExtensionInterface
         if ($selection instanceof CartSelection) {
             $this->orders->save((int)$order->id, $selection);
         }
+    }
+
+    /**
+     * QueueExtension of OrdersHelper::getOrderPaymentMethodsList and NotifyHelper::finalEmailOrderUser/Admin:
+     * the order page and both emails show the saved point. Assigned as null for other orders, because
+     * one request can render several orders' emails with the same Design.
+     */
+    public function assignOrderDelivery($result, $order)
+    {
+        $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
+        $this->design->assign('np_order_delivery', $row ? OrderDeliveryView::lines($row) : null);
+        $this->design->assign('np_order_family', ThemeClasses::for((string)$this->settings->get('theme'))['family']);
     }
 
     /** Hands the cart template what its Nova Poshta blocks need; only for this module's delivery methods. */

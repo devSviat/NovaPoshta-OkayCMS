@@ -117,3 +117,5 @@ $lang['sviat__novaposhta__popular_empty'] = 'No buttons — the cart shows only 
 $lang['sviat__novaposhta__popular_add'] = 'Add a city';
 $lang['sviat__novaposhta__popular_add_placeholder'] = 'Start typing a name';
 $lang['sviat__novaposhta__popular_save'] = 'Save buttons';
+$lang['sviat__novaposhta__order_city'] = 'City';
+$lang['sviat__novaposhta__order_point'] = 'Pickup point';

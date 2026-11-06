@@ -35,7 +35,9 @@ class FrontLanguageFilesTest extends TestCase
     public function testTemplateAndScriptTextsExist(): void
     {
         $ua = self::load('ua');
-        preg_match_all('/\$lang->(sviat__novaposhta__\w+)/', (string)file_get_contents(self::dir() . '/html/cart_delivery.tpl'), $m);
+        $templates = glob(self::dir() . '/html/*.tpl');
+        self::assertContains('order_delivery.tpl', array_map('basename', $templates));
+        preg_match_all('/\$lang->(sviat__novaposhta__\w+)/', implode("\n", array_map('file_get_contents', $templates)), $m);
         $used = $m[1];
         foreach ((new \ReflectionClassConstant(FrontExtender::class, 'SCRIPT_TEXTS'))->getValue() as $key) {
             $used[] = 'sviat__novaposhta__' . $key;

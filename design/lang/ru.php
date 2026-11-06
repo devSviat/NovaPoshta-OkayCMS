@@ -24,3 +24,5 @@ $lang['sviat__novaposhta__error_point'] = 'Выберите отделение �
 $lang['sviat__novaposhta__error_point_unavailable'] = 'Выбранный пункт выдачи сейчас недоступен. Выберите другой.';
 $lang['sviat__novaposhta__error_point_too_heavy'] = 'Заказ тяжелее, чем принимает выбранный пункт. Выберите отделение с большим лимитом веса.';
 $lang['sviat__novaposhta__error_point_too_expensive'] = 'Сумма заказа больше, чем принимает выбранный пункт. Выберите отделение.';
+$lang['sviat__novaposhta__order_city'] = 'Населённый пункт';
+$lang['sviat__novaposhta__order_point'] = 'Пункт выдачи';

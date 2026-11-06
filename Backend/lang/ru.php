@@ -117,3 +117,5 @@ $lang['sviat__novaposhta__popular_empty'] = 'Кнопок нет — в корз
 $lang['sviat__novaposhta__popular_add'] = 'Добавить город';
 $lang['sviat__novaposhta__popular_add_placeholder'] = 'Начните вводить название';
 $lang['sviat__novaposhta__popular_save'] = 'Сохранить кнопки';
+$lang['sviat__novaposhta__order_city'] = 'Населённый пункт';
+$lang['sviat__novaposhta__order_point'] = 'Пункт выдачи';

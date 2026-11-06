@@ -24,3 +24,5 @@ $lang['sviat__novaposhta__error_point'] = 'Choose a Nova Poshta branch or parcel
 $lang['sviat__novaposhta__error_point_unavailable'] = 'The chosen pickup point is not available now. Choose another one.';
 $lang['sviat__novaposhta__error_point_too_heavy'] = 'The order is heavier than the chosen point accepts. Choose a branch with a higher weight limit.';
 $lang['sviat__novaposhta__error_point_too_expensive'] = 'The order total is above what the chosen point accepts. Choose a branch.';
+$lang['sviat__novaposhta__order_city'] = 'City';
+$lang['sviat__novaposhta__order_point'] = 'Pickup point';

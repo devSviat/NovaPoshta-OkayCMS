@@ -6,6 +6,7 @@ use Okay\Core\Config;
 use Okay\Core\Database;
 use Okay\Core\EntityFactory;
 use Okay\Helpers\DeliveriesHelper;
+use Okay\Helpers\NotifyHelper;
 use Okay\Helpers\OrdersHelper;
 use Okay\Helpers\ValidateHelper;
 use Okay\Core\Languages;
@@ -71,6 +72,11 @@ class Init extends AbstractInit
             [OrdersHelper::class, 'finalCreateOrderProcedure'],
             [FrontExtender::class, 'saveOrderDelivery']
         );
+        foreach ([[OrdersHelper::class, 'getOrderPaymentMethodsList'], [NotifyHelper::class, 'finalEmailOrderUser'], [NotifyHelper::class, 'finalEmailOrderAdmin']] as $hook) {
+            $this->registerQueueExtension($hook, [FrontExtender::class, 'assignOrderDelivery']);
+        }
+        $this->addFrontBlock('front_email_order_user_contact_info', 'email_delivery.tpl');
+        $this->addBackendBlock('email_order_admin_contact_info', 'email_delivery.tpl');
 
         // Every 5 minutes is only a cheap check; the runner itself decides whether work is due,
         // so the admin button is served within minutes and the daily update needs no own slot.

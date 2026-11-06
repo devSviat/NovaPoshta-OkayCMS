@@ -5,5 +5,18 @@
   "vendor": {
     "email": "devsviat@proton.me",
     "site": "https://github.com/devSviat"
+  },
+  "modifications": {
+    "front": [
+      {
+        "file": "order.tpl",
+        "changes": [
+          {
+            "find": "{if $delivery}",
+            "append": "order_delivery.tpl"
+          }
+        ]
+      }
+    ]
   }
 }
