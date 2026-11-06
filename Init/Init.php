@@ -23,6 +23,7 @@ use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryRunner;
+use Okay\Modules\Sviat\NovaPoshta\Entities\CityRefEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
@@ -64,6 +65,7 @@ class Init extends AbstractInit
     /** Price and term in the cart: cash-on-delivery flag on payment methods, item volume. */
     public function update_0_4_0()
     {
+        $this->createMissingTables(self::quoteTables());
         $this->addCoreFields();
     }
 
@@ -126,13 +128,25 @@ class Init extends AbstractInit
                 new EntityField('value')->setTypeMediumText()->setNullable(),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],
-        ] + self::dictionaryTables() + self::orderTables();
+        ] + self::dictionaryTables() + self::orderTables() + self::quoteTables();
     }
 
     /** Precomputed by the dictionary run: city search over ~9.7k such settlements instead of 27.5k. */
     private static function hasPickupField(): EntityField
     {
         return new EntityField('has_pickup')->setTypeTinyInt(1, false)->setDefault(0)->setIndex();
+    }
+
+    /** @return array<class-string, list<EntityField>> tables added in 0.4.0 */
+    public static function quoteTables(): array
+    {
+        return [
+            CityRefEntity::class => [
+                new EntityField('settlement_id')->setIndexPrimaryKey()->setTypeInt(11, false),
+                new EntityField('city_ref')->setTypeVarchar(36),
+                new EntityField('checked_at')->setTypeInt(11, false),
+            ],
+        ];
     }
 
     /** @return array<class-string, list<EntityField>> tables added in 0.3.0 */

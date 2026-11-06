@@ -40,6 +40,8 @@ use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
+use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
+use Okay\Modules\Sviat\NovaPoshta\Quote\DbCityRefStore;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 
 return [
@@ -78,6 +80,14 @@ return [
     BackendExtender::class => [
         'class' => BackendExtender::class,
         'arguments' => [],
+    ],
+    DbCityRefStore::class => [
+        'class' => DbCityRefStore::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class)],
+    ],
+    CityRefResolver::class => [
+        'class' => CityRefResolver::class,
+        'arguments' => [new SR(OldApiClient::class), new SR(DbCityRefStore::class)],
     ],
     CodPayments::class => [
         'class' => CodPayments::class,
