@@ -28,6 +28,14 @@ class LanguageFilesTest extends TestCase
         }
     }
 
+    public function testCategoryLabelsExist(): void
+    {
+        $ua = self::load('ua');
+        foreach (\Okay\Modules\Sviat\NovaPoshta\Groups\GroupsView::vars([], [])['categories'] as $category) {
+            self::assertArrayHasKey($category['label_key'], $ua);
+        }
+    }
+
     public function testEveryKeyUsedInTheTemplateExists(): void
     {
         $template = file_get_contents(dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/Backend/design/html/settings.tpl');
