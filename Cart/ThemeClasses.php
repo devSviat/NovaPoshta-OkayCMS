@@ -10,7 +10,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Cart;
  */
 final class ThemeClasses
 {
-    /** @return array{family:string, field:string, input:string, label:string, chips:string, chip:string, chipSelected:string} */
+    /** @return array{family:string, field:string, input:string, label:string, chips:string, chip:string, chipSelected:string, check:string} */
     public static function for(string $theme): array
     {
         if (str_starts_with($theme, 'vibe_shop')) {
@@ -22,6 +22,8 @@ final class ThemeClasses
                 'chips' => 'vs-chips',
                 'chip' => 'vs-chip',
                 'chipSelected' => 'vs-chip--selected',
+                // vibe_shop has no checkbox component: the module's own, in the theme's colours.
+                'check' => 'np-check',
             ];
         }
 
@@ -34,6 +36,7 @@ final class ThemeClasses
             'chips' => 'np-chips',
             'chip' => 'np-chip',
             'chipSelected' => 'np-chip--selected',
+            'check' => 'checkbox',
         ];
     }
 }

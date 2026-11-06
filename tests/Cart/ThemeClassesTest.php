@@ -46,4 +46,11 @@ class ThemeClassesTest extends TestCase
     {
         self::assertSame(array_keys(ThemeClasses::for('okay_shop')), array_keys(ThemeClasses::for('vibe_shop')));
     }
+
+    public function testCheckboxes(): void
+    {
+        self::assertSame('checkbox', ThemeClasses::for('okay_shop')['check'], "the theme's own component");
+        self::assertSame('checkbox', ThemeClasses::for('broken_new')['check']);
+        self::assertSame('np-check', ThemeClasses::for('vibe_shop')['check'], 'vibe_shop has none: the module draws it in theme colours');
+    }
 }
