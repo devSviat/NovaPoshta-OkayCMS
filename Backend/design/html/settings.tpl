@@ -294,6 +294,63 @@
     </div>
 </form>
 
+{* Sender and calculation *}
+<form method="post" id="np_shipping_form">
+    <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
+    <input type="hidden" name="np_action" value="shipping">
+    <div class="row">
+        <div class="col-lg-8 col-md-12">
+            <div class="boxed mb-2">
+                <div class="heading_box mb-1">{$btr->sviat__novaposhta__shipping_box|escape}</div>
+                <p>{$btr->sviat__novaposhta__shipping_intro|escape}</p>
+                {if $np_shipping_saved}
+                    <div class="alert alert--success" role="status"><div class="alert__content"><p>{$btr->sviat__novaposhta__shipping_saved|escape}</p></div></div>
+                {/if}
+                {if $np_shipping_errors}
+                    <div class="alert alert--error" role="alert"><div class="alert__content">
+                        {foreach $np_shipping_errors as $error}
+                            <p>
+                                {if $error == 'shipping_error_sender'}{$btr->sviat__novaposhta__shipping_error_sender|escape}
+                                {elseif $error == 'shipping_error_weight'}{$btr->sviat__novaposhta__shipping_error_weight|escape}
+                                {else}{$btr->sviat__novaposhta__shipping_error_volume|escape}{/if}
+                            </p>
+                        {/foreach}
+                    </div></div>
+                {elseif !$np_shipping.config->senderDivisionId}
+                    <div class="alert alert--warning" role="status"><div class="alert__content"><p>{$btr->sviat__novaposhta__shipping_no_sender|escape}</p></div></div>
+                {/if}
+                <div class="np_shipping_grid">
+                    <div class="np_popular_add">
+                        <label class="heading_label" for="np_sender_city">{$btr->sviat__novaposhta__shipping_city|escape}</label>
+                        <input id="np_sender_city" class="form-control" type="text" autocomplete="off" value="{if $np_shipping.city}{$np_shipping.city.name|escape}{/if}" placeholder="{$btr->sviat__novaposhta__popular_add_placeholder|escape}">
+                        <ul id="np_sender_suggest" class="np_suggest" role="listbox" hidden></ul>
+                    </div>
+                    <div>
+                        <label class="heading_label" for="np_sender_division">{$btr->sviat__novaposhta__shipping_division|escape}</label>
+                        <select id="np_sender_division" name="sender_division_id" class="selectpicker form-control" data-live-search="true" data-size="10">
+                            <option value="">{$btr->sviat__novaposhta__shipping_division_none|escape}</option>
+                            {foreach $np_shipping.divisions as $division}
+                                <option value="{$division.id|escape}" {if $division.id == $np_shipping.config->senderDivisionId}selected{/if}>{$division.title|escape}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="heading_label" for="np_default_weight">{$btr->sviat__novaposhta__shipping_weight|escape}</label>
+                        <input id="np_default_weight" class="form-control" type="text" inputmode="decimal" name="default_weight" value="{$np_shipping.config->defaultWeight|escape}">
+                    </div>
+                    <div>
+                        <label class="heading_label" for="np_default_volume">{$btr->sviat__novaposhta__shipping_volume|escape}</label>
+                        <input id="np_default_volume" class="form-control" type="text" inputmode="decimal" name="default_volume" value="{$np_shipping.config->defaultVolume|escape}">
+                    </div>
+                </div>
+                <p class="text_grey mt-1">{$btr->sviat__novaposhta__shipping_defaults_note|escape}</p>
+                <label class="np_check mt-1"><input type="checkbox" name="show_term" value="1" {if $np_shipping.config->showTerm}checked{/if}> <span><b>{$btr->sviat__novaposhta__shipping_show_term|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__shipping_show_term_note|escape}</span></span></label>
+                <div><button type="submit" class="btn btn_small btn_blue mt-1"><span>{$btr->sviat__novaposhta__shipping_save|escape}</span></button></div>
+            </div>
+        </div>
+    </div>
+</form>
+
 {* Popular cities *}
 <form method="post" id="np_popular_form">
     <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
@@ -363,6 +420,11 @@
     .np_suggest { position: absolute; left: 0; right: 0; z-index: 10; margin: 2px 0 0; padding: 4px 0; list-style: none; background: var(--ok-surface, #fff); border: 1px solid var(--ok-control-line, #8a8f95); border-radius: 6px; max-height: 280px; overflow-y: auto; }
     .np_suggest li { padding: 8px 12px; cursor: pointer; }
     .np_suggest li[aria-selected="true"], .np_suggest li:hover { background: var(--ok-sunken, #fafbfc); }
+    .np_shipping_grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .np_shipping_grid .bootstrap-select { width: 100% !important; }
+    .np_shipping_grid .np_popular_add { margin-top: 0; }
+    .np_check { display: flex; align-items: flex-start; gap: 8px; }
+    .np_check input { margin-top: 4px; }
     @media (max-width: 575px) { .np_key_buttons .btn, #np_dict_form .btn { width: 100%; } }
 </style>
 
@@ -488,6 +550,89 @@
                                 add(city);
                                 input.value = '';
                                 close();
+                            });
+                            list.appendChild(item);
+                        });
+                        list.hidden = list.children.length === 0;
+                    })
+                    .catch(function () {});
+            }, 200);
+        });
+        input.addEventListener('blur', function () { setTimeout(close, 150); });
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                var first = list.querySelector('li');
+                if (first) {
+                    first.dispatchEvent(new Event('mousedown'));
+                }
+            } else if (e.key === 'Escape') {
+                close();
+            }
+        });
+    })();
+    (function () {
+        var input = document.getElementById('np_sender_city');
+        var list = document.getElementById('np_sender_suggest');
+        var select = document.getElementById('np_sender_division');
+        var base = '{$smarty.server.SCRIPT_NAME|escape:'javascript'}?controller=Sviat.NovaPoshta.NovaPoshtaSettingsAdmin@';
+        var timer = null;
+        var request = null;
+
+        function close() {
+            list.hidden = true;
+            list.textContent = '';
+        }
+
+        function choose(city) {
+            input.value = city.name;
+            close();
+            fetch(base + 'senderDivisions&settlement_id=' + encodeURIComponent(city.id), { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+                    (data.divisions || []).forEach(function (division) {
+                        var option = document.createElement('option');
+                        option.value = division.id;
+                        option.textContent = division.title;
+                        select.appendChild(option);
+                    });
+                    select.value = '';
+                    if (window.jQuery && jQuery.fn.selectpicker) {
+                        jQuery(select).selectpicker('refresh');
+                    }
+                })
+                .catch(function () {});
+        }
+
+        input.addEventListener('input', function () {
+            clearTimeout(timer);
+            var query = input.value.trim();
+            if (query === '') {
+                close();
+                return;
+            }
+            timer = setTimeout(function () {
+                if (request) {
+                    request.abort();
+                }
+                request = new AbortController();
+                fetch(base + 'searchSettlements&q=' + encodeURIComponent(query), { credentials: 'same-origin', signal: request.signal })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        list.textContent = '';
+                        (data.settlements || []).forEach(function (city) {
+                            var item = document.createElement('li');
+                            item.setAttribute('role', 'option');
+                            var name = document.createElement('b');
+                            name.textContent = city.name;
+                            item.appendChild(name);
+                            item.appendChild(document.createTextNode(' ' + [city.district, city.area].filter(Boolean).join(', ')));
+                            item.addEventListener('mousedown', function (e) {
+                                e.preventDefault();
+                                choose(city);
                             });
                             list.appendChild(item);
                         });

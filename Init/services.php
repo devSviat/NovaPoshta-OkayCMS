@@ -37,6 +37,8 @@ use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
+use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
+use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
 
 return [
     ApiKey::class => [
@@ -66,6 +68,14 @@ return [
     KeyChecker::class => [
         'class' => KeyChecker::class,
         'arguments' => [new SR(CurlTransport::class), new SR(OldApiClient::class), new SR(JwtProvider::class), new SR(ModuleState::class)],
+    ],
+    ShippingSettings::class => [
+        'class' => ShippingSettings::class,
+        'arguments' => [new SR(Settings::class), new SR(EntityFactory::class)],
+    ],
+    SenderDivisions::class => [
+        'class' => SenderDivisions::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class)],
     ],
     KeySettings::class => [
         'class' => KeySettings::class,

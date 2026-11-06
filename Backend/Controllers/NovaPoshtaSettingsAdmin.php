@@ -8,6 +8,11 @@ use Okay\Modules\Sviat\NovaPoshta\Api\ApiKey;
 use Okay\Modules\Sviat\NovaPoshta\Backend\DictionaryStatusView;
 use Okay\Modules\Sviat\NovaPoshta\Backend\KeySettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\KeySettingsView;
+use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
+use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
+use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
+use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
+use Okay\Core\EntityFactory;
 use Okay\Modules\Sviat\NovaPoshta\Cart\PopularCities;
 use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryCounts;
@@ -29,6 +34,9 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         ModuleState $moduleState,
         PopularCities $popularCities,
         Languages $languages,
+        ShippingSettings $shippingSettings,
+        SenderDivisions $senderDivisions,
+        EntityFactory $entityFactory,
     ) {
         $submission = null;
         // Stock 4.5.3 checks session_id only after the controller has run, so a forged
@@ -42,6 +50,14 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
                     $ids = $this->request->post('popular');
                     $popularCities->save(is_array($ids) ? array_values($ids) : []);
                     $this->design->assign('np_popular_saved', true);
+                    break;
+                case 'shipping':
+                    $errors = $shippingSettings->save($_POST);
+                    if ($errors === []) {
+                        $this->design->assign('np_shipping_saved', true);
+                    } else {
+                        $this->design->assign('np_shipping_errors', $errors);
+                    }
                     break;
                 case 'groups':
                     $input = GroupsInput::parse($_POST);
@@ -68,7 +84,16 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
             $dictionaryCounts->summary($byCategory),
         ));
         $this->design->assign('np_groups', GroupsView::vars($groupsStore->all(), $byCategory));
-        $this->design->assign('np_popular', $popularCities->list((string)$languages->getLangLabel()));
+        $lang = (string)$languages->getLangLabel();
+        $this->design->assign('np_popular', $popularCities->list($lang));
+        $config = $shippingSettings->read();
+        $sender = $config->senderDivisionId ? $entityFactory->get(DivisionEntity::class)->get($config->senderDivisionId) : null;
+        $senderCity = $sender ? $entityFactory->get(SettlementEntity::class)->get((int)$sender->settlement_id) : null;
+        $this->design->assign('np_shipping', [
+            'config' => $config,
+            'city' => $senderCity ? ['id' => (int)$senderCity->id, 'name' => (string)($lang === 'en' && $senderCity->name_en ? $senderCity->name_en : $senderCity->name_uk)] : null,
+            'divisions' => $senderCity ? $senderDivisions->forSettlement((int)$senderCity->id, $lang) : [],
+        ]);
         $this->response->setContent($this->design->fetch('settings.tpl'));
     }
 
@@ -78,5 +103,12 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         $query = $this->request->get('q');
         $found = is_string($query) ? $search->find($query, (string)$languages->getLangLabel()) : [];
         $this->response->setContent(json_encode(['settlements' => $found], JSON_UNESCAPED_UNICODE), RESPONSE_JSON);
+    }
+
+    /** Points of the sender's settlement for the sender dropdown (`controller=…@senderDivisions&settlement_id=`). */
+    public function senderDivisions(SenderDivisions $divisions, Languages $languages)
+    {
+        $id = $this->request->get('settlement_id', 'integer');
+        $this->response->setContent(json_encode(['divisions' => $divisions->forSettlement((int)$id, (string)$languages->getLangLabel())], JSON_UNESCAPED_UNICODE), RESPONSE_JSON);
     }
 }
