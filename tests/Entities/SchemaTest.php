@@ -28,7 +28,7 @@ class SchemaTest extends TestCase
             $entityFields = (new \ReflectionProperty($entityClass, 'fields'))->getValue();
             // Registered by Init::init() once the 0.4.0 update has created them (upgrade window).
             if ($entityClass === \Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class) {
-                $late = array_map(static fn(EntityField $f): string => $f->getName(), Init::pricingFields());
+                $late = array_map(static fn(EntityField $f): string => $f->getName(), [...Init::pricingFields(), ...Init::addressFields()]);
                 self::assertSame([], array_values(array_intersect($late, $entityFields)), 'registered late, not static');
                 $plain = array_values(array_diff($plain, $late));
             }

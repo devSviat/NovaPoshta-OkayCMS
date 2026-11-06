@@ -43,7 +43,7 @@ class Init extends AbstractInit
         $this->createMissingTables(self::tables());
         $this->addDefaultGroups();
         $this->addCoreFields();
-        self::markSchema();
+        self::markSchema(self::SCHEMA);
     }
 
     /**
@@ -72,7 +72,16 @@ class Init extends AbstractInit
         foreach (self::pricingFields() as $field) {
             $this->migrateEntityField(OrderDeliveryEntity::class, $field);
         }
-        self::markSchema();
+        self::markSchema('0.4.0');
+    }
+
+    /** Address delivery: the address goes into the order snapshot. */
+    public function update_0_5_0()
+    {
+        foreach (self::addressFields() as $field) {
+            $this->migrateEntityField(OrderDeliveryEntity::class, $field);
+        }
+        self::markSchema('0.5.0');
     }
 
     /** Fields the module keeps on core tables, under its own names (§9). */
@@ -82,16 +91,16 @@ class Init extends AbstractInit
      * orders fail — the storefront loses products and payment methods — so init() waits for this.
      */
     private const string SCHEMA_SETTING = 'sviat__novaposhta__schema';
-    private const string SCHEMA = '0.4.0';
+    private const string SCHEMA = '0.5.0';
 
-    private static function markSchema(): void
+    private static function markSchema(string $version): void
     {
-        ServiceLocator::getInstance()->getService(Settings::class)->set(self::SCHEMA_SETTING, self::SCHEMA);
+        ServiceLocator::getInstance()->getService(Settings::class)->set(self::SCHEMA_SETTING, $version);
     }
 
-    private static function schemaReady(): bool
+    private static function schemaReady(string $version): bool
     {
-        return version_compare((string)ServiceLocator::getInstance()->getService(Settings::class)->get(self::SCHEMA_SETTING), self::SCHEMA, '>=');
+        return version_compare((string)ServiceLocator::getInstance()->getService(Settings::class)->get(self::SCHEMA_SETTING), $version, '>=');
     }
 
     private function addCoreFields(): void
@@ -102,7 +111,12 @@ class Init extends AbstractInit
 
     public function init()
     {
-        if (self::schemaReady()) {
+        if (self::schemaReady('0.5.0')) {
+            foreach (self::addressFields() as $field) {
+                $this->registerEntityField(OrderDeliveryEntity::class, $field->getName());
+            }
+        }
+        if (self::schemaReady('0.4.0')) {
             $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
             $this->registerEntityField(VariantsEntity::class, VariantVolume::FIELD);
             foreach (self::pricingFields() as $field) {
@@ -175,6 +189,22 @@ class Init extends AbstractInit
     }
 
     /** @return list<EntityField> columns of the order snapshot added in 0.4.0 */
+    /** @return list<EntityField> columns of the order snapshot added in 0.5.0 (address delivery) */
+    public static function addressFields(): array
+    {
+        return [
+            new EntityField('street_name')->setTypeVarchar(100),
+            new EntityField('street_ref')->setTypeVarchar(36),
+            new EntityField('house')->setTypeVarchar(10),
+            new EntityField('flat')->setTypeVarchar(10),
+            new EntityField('entrance')->setTypeVarchar(5),
+            new EntityField('floor')->setTypeInt(11),
+            new EntityField('elevator')->setTypeTinyInt(1, false)->setDefault(0),
+            new EntityField('address_note')->setTypeVarchar(40),
+            new EntityField('lifting')->setTypeTinyInt(1, false)->setDefault(0),
+        ];
+    }
+
     public static function pricingFields(): array
     {
         return [
@@ -218,6 +248,7 @@ class Init extends AbstractInit
                 $name('division_name'),
                 $name('division_address'),
                 ...self::pricingFields(),
+                ...self::addressFields(),
                 new EntityField('created_at')->setTypeDatetime(false),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],

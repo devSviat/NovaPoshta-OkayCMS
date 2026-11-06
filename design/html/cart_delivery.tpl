@@ -79,11 +79,6 @@
             {call name='np_field' id="np_floor_`$delivery->id`" field="`$np_name`[floor]" value=$np_address.floor|default:'' label=$lang->sviat__novaposhta__cart_floor cls='np-cart__floor' max=3 mode='numeric'}
         </div>
         {$np_check = $np_theme.check}
-        <label class="{$np_check|escape} np-cart__check">
-            <input type="checkbox" class="{$np_check|escape}__input np-cart__elevator" name="{$np_name|escape}[elevator]" value="1"{if !empty($np_address.elevator)} checked{/if}>
-            <svg class="{$np_check|escape}__icon" viewBox="0 0 20 20" aria-hidden="true"><path class="{$np_check|escape}__mark" fill="none" d="M4 10 l5 4 8-8.5"></path></svg>
-            <span>{$lang->sviat__novaposhta__cart_elevator|escape}</span>
-        </label>
         <div class="np-cart__note">
             {call name='np_field' id="np_note_`$delivery->id`" field="`$np_name`[note]" value=$np_address.note|default:'' label=$lang->sviat__novaposhta__cart_note cls='np-cart__note' max=40}
             <span class="np-cart__note-count" aria-live="polite"></span>
@@ -94,6 +89,12 @@
                 <svg class="{$np_check|escape}__icon" viewBox="0 0 20 20" aria-hidden="true"><path class="{$np_check|escape}__mark" fill="none" d="M4 10 l5 4 8-8.5"></path></svg>
                 <span><b class="np-cart__lifting-title">{$lang->sviat__novaposhta__cart_lifting|escape}</b> <span class="np-cart__lifting-fee"></span><br><span class="np-cart__lifting-note"></span></span>
             </label>
+            {* The lift only matters to Nova Poshta together with lifting (getDocumentPrice, the shipment). *}
+            <label class="{$np_check|escape} np-cart__check np-cart__elevator-check">
+            <input type="checkbox" class="{$np_check|escape}__input np-cart__elevator" name="{$np_name|escape}[elevator]" value="1"{if !empty($np_address.elevator)} checked{/if}>
+            <svg class="{$np_check|escape}__icon" viewBox="0 0 20 20" aria-hidden="true"><path class="{$np_check|escape}__mark" fill="none" d="M4 10 l5 4 8-8.5"></path></svg>
+            <span>{$lang->sviat__novaposhta__cart_elevator|escape}</span>
+        </label>
         </div>
     </div>
     {/if}

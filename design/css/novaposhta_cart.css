@@ -127,4 +127,5 @@
 .np-cart__lifting { padding: 10px 12px; border: 1px solid var(--np-border, #dbdbdb); border-radius: 4px; }
 .np-cart__lifting[hidden] { display: none; }
 .np-cart__lifting .np-cart__check { line-height: 1.4; }
+.np-cart__lifting .np-cart__elevator-check { margin-top: 10px; margin-left: 30px; }
 .np-cart__lifting-note { font-size: 13px; opacity: .8; }

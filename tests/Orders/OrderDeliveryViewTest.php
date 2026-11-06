@@ -17,7 +17,7 @@ class OrderDeliveryViewTest extends TestCase
             'division_address' => 'вул. Київська, 1',
         ]);
 
-        self::assertSame(['city' => 'місто Бровари, Броварський район, Київська область', 'point' => 'Відділення №3: вул. Київська, 1', 'term' => null, 'priceUnconfirmed' => false], $lines);
+        self::assertSame(['city' => 'місто Бровари, Броварський район, Київська область', 'point' => 'Відділення №3: вул. Київська, 1', 'term' => null, 'priceUnconfirmed' => false, 'address' => null, 'lifting' => false], $lines);
     }
 
     public function testMissingPartsAreLeftOut(): void
@@ -30,7 +30,7 @@ class OrderDeliveryViewTest extends TestCase
             'division_address' => null,
         ]);
 
-        self::assertSame(['city' => 'місто Київ', 'point' => 'Поштомат №5', 'term' => null, 'priceUnconfirmed' => false], $lines);
+        self::assertSame(['city' => 'місто Київ', 'point' => 'Поштомат №5', 'term' => null, 'priceUnconfirmed' => false, 'address' => null, 'lifting' => false], $lines);
     }
 
     public function testTermAndUnconfirmedPrice(): void
@@ -40,5 +40,17 @@ class OrderDeliveryViewTest extends TestCase
         self::assertSame('18.03.2030', $lines['term']);
         self::assertTrue($lines['priceUnconfirmed']);
         self::assertNull(OrderDeliveryView::lines((object)['settlement_name' => 'x', 'delivery_term' => 'garbage'])['term']);
+    }
+
+    public function testAddressParts(): void
+    {
+        $lines = OrderDeliveryView::lines((object)[
+            'mode' => 'address', 'settlement_name' => 'місто Київ', 'area_name' => 'Київська область',
+            'street_name' => 'вул. Хрещатик', 'house' => '1', 'flat' => '5', 'entrance' => '', 'floor' => '7', 'elevator' => '1', 'address_note' => 'домофон 5', 'lifting' => '1',
+        ]);
+
+        self::assertSame(['street' => 'вул. Хрещатик', 'house' => '1', 'flat' => '5', 'entrance' => null, 'floor' => 7, 'elevator' => true, 'note' => 'домофон 5'], $lines['address']);
+        self::assertTrue($lines['lifting']);
+        self::assertSame('', $lines['point']);
     }
 }

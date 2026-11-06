@@ -643,6 +643,7 @@
         if (!data.liftingOffered) {
             // A hidden, still ticked box would be posted and then demand a floor.
             this.liftingInput.checked = false;
+            this.elevator.checked = false;
             return;
         }
         this.lifting.querySelector('.np-cart__lifting-fee').textContent = data.liftingFeeText ? '(' + data.liftingFeeText + ')' : '';

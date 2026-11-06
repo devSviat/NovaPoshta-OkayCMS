@@ -13,6 +13,7 @@ use Okay\Core\Request;
 use Okay\Core\Settings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelection;
+use Okay\Modules\Sviat\NovaPoshta\Cart\AddressFields;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelectionValidator;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 use Okay\Modules\Sviat\NovaPoshta\Cart\PopularCities;
@@ -82,12 +83,27 @@ class FrontExtender implements ExtensionInterface
     /** ChainExtension of DeliveriesHelper::prepareDeliveryPriceInfo: the order's delivery price comes from the server's calculation. */
     public function orderPrice($info, $delivery, $order)
     {
-        if (!is_array($info) || !is_object($delivery) || !is_object($order) || !$this->quotes->isOwnPointsMethod($delivery)) {
+        if (!is_array($info) || !is_object($delivery) || !is_object($order) || !$this->quotes->isOwnMethod($delivery)) {
             return $info;
         }
-        $divisionId = $this->selection?->applies() ? (int)$this->selection->division->id : CartSelectionValidator::postedIds($_POST, (int)$delivery->id)[1];
         $cart = $this->cart->get();
-        $quote = $this->quotes->quote($delivery, $divisionId, (int)($order->payment_method_id ?? 0), $cart, forOrder: true);
+        $paymentId = (int)($order->payment_method_id ?? 0);
+        $address = $this->selection?->address;
+        if ($this->quotes->isOwnPointsMethod($delivery)) {
+            $divisionId = $this->selection?->division ? (int)$this->selection->division->id : CartSelectionValidator::postedIds($_POST, (int)$delivery->id)[1];
+            $quote = $this->quotes->quote($delivery, $divisionId, $paymentId, $cart, forOrder: true);
+        } elseif ($address !== null) {
+            $quote = $this->quotes->quoteAddress($delivery, $this->selection->settlement, $address->lifting, $address->floor, $address->elevator, $paymentId, $cart, forOrder: true);
+            // Lifting Nova Poshta refuses (too heavy) was not priced, so it is not part of the order either.
+            if ($address->lifting && $quote?->liftingRefused) {
+                $this->selection = new CartSelection($this->selection->delivery, $this->selection->settlement, null, new AddressFields(
+                    $address->settlementId, $address->street, $address->streetRef, $address->house, $address->flat,
+                    $address->entrance, $address->floor, $address->elevator, $address->note, false,
+                ));
+            }
+        } else {
+            return $info;
+        }
         $freeByCore = !((float)($delivery->free_from ?? 0) > (float)($order->total_price ?? 0));
         $decision = PriceDecision::forOrder($quote, $info, $freeByCore, $freeByCore ? 0.0 : (float)$delivery->price);
         $this->pricing = $quote === null ? null : [
