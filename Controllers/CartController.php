@@ -29,7 +29,7 @@ class CartController
 {
     public function settlements(Request $request, Response $response, SettlementSearch $search, Languages $languages)
     {
-        $query = $request->get('q');
+        $query = self::typed($request);
         $pickupOnly = $request->get('mode') !== 'address';
         $this->json($response, ['settlements' => is_string($query) ? $search->find($query, (string)$languages->getLangLabel(), 10, $pickupOnly) : []]);
     }
@@ -49,7 +49,7 @@ class CartController
             $uahTotal->metrics($cart->get()),
             (string)$languages->getLangLabel(),
             $groupId ? (int)$groupId : null,
-            (string)$request->get('q'),
+            (string)self::typed($request),
         ));
     }
 
@@ -114,7 +114,7 @@ class CartController
     {
         $settlementId = (int)$request->get('settlement_id', 'integer');
         $settlement = $settlementId > 0 ? $entityFactory->get(SettlementEntity::class)->get($settlementId) : null;
-        $query = $request->get('q');
+        $query = self::typed($request);
         if (!$settlement || !is_string($query) || empty($cart->get()->purchases)) {
             $response->setStatusCode(400);
             $this->json($response, ['error' => 'input']);
@@ -141,5 +141,14 @@ class CartController
     private function json(Response $response, array $data): void
     {
         $response->setContent(json_encode($data, JSON_UNESCAPED_UNICODE), RESPONSE_JSON);
+    }
+
+    /**
+     * The search text as typed. Request::get() HTML-encodes by default, which turns "Кам'янець" into
+     * "Кам&#039;янець" and finds nothing; the value is only bound into queries and sent back as JSON.
+     */
+    private static function typed(Request $request): mixed
+    {
+        return $request->get('q', null, null, false);
     }
 }
