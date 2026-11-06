@@ -57,13 +57,26 @@ final class DivisionList
             return $select;
         };
 
-        $result['total'] = (int)($this->rows($filtered()->cols(['COUNT(*) AS n']))[0]->n ?? 0);
-        $points = $this->rows($filtered()
-            ->cols(['d.id', 'd.number', 'd.category', 'd.name_uk', 'd.name_en', 'd.address_uk', 'd.address_en', 'd.max_weight', 'd.max_declared_cost', 'd.schedule'])
+        // All of the group's points, light: those that fit the cart must lead the page even when
+        // their numbers are high (a 35 kg cart in Kyiv: most low-numbered branches take 30 kg).
+        $light = $this->rows($filtered()
+            ->cols(['d.id', 'd.max_weight', 'd.max_declared_cost'])
             // "11/117": the city code, then the branch number customers know. `+ 0` makes it a
             // number; CAST(… AS …) would be read by aura as a column alias and break the query.
-            ->orderBy(["SUBSTRING_INDEX(d.number, '/', -1) + 0", 'd.number'])
-            ->limit(self::PAGE));
+            ->orderBy(["SUBSTRING_INDEX(d.number, '/', -1) + 0", 'd.number']));
+        $result['total'] = count($light);
+        $ids = self::pageIds($light, $cart);
+        $byId = [];
+        if ($ids !== []) {
+            foreach ($this->rows($this->queryFactory->newSelect()
+                ->from(DivisionEntity::getTable() . ' AS d')
+                ->cols(['d.id', 'd.number', 'd.category', 'd.name_uk', 'd.name_en', 'd.address_uk', 'd.address_en', 'd.max_weight', 'd.max_declared_cost', 'd.schedule'])
+                ->where('d.id IN (:ids)')
+                ->bindValue('ids', $ids)) as $row) {
+                $byId[(int)$row->id] = $row;
+            }
+        }
+        $points = array_values(array_filter(array_map(static fn(int $id): ?object => $byId[$id] ?? null, $ids)));
         $result['divisions'] = self::page($points, $cart, $lang, strtolower(date('l')));
 
         return $result;
@@ -103,6 +116,30 @@ final class DivisionList
         }
 
         return [];
+    }
+
+    /**
+     * Ids of one page: points that fit the cart first, each part in the given (number) order.
+     *
+     * @param list<object> $light rows with id, max_weight, max_declared_cost, in number order
+     * @return list<int>
+     */
+    public static function pageIds(array $light, CartMetrics $cart): array
+    {
+        $fit = [];
+        $unfit = [];
+        foreach ($light as $row) {
+            if (DivisionFit::problems($cart, $row) === []) {
+                $fit[] = (int)$row->id;
+                if (count($fit) === self::PAGE) {
+                    break;
+                }
+            } elseif (count($unfit) < self::PAGE) {
+                $unfit[] = (int)$row->id;
+            }
+        }
+
+        return array_slice([...$fit, ...$unfit], 0, self::PAGE);
     }
 
     /** @param list<object> $points rows of DivisionEntity, already in number order */

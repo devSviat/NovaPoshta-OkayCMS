@@ -109,4 +109,19 @@ class DivisionListTest extends TestCase
         self::assertNull(DivisionList::searchTerm('   '));
         self::assertSame(64, mb_strlen((string)DivisionList::searchTerm(str_repeat('ї', 200))));
     }
+
+    public function testFittingPointsFromAnywhereInTheGroupFillThePageFirst(): void
+    {
+        $light = [];
+        for ($i = 1; $i <= DivisionList::PAGE + 50; $i++) {
+            $light[] = (object)['id' => $i, 'max_weight' => '10.00', 'max_declared_cost' => '100000.00'];
+        }
+        $light[] = (object)['id' => 900, 'max_weight' => '1000.00', 'max_declared_cost' => '100000.00'];
+        $light[] = (object)['id' => 901, 'max_weight' => '0', 'max_declared_cost' => '0'];
+
+        $ids = DivisionList::pageIds($light, new CartMetrics(35, false, 100));
+
+        self::assertCount(DivisionList::PAGE, $ids);
+        self::assertSame([900, 901, 1, 2], array_slice($ids, 0, 4), 'fitting first, number order kept inside each part');
+    }
 }
