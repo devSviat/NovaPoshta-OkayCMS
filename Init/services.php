@@ -37,6 +37,7 @@ use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderParcel;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
@@ -226,12 +227,16 @@ return [
         'class' => SenderContacts::class,
         'arguments' => [new SR(OldApiClient::class), new SR(ModuleState::class)],
     ],
+    OrderParcel::class => [
+        'class' => OrderParcel::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(Money::class)],
+    ],
     AmountDue::class => [
         'class' => AmountDue::class,
     ],
     WaybillDrafts::class => [
         'class' => WaybillDrafts::class,
-        'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(CodPayments::class), new SR(Money::class), new SR(AmountDue::class)],
+        'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(CodPayments::class), new SR(OrderParcel::class), new SR(AmountDue::class)],
     ],
     SenderParties::class => [
         'class' => SenderParties::class,
