@@ -116,4 +116,20 @@ class CartSelectionValidatorTest extends TestCase
         self::assertSame([0, 0], CartSelectionValidator::postedIds($post, 5));
         self::assertSame([0, 0], CartSelectionValidator::postedIds(['novaposhta' => 'x'], 4));
     }
+
+    public function testRestoredPointThatStillFitsIsKept(): void
+    {
+        $kept = CartSelectionValidator::keepRestored(self::delivery(), self::MODULE, self::settlement(), self::division(), self::groupRows(), new CartMetrics(2, false, 1000));
+
+        self::assertSame(7162, $kept?->id);
+    }
+
+    public function testRestoredPointThatNoLongerFitsIsDropped(): void
+    {
+        $tooHeavy = CartSelectionValidator::keepRestored(self::delivery(), self::MODULE, self::settlement(), self::division(), self::groupRows(), new CartMetrics(40, false, 1000));
+        $closed = CartSelectionValidator::keepRestored(self::delivery(), self::MODULE, self::settlement(), self::division(['status' => 'Closed']), self::groupRows(), new CartMetrics(2, false, 1000));
+
+        self::assertNull($tooHeavy);
+        self::assertNull($closed);
+    }
 }

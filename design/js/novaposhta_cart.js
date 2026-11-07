@@ -178,7 +178,8 @@
                 return;
             }
             var host = label.querySelector('.vs-option-card__body') || label.querySelector('.delivery__name') || label;
-            var line = host.querySelector('.np-cod-line');
+            // Two methods may share one COD payment: each keeps its own line.
+            var line = host.querySelector('.np-cod-line[data-np-delivery="' + self.deliveryId + '"]');
             if (!line) {
                 line = el('span', 'np-cod-line');
                 line.setAttribute('data-np-delivery', self.deliveryId);
@@ -207,7 +208,10 @@
         schedule.textContent = '';
         var hours = this.division ? this.scheduleNode(this.division.schedule) : null;
         if (hours) {
+            var around = String(this.texts.cart_schedule || '%schedule%').split('%schedule%');
+            schedule.appendChild(document.createTextNode(around[0]));
             schedule.appendChild(hours);
+            schedule.appendChild(document.createTextNode(around[1] || ''));
         }
         schedule.hidden = !hours;
     };
@@ -388,8 +392,9 @@
             this.address.hidden = false;
         }
         this.showChoice();
-        this.setStep('points');
+        // Before the field is hidden: jQuery Validate does not hide the message of a hidden field.
         this.revalidate(this.city);
+        this.setStep('points');
         this.load();
         if (this.mode === 'address') {
             this.requestQuote();
@@ -559,8 +564,8 @@
             });
             option.classList.add('np-cart__option--selected');
             option.setAttribute('aria-selected', 'true');
-            self.setStep('chosen');
             self.revalidate(self.pointCheck);
+            self.setStep('chosen');
             self.requestQuote();
         });
         return option;

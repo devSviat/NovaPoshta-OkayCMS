@@ -150,14 +150,15 @@
 .np-cart__chosen-text { display: flex; flex: 1 1 auto; flex-direction: column; gap: 2px; min-width: 0; }
 .np-cart__chosen-city { font-size: 12px; opacity: .7; }
 .np-cart__chosen .np-cart__change { flex: none; }
-.np-cart__schedule, .np-cart__chosen-schedule > .np-cart__day { font-size: 11px; line-height: 1.35; opacity: .75; }
+.np-cart__schedule, .np-cart__chosen-schedule { font-size: 11px; line-height: 1.35; opacity: .75; }
+.np-cart__chosen-schedule .np-cart__schedule { opacity: 1; }
 .np-cart__day { white-space: nowrap; }
 .np-cart__option-schedule { display: block; margin-top: 2px; }
 /* Narrower sides let "Відділення 652 | Поштомат 7389" fit one line on a 390 px phone; longer names wrap. */
 .np-cart__groups > * { padding-left: 10px; padding-right: 10px; white-space: nowrap; }
 
 /* Inside the theme's payment label (outside .np-cart): the module's colour variables are not set there. */
-.np-cod-line { display: block; margin-top: 3px; font-size: 13px; font-style: normal; font-weight: 400; line-height: 1.35; color: #a35a00; }
+.np-cod-line { display: block; margin-top: 2px; font-size: 11px; font-style: normal; font-weight: 400; line-height: 1.35; color: #a35a00; }
 
 /* Visible to jQuery Validate (it skips :hidden), not to people: the "choose a point" message hangs off it. */
 .np-cart__points { position: relative; }

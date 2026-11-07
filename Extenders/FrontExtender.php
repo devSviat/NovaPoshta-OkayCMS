@@ -117,8 +117,9 @@ class FrontExtender implements ExtensionInterface
             'delivery_price' => $decision['info']['delivery_price'] ?? null,
             'price_source' => $decision['source'],
             'delivery_term' => $quote->term?->format('Y-m-d'),
-            'cod' => ($cod = $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0))) ? 1 : 0,
-            'cod_fee' => $cod ? $quote->codFee : null,
+            'cod' => $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0)) ? 1 : 0,
+            // Kept for card orders too: the customer may switch to COD on the order page.
+            'cod_fee' => $quote->codFee,
         ];
 
         return $decision['info'];
@@ -213,27 +214,29 @@ class FrontExtender implements ExtensionInterface
         // JSON is built here: Smarty 5 does not allow PHP functions such as json_encode as modifiers.
         $this->design->assign('np_texts_json', json_encode($texts, JSON_UNESCAPED_UNICODE));
         $this->design->assign('np_modes', array_map(static fn($d): string => DeliveryMode::fromServiceType($d->settings['service_type'] ?? null) === DeliveryMode::Address ? 'address' : 'points', $own));
-        $this->design->assign('np_prefill', $this->prefill(array_keys($own), $lang));
+        $this->design->assign('np_prefill', $this->prefill($own, is_object($cart) ? $cart : (object)[], $lang));
         $this->design->assign('np_cod_payments', array_map(fn($d): string => implode(',', $this->quotes->codFeePayments($d)), $own));
     }
 
     /**
      * The choice the customer already made, shown again when the cart page comes back with an error.
      *
-     * @param list<int|string> $deliveryIds
+     * @param array<object> $deliveries this module's methods
      * @return array<int, array{settlement:?array, division:?array}>
      */
-    private function prefill(array $deliveryIds, string $lang): array
+    private function prefill(array $deliveries, object $cart, string $lang): array
     {
         $posted = $this->request->post('novaposhta');
         // Without a posted form, the customer's previous order offers its point again.
         $user = $this->design->getVar('user');
         $last = !is_array($posted) && is_object($user) ? $this->orders->lastForUser((int)($user->id ?? 0)) : null;
         $prefill = [];
-        foreach ($deliveryIds as $deliveryId) {
+        $metrics = CartMetrics::fromCart($cart);
+        foreach ($deliveries as $delivery) {
+            $deliveryId = (int)$delivery->id;
             $choice = is_array($posted[$deliveryId] ?? null) ? $posted[$deliveryId]
                 : ($last ? ['settlement_id' => $last->settlement_id, 'division_id' => $last->division_id] + self::lastAddress($last) : []);
-            $described = $this->describe((int)($choice['settlement_id'] ?? 0), (int)($choice['division_id'] ?? 0), $lang);
+            $described = $this->describe($delivery, $metrics, (int)($choice['settlement_id'] ?? 0), (int)($choice['division_id'] ?? 0), $lang);
             $prefill[(int)$deliveryId] = $described + [
                 'address' => self::addressPrefill($choice),
                 'settlement_json' => $described['settlement'] ? json_encode($described['settlement'], JSON_UNESCAPED_UNICODE) : '',
@@ -277,14 +280,13 @@ class FrontExtender implements ExtensionInterface
     }
 
     /** @return array{settlement:?array{id:int, name:string, area:?string}, division:?array{id:int, title:string, place:?string, schedule:mixed}} */
-    public function describe(int $settlementId, int $divisionId, string $lang): array
+    public function describe(object $delivery, CartMetrics $cart, int $settlementId, int $divisionId, string $lang): array
     {
         $english = $lang === 'en';
         $settlement = $settlementId > 0 ? $this->entityFactory->get(SettlementEntity::class)->get($settlementId) : null;
         $division = $settlement && $divisionId > 0 ? $this->entityFactory->get(DivisionEntity::class)->get($divisionId) : null;
-        if ($division && (int)$division->settlement_id !== (int)$settlement->id) {
-            $division = null;
-        }
+        // A point the order would refuse now goes back to the list, where its problem is shown.
+        $division = $division ? $this->validator->restorable($delivery, $settlement, $division, $cart) : null;
 
         return [
             'settlement' => $settlement ? [

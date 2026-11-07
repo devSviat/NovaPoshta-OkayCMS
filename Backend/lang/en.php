@@ -160,5 +160,5 @@ $lang['sviat__novaposhta__order_floor'] = 'floor';
 $lang['sviat__novaposhta__order_elevator'] = 'lift available';
 $lang['sviat__novaposhta__order_note'] = 'Note';
 $lang['sviat__novaposhta__order_title'] = 'Nova Poshta';
-$lang['sviat__novaposhta__order_cod_fee'] = 'NP commission for cash on delivery (the customer pays it at the branch)';
+$lang['sviat__novaposhta__order_cod_fee'] = 'NP commission for cash on delivery (the customer pays it on receipt)';
 $lang['sviat__novaposhta__order_cod_fee_hidden'] = 'not shown to the customer — the delivery price is hidden';
