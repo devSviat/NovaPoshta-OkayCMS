@@ -69,6 +69,47 @@ final class InMemoryWaybillRows implements WaybillRows
         $this->rows[$orderId]->audit = json_encode($audit->toArray());
     }
 
+    public function saveStatus(int $orderId, int $code, string $text, ?string $statusAt, ?string $scheduledAt): void
+    {
+        $this->rows[$orderId] = (object)(['status_code' => $code, 'status_text' => $text, 'status_at' => $statusAt, 'scheduled_at' => $scheduledAt, 'tracked_at' => date('Y-m-d H:i:s', $this->now)] + (array)$this->rows[$orderId]);
+    }
+
+    public function saveTracking(int $orderId, array $document): void
+    {
+        $code = (int)($document['StatusCode'] ?? 0);
+        $this->rows[$orderId] = (object)(['tracking' => json_encode($document, JSON_UNESCAPED_UNICODE), 'tracked_at' => date('Y-m-d H:i:s', $this->now)]
+            + ($code > 0 ? ['status_code' => $code, 'status_text' => (string)($document['Status'] ?? '')] : []) + (array)$this->rows[$orderId]);
+    }
+
+    public function markChecked(int $orderId): void
+    {
+        $this->rows[$orderId]->tracked_at = date('Y-m-d H:i:s', $this->now);
+    }
+
+    public function due(int $limit, int $page): array
+    {
+        $closed = [...\Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus::FINAL, 3];
+        $due = array_values(array_filter($this->rows, static fn(object $r): bool => $r->api !== 'pending' && !in_array($r->status_code ?? null, $closed, true)));
+        usort($due, static fn(object $a, object $b): int => [($a->tracked_at ?? ''), $a->order_id] <=> [($b->tracked_at ?? ''), $b->order_id]);
+
+        return array_slice($due, ($page - 1) * $limit, $limit);
+    }
+
+    public function forOrders(array $orderIds): array
+    {
+        return array_intersect_key($this->rows, array_flip($orderIds));
+    }
+
+    public function ordersWithStatus(array $codes): array
+    {
+        return array_keys(array_filter($this->rows, static fn(object $r): bool => in_array($r->status_code ?? null, $codes, true)));
+    }
+
+    public function ordersOfNumber(string $number): array
+    {
+        return array_keys(array_filter($this->rows, static fn(object $r): bool => $r->number === $number));
+    }
+
     public function remove(int $orderId): void
     {
         unset($this->rows[$orderId]);

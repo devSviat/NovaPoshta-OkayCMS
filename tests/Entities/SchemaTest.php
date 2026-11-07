@@ -32,6 +32,11 @@ class SchemaTest extends TestCase
                 self::assertSame([], array_values(array_intersect($late, $entityFields)), 'registered late, not static');
                 $plain = array_values(array_diff($plain, $late));
             }
+            if ($entityClass === \Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class) {
+                $late = array_map(static fn(EntityField $f): string => $f->getName(), Init::trackingFields());
+                self::assertSame([], array_values(array_intersect($late, $entityFields)), 'registered late, not static');
+                $plain = array_values(array_diff($plain, $late));
+            }
             self::assertSame($plain, $entityFields, $entityClass);
             $entityLang = (new \ReflectionProperty($entityClass, 'langFields'))->getValue() ?? [];
             self::assertSame($lang, $entityLang, $entityClass);
@@ -58,7 +63,7 @@ class SchemaTest extends TestCase
         self::assertArrayHasKey(\Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class, Init::tables());
         $fields = $tables[\Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class];
         self::assertSame(
-            ['id', 'order_id', 'number', 'ref', 'api', 'services', 'audit_status', 'audit', 'created_at', 'updated_at'],
+            ['id', 'order_id', 'number', 'ref', 'api', 'services', 'audit_status', 'audit', 'status_code', 'status_text', 'status_at', 'scheduled_at', 'tracking', 'tracked_at', 'created_at', 'updated_at'],
             array_map(static fn(EntityField $f): string => $f->getName(), $fields),
         );
         self::assertArrayHasKey(EntityField::INDEX_UNIQUE, $fields[1]->getIndexes());

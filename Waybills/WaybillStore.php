@@ -98,6 +98,65 @@ final class WaybillStore implements WaybillRows
         }
     }
 
+    public function saveStatus(int $orderId, int $code, string $text, ?string $statusAt, ?string $scheduledAt): void
+    {
+        $this->update($orderId, [
+            'status_code' => $code,
+            'status_text' => mb_substr($text, 0, 255),
+            'status_at' => $statusAt,
+            'scheduled_at' => $scheduledAt,
+        ]);
+    }
+
+    public function saveTracking(int $orderId, array $document): void
+    {
+        $code = (int)($document['StatusCode'] ?? 0);
+        $this->update($orderId, array_filter([
+            'tracking' => json_encode($document, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),
+            'status_code' => $code > 0 ? $code : null,
+            'status_text' => $code > 0 ? mb_substr((string)($document['Status'] ?? ''), 0, 255) : null,
+        ], static fn($v): bool => $v !== null));
+    }
+
+    public function markChecked(int $orderId): void
+    {
+        $this->update($orderId, []);
+    }
+
+    public function due(int $limit, int $page): array
+    {
+        return array_values($this->entity()->order('due')->find(['due' => 1, 'limit' => $limit, 'page' => $page]));
+    }
+
+    public function forOrders(array $orderIds): array
+    {
+        return $orderIds === [] ? [] : $this->entity()->mappedBy('order_id')->find(['order_id' => $orderIds, 'limit' => count($orderIds)]);
+    }
+
+    public function ordersWithStatus(array $codes): array
+    {
+        if ($codes === []) {
+            return [];
+        }
+
+        return array_map('intval', array_values($this->entity()->cols(['order_id'])->noLimit()->find(['status_code' => $codes])));
+    }
+
+    public function ordersOfNumber(string $number): array
+    {
+        return array_map('intval', array_values($this->entity()->cols(['order_id'])->noLimit()->find(['number' => $number])));
+    }
+
+    /** Every tracking write also says when the row was last checked. */
+    private function update(int $orderId, array $values): void
+    {
+        $row = $this->forOrder($orderId);
+        if ($row !== null) {
+            $now = date('Y-m-d H:i:s');
+            $this->entity()->update((int)$row->id, $values + ['tracked_at' => $now, 'updated_at' => $now]);
+        }
+    }
+
     private function entity(): WaybillEntity
     {
         return $this->entityFactory->get(WaybillEntity::class);

@@ -30,4 +30,31 @@ interface WaybillRows
     public function saveAudit(int $orderId, AuditResult $audit): void;
 
     public function remove(int $orderId): void;
+
+    /** Status from the batch tracking; marks the row checked. */
+    public function saveStatus(int $orderId, int $code, string $text, ?string $statusAt, ?string $scheduledAt): void;
+
+    /** The full getStatusDocuments item for the card, and the status it carries. */
+    public function saveTracking(int $orderId, array $document): void;
+
+    /** Asked about and not found in the batch: checked now, nothing else changes. */
+    public function markChecked(int $orderId): void;
+
+    /** @return list<object> waybills to ask about, the longest unchecked first */
+    public function due(int $limit, int $page): array;
+
+    /**
+     * @param list<int> $orderIds
+     * @return array<int, object> by order id
+     */
+    public function forOrders(array $orderIds): array;
+
+    /**
+     * @param list<int> $codes
+     * @return list<int> order ids
+     */
+    public function ordersWithStatus(array $codes): array;
+
+    /** @return list<int> order ids with a waybill of this number */
+    public function ordersOfNumber(string $number): array;
 }
