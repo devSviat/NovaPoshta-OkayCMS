@@ -38,9 +38,11 @@ class OrderPointChangeTest extends TestCase
         ]);
     }
 
+    private const int NOW = 1_900_000_000;
+
     private static function select(object $delivery, ?object $division, array $input = [], ?object $waybill = null, float $weight = 2.0): array
     {
-        return OrderPointChange::select($delivery, self::MODULE, self::settlement(), $division, self::groupRows(), new CartMetrics($weight, false, 1000), $waybill, $input + ['settlement_id' => '118064'], false);
+        return OrderPointChange::select($delivery, self::MODULE, self::settlement(), $division, self::groupRows(), new CartMetrics($weight, false, 1000), $waybill, $input + ['settlement_id' => '118064'], false, self::NOW);
     }
 
     public function testPointIsChosen(): void
@@ -58,6 +60,46 @@ class OrderPointChangeTest extends TestCase
 
         self::assertSame('order_point_locked', $result['error']);
         self::assertNull($result['selection']);
+    }
+
+    public function testWaybillBeingCreatedLocks(): void
+    {
+        $pending = (object)['api' => 'pending', 'number' => '', 'created_at' => date('Y-m-d H:i:s', self::NOW - 20)];
+
+        self::assertSame('order_point_locked', self::select(self::points(), self::division(), [], $pending)['error']);
+    }
+
+    public function testStaleReservationDoesNotLock(): void
+    {
+        $stale = (object)['api' => 'pending', 'number' => '', 'created_at' => date('Y-m-d H:i:s', self::NOW - 600)];
+
+        self::assertNull(self::select(self::points(), self::division(), [], $stale)['error']);
+    }
+
+    public function testTermAndCommissionFollowTheNewPoint(): void
+    {
+        $quote = new \Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryQuote(105.0, new \DateTimeImmutable('2026-11-09'), 'old', null, 41.5);
+
+        self::assertSame(['delivery_term' => '2026-11-09', 'cod_fee' => 41.5], OrderPointChange::snapshotPricing($quote));
+        self::assertSame(['delivery_term' => null, 'cod_fee' => null], OrderPointChange::snapshotPricing(null));
+    }
+
+    public function testEditorStateAfterMethodSwitchKeepsTheWaybill(): void
+    {
+        $snapshot = (object)['mode' => 'points', 'settlement_id' => 118064, 'settlement_name' => 'місто Київ'];
+        $waybill = (object)['api' => 'old', 'number' => '20450000000001'];
+
+        $state = OrderPointChange::editorState($snapshot, 'address', $waybill, self::NOW);
+        self::assertTrue($state['needsChoice']);
+        self::assertTrue($state['locked']);
+        self::assertFalse($state['open']);
+        self::assertTrue($state['showWaybill']);
+
+        $free = OrderPointChange::editorState($snapshot, 'address', null, self::NOW);
+        self::assertTrue($free['open']);
+        self::assertFalse($free['showWaybill']);
+        self::assertTrue(OrderPointChange::editorState($snapshot, 'points', null, self::NOW)['showWaybill']);
+        self::assertFalse(OrderPointChange::editorState(null, 'points', null, self::NOW)['showWaybill']);
     }
 
     public function testUnfitPointIsSavedWithWarning(): void

@@ -17,6 +17,7 @@ use Okay\Entities\CurrenciesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderPointChange;
 
 class BackendExtender implements ExtensionInterface
 {
@@ -38,6 +39,7 @@ class BackendExtender implements ExtensionInterface
     {
         $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
         $point = is_object($order) && !empty($order->id) ? $this->pointEditor($order, $row) : null;
+        $showWaybill = $point === null ? $row !== null : $point['showWaybill'];
         if ($point !== null && $point['needsChoice']) {
             // The saved point is of the other mode (delivery method changed) or there is none yet.
             $row = null;
@@ -54,7 +56,7 @@ class BackendExtender implements ExtensionInterface
             );
         }
         $this->design->assign('np_order_delivery', $lines);
-        $this->design->assign('np_waybill', $row ? $this->waybills->forOrder((int)$order->id) : null);
+        $this->design->assign('np_waybill', $showWaybill ? $this->waybills->forOrder((int)$order->id) : null);
     }
 
     /** Texts the point/address editor script shows; keys of Backend/lang without the prefix. */
@@ -74,13 +76,11 @@ class BackendExtender implements ExtensionInterface
         }
         $settings = is_string($delivery->settings ?? null) ? (@unserialize($delivery->settings, ['allowed_classes' => false]) ?: []) : (array)($delivery->settings ?? []);
         $mode = DeliveryMode::fromServiceType($settings['service_type'] ?? null);
-        $waybill = $this->waybillRows->forOrder((int)$order->id);
+        $state = OrderPointChange::editorState($snapshot, $mode->value, $this->waybillRows->forOrder((int)$order->id), time());
 
-        return [
+        return $state + [
             'orderId' => (int)$order->id,
             'mode' => $mode->value,
-            'needsChoice' => $snapshot === null || $snapshot->mode !== $mode->value,
-            'locked' => $waybill !== null && $waybill->api !== 'pending',
             'settlementId' => $snapshot && $snapshot->mode === $mode->value ? (int)$snapshot->settlement_id : null,
             'settlementName' => $snapshot && $snapshot->mode === $mode->value ? (string)$snapshot->settlement_name : null,
             'showLifting' => $this->shipping->read()->showLifting,

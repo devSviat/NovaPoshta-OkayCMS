@@ -17,6 +17,7 @@ use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryQuote;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillRows;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
 
 /** The manager changes the point or address of an order in the admin (stage 4a2). */
 final class OrderPointChange
@@ -58,13 +59,13 @@ final class OrderPointChange
             $this->waybills->forOrder($orderId),
             $input,
             $this->shipping->read()->showLifting,
+            time(),
         );
         if ($chosen['error'] !== null) {
             return OrderPointResult::failed($chosen['error']);
         }
-        $this->snapshots->save($orderId, $chosen['selection']);
-
-        $price = $this->price($order, $delivery, $chosen['selection']);
+        [$price, $quote] = $this->price($order, $delivery, $chosen['selection']);
+        $this->snapshots->save($orderId, $chosen['selection'], self::snapshotPricing($quote));
         if ($price['action'] === 'auto') {
             $this->writePrice($orderId, (float)$price['price']);
         }
@@ -87,7 +88,7 @@ final class OrderPointChange
         if ($snapshot->mode === DeliveryMode::Address->value) {
             $address = (object)['lifting' => !empty($snapshot->lifting), 'floor' => $snapshot->floor ? (int)$snapshot->floor : null, 'elevator' => !empty($snapshot->elevator)];
         }
-        $price = $this->price($order, $delivery, new CartSelection($delivery, $settlement ?: null, $division ?: null, null), $address);
+        [$price] = $this->price($order, $delivery, new CartSelection($delivery, $settlement ?: null, $division ?: null, null), $address);
         if ($price['action'] !== 'offer') {
             return new OrderPointResult(false, 'order_point_price_not_offered', null, $price);
         }
@@ -102,10 +103,10 @@ final class OrderPointChange
      *
      * @return array{selection: ?CartSelection, error: ?string, warning: ?string}
      */
-    public static function select(object $delivery, int $moduleId, ?object $settlement, ?object $division, array $groupRows, CartMetrics $metrics, ?object $waybill, array $input, bool $liftingOffered): array
+    public static function select(object $delivery, int $moduleId, ?object $settlement, ?object $division, array $groupRows, CartMetrics $metrics, ?object $waybill, array $input, bool $liftingOffered, int $now): array
     {
         $fail = static fn(string $error): array => ['selection' => null, 'error' => $error, 'warning' => null];
-        if ($waybill !== null && $waybill->api !== 'pending') {
+        if (self::locks($waybill, $now)) {
             return $fail('order_point_locked');
         }
         if ((int)($delivery->module_id ?? 0) !== $moduleId || $moduleId === 0) {
@@ -130,7 +131,41 @@ final class OrderPointChange
         return $fail($checked);
     }
 
-    /** @return array{action: string, price: ?float} */
+    /**
+     * A made or attached waybill locks the point, and so does one being made right now (its draft has
+     * the old point). A reservation left by a request that died does not.
+     */
+    public static function locks(?object $waybill, int $now): bool
+    {
+        return $waybill !== null && ($waybill->api !== 'pending' || WaybillService::isPending($waybill, $now));
+    }
+
+    /**
+     * What the order page's block shows for the order's delivery method `$mode`. After the method was
+     * switched, a waybill made for the old point stays visible: it has to be deleted from there.
+     *
+     * @return array{needsChoice: bool, locked: bool, open: bool, showWaybill: bool}
+     */
+    public static function editorState(?object $snapshot, string $mode, ?object $waybill, int $now): array
+    {
+        $needsChoice = $snapshot === null || $snapshot->mode !== $mode;
+        $locked = self::locks($waybill, $now);
+
+        return [
+            'needsChoice' => $needsChoice,
+            'locked' => $locked,
+            'open' => $needsChoice && !$locked,
+            'showWaybill' => $snapshot !== null && (!$needsChoice || ($waybill !== null && $waybill->api !== 'pending')),
+        ];
+    }
+
+    /** Term and COD commission of the new point; the old point's would reach the emails otherwise. */
+    public static function snapshotPricing(?DeliveryQuote $quote): array
+    {
+        return ['delivery_term' => $quote?->term?->format('Y-m-d'), 'cod_fee' => $quote?->codFee];
+    }
+
+    /** @return array{0: array{action: string, price: ?float}, 1: ?DeliveryQuote} */
     private function price(object $order, object $delivery, CartSelection $selection, ?object $snapshotAddress = null): array
     {
         $cart = OrderParcel::asCart($order, $this->parcel->purchases((int)$order->id));
@@ -142,7 +177,7 @@ final class OrderPointChange
             default => null,
         };
 
-        return OrderPriceRule::decide($order, $delivery, $quote?->price, !$quote instanceof DeliveryQuote || $quote->price === null);
+        return [OrderPriceRule::decide($order, $delivery, $quote?->price, !$quote instanceof DeliveryQuote || $quote->price === null), $quote];
     }
 
     private function writePrice(int $orderId, float $price): void
