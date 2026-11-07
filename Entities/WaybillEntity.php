@@ -31,6 +31,13 @@ class WaybillEntity extends Entity
             ->where("{$alias}.api <> 'pending'");
     }
 
+    /** @param list<int> $codes status codes; the column is registered late, so the generic field filter does not see it */
+    protected function filter__status_codes($codes): void
+    {
+        $codes = array_values(array_filter(array_map('intval', (array)$codes)));
+        $this->select->where($this->getTableAlias() . '.status_code IN (' . ($codes === [] ? '0' : implode(',', $codes)) . ')');
+    }
+
     /** `due`: the longest unchecked first. */
     protected function customOrder($order = null, array $orderFields = [], array $additionalData = [])
     {

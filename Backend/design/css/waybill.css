@@ -67,3 +67,6 @@
 .np-wb__more > div { display: flex; justify-content: space-between; gap: 12px; }
 .np-wb__more > div > .np-wb__label { display: inline; flex: none; font-size: 13px; }
 .np-wb__more > div { text-align: right; }
+.np-list-status { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; }
+.np-list-status__number { color: #545b62; white-space: nowrap; }
+.np-list-status .np-wb__badge { margin-left: 0; }

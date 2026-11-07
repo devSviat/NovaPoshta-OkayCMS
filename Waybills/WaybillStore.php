@@ -139,7 +139,7 @@ final class WaybillStore implements WaybillRows
             return [];
         }
 
-        return array_map('intval', array_values($this->entity()->cols(['order_id'])->noLimit()->find(['status_code' => $codes])));
+        return array_map('intval', array_values($this->entity()->cols(['order_id'])->noLimit()->find(['status_codes' => $codes])));
     }
 
     public function ordersOfNumber(string $number): array

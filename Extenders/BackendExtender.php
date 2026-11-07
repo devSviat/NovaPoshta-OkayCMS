@@ -18,6 +18,9 @@ use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderPointChange;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersListFilter;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus;
+use Okay\Core\Request;
 
 class BackendExtender implements ExtensionInterface
 {
@@ -31,6 +34,7 @@ class BackendExtender implements ExtensionInterface
         private readonly ShippingSettings $shipping,
         private readonly WaybillStore $waybillRows,
         private readonly BackendTranslations $translations,
+        private readonly Request $request,
     ) {
     }
 
@@ -87,6 +91,72 @@ class BackendExtender implements ExtensionInterface
             'currency' => (string)($this->entityFactory->get(CurrenciesEntity::class)->getMainCurrency()->sign ?? ''),
             'textsJson' => json_encode(array_combine(self::EDITOR_TEXTS, array_map(fn(string $key): string => (string)$this->translations->getTranslation('sviat__novaposhta__' . $key), self::EDITOR_TEXTS)), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
         ];
+    }
+
+    /** ChainExtension of BackendOrdersHelper::buildFilter: NP status group, and a keyword that is a waybill number. */
+    public function listFilter($filter)
+    {
+        if (!is_array($filter)) {
+            return $filter;
+        }
+        $group = $this->request->get('np_waybill');
+        $group = is_string($group) && isset(WaybillStatus::FILTER_GROUPS[$group]) ? $group : null;
+        $this->design->assign('np_status_groups', array_keys(WaybillStatus::FILTER_GROUPS));
+        $this->design->assign('np_status_group', $group);
+        $keyword = $this->request->get('keyword');
+        $applied = OrdersListFilter::apply(
+            $filter,
+            $group,
+            is_string($keyword) ? $keyword : null,
+            fn(string $number): array => $this->waybillRows->ordersOfNumber($number),
+            fn(array $codes): array => $this->waybillRows->ordersWithStatus($codes),
+        );
+        // The core shows the search text only while it stays in the filter; a waybill number was taken out.
+        if (isset($filter['keyword']) && !isset($applied['keyword'])) {
+            $this->design->assign('keyword', $filter['keyword']);
+        }
+
+        return $applied;
+    }
+
+    /** ChainExtension of BackendOrdersHelper::buildCountStatusesFilter: the status counters follow the NP filter. */
+    public function countFilter($countFilter, $filter = [])
+    {
+        if (is_array($countFilter) && is_array($filter)) {
+            foreach (['id', 'np_without_waybill'] as $key) {
+                if (isset($filter[$key])) {
+                    $countFilter[$key] = $filter[$key];
+                }
+            }
+            if (isset($filter['id']) && !isset($filter['keyword'])) {
+                unset($countFilter['keyword']);
+            }
+        }
+
+        return $countFilter;
+    }
+
+    /** QueueExtension of BackendOrdersHelper::findOrders: one query for the waybills of the page. */
+    public function listOrders($orders, $filter = [])
+    {
+        if (!is_array($orders) || $orders === []) {
+            return;
+        }
+        $rows = $this->waybillRows->forOrders(array_map(static fn($o): int => (int)$o->id, array_values($orders)));
+        foreach ($orders as $order) {
+            $row = $rows[(int)$order->id] ?? null;
+            if ($row === null || $row->api === 'pending') {
+                continue;
+            }
+            $code = isset($row->status_code) ? (int)$row->status_code : null;
+            $number = (string)$row->number;
+            $order->np_waybill = [
+                'numberSpaced' => strlen($number) === 14 ? substr($number, 0, 2) . ' ' . implode(' ', str_split(substr($number, 2), 4)) : $number,
+                'group' => WaybillStatus::group($code),
+                'statusKey' => $code ? 'sviat__novaposhta__' . WaybillStatus::textKey($code) : null,
+                'statusText' => (string)($row->status_text ?? ''),
+            ];
+        }
     }
 
     /** ChainExtension of BackendProductsRequest::postVariants: the volume column is decimal, text must not reach it. */

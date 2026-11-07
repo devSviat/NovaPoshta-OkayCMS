@@ -102,7 +102,7 @@ return [
     ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
-        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class)],
+        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Request::class)],
     ],
     DbCityRefStore::class => [
         'class' => DbCityRefStore::class,

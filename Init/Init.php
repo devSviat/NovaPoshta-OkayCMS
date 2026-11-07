@@ -20,6 +20,7 @@ use Okay\Entities\LanguagesEntity;
 use Okay\Entities\PaymentsEntity;
 use Okay\Entities\VariantsEntity;
 use Okay\Admin\Helpers\BackendOrdersHelper;
+use Okay\Entities\OrdersEntity;
 use Okay\Admin\Requests\BackendProductsRequest;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
@@ -31,6 +32,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersEntityFilters;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Groups\DefaultGroups;
@@ -166,6 +168,13 @@ class Init extends AbstractInit
             [BackendOrdersHelper::class, 'findOrder'],
             [BackendExtender::class, 'assignOrderDelivery']
         );
+        if (self::schemaReady('0.8.0')) {
+            $this->registerChainExtension([BackendOrdersHelper::class, 'buildFilter'], [BackendExtender::class, 'listFilter']);
+            $this->registerChainExtension([BackendOrdersHelper::class, 'buildCountStatusesFilter'], [BackendExtender::class, 'countFilter']);
+            $this->registerQueueExtension([BackendOrdersHelper::class, 'findOrders'], [BackendExtender::class, 'listOrders']);
+            $this->registerEntityFilter(OrdersEntity::class, 'np_without_waybill', OrdersEntityFilters::class, 'filter__np_without_waybill');
+            $this->addBackendBlock('orders_list_name', 'orders_status.tpl');
+        }
         $this->addBackendBlock('order_contact', 'order_delivery.tpl');
         $this->addBackendBlock('order_contact', 'waybill.tpl');
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
