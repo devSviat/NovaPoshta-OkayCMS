@@ -73,3 +73,4 @@ $lang['sviat__novaposhta__cart_all_day'] = 'Круглосуточно';
 $lang['sviat__novaposhta__cart_change'] = 'Изменить';
 $lang['sviat__novaposhta__cart_change_city'] = 'изменить';
 $lang['sviat__novaposhta__cart_schedule'] = 'График: %schedule%';
+$lang['sviat__novaposhta__order_waybill'] = 'Накладная НП';

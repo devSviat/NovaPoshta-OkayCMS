@@ -16,6 +16,12 @@
         <td class="es-p5t es-p5b"><span>{$smarty.capture.np_addr}</span></td>
     </tr>
     {/if}
+    {if $np_order_delivery.waybill}
+    <tr valign="top">
+        <td class="es-p5t es-p5b" width="180px"><span>{$lang->sviat__novaposhta__order_waybill|escape}:</span></td>
+        <td class="es-p5t es-p5b"><span><a href="{$np_order_delivery.waybill.url|escape}" target="_blank" rel="noopener noreferrer">{$np_order_delivery.waybill.numberSpaced|escape}</a></span></td>
+    </tr>
+    {/if}
     {if $np_order_delivery.lifting}
     <tr valign="top">
         <td class="es-p5t es-p5b" width="180px"><span>{$lang->sviat__novaposhta__order_lifting|escape}:</span></td>

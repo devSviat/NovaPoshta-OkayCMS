@@ -216,6 +216,7 @@ return [
             new SR(CartQuotes::class),
             new SR(Money::class),
             new SR(UahTotal::class),
+            new SR(WaybillStore::class),
         ],
     ],
     CartSelectionValidator::class => [
