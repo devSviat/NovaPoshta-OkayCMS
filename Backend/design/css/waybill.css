@@ -70,3 +70,11 @@
 .np-list-status { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; }
 .np-list-status__number { color: #545b62; white-space: nowrap; }
 .np-list-status .np-wb__badge { margin-left: 0; }
+.np-mass { display: flex; flex-direction: column; gap: 6px; }
+.np-mass__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.np-mass__title { font-weight: 600; }
+.np-mass__hide { background: none; border: 0; padding: 0; color: #2a76c6; text-decoration: underline; cursor: pointer; font: inherit; }
+.np-mass__row--created { color: #1e7e34; }
+.np-mass__row--skipped { color: #8a5a00; }
+.np-mass__row--failed { color: #c0392b; }
+.np-mass__note { padding: 8px 10px; border-radius: 6px; background: #eef4fb; border: 1px solid #c9dcf0; }

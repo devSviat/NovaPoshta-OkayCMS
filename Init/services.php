@@ -50,6 +50,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDrafts;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\InvoicePaymentData;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\MassOrderSource;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\MassWaybills;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersMassAction;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\AmountDue;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillSettings;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderContacts;
@@ -105,7 +106,7 @@ return [
     ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
-        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Request::class)],
+        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Request::class), new SR(OrdersMassAction::class)],
     ],
     DbCityRefStore::class => [
         'class' => DbCityRefStore::class,
@@ -252,6 +253,10 @@ return [
     MassOrderSource::class => [
         'class' => MassOrderSource::class,
         'arguments' => [new SR(EntityFactory::class), new SR(Module::class), new SR(WaybillDrafts::class)],
+    ],
+    OrdersMassAction::class => [
+        'class' => OrdersMassAction::class,
+        'arguments' => [new SR(MassWaybills::class)],
     ],
     MassWaybills::class => [
         'class' => MassWaybills::class,

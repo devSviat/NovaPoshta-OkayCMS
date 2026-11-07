@@ -143,7 +143,7 @@ class MassWaybillsTest extends TestCase
     {
         $this->rows->add(990063, '20450000000003', null, 'old', []);
 
-        self::assertSame([['orderId' => 990063, 'kind' => 'skipped', 'key' => 'waybill_already', 'value' => '20450000000003']], $this->mass()->run([990063])->rows);
+        self::assertSame([['orderId' => 990063, 'kind' => 'skipped', 'key' => 'mass_has_waybill', 'value' => '20450000000003']], $this->mass()->run([990063])->rows);
         self::assertSame(0, $this->saves());
     }
 
@@ -199,7 +199,7 @@ class MassWaybillsTest extends TestCase
         $this->mass()->run([990061]);
         $second = $this->mass()->run([990061]);
 
-        self::assertSame('waybill_already', $second->rows[0]['key']);
+        self::assertSame('mass_has_waybill', $second->rows[0]['key']);
         self::assertSame(1, $this->saves());
     }
 

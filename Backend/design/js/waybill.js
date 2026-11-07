@@ -173,4 +173,11 @@
             root.querySelector(part).hidden = !input.checked;
         }
     });
+
+    document.addEventListener('click', function (event) {
+        var hide = event.target.closest('.fn_np_mass_hide');
+        if (hide) {
+            hide.closest('.fn_np_mass_report').hidden = true;
+        }
+    });
 })();

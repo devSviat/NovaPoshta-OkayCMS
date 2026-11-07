@@ -57,7 +57,7 @@ final class MassWaybills
                 return $skip('waybill_pending');
             }
         } elseif ($existing !== null) {
-            return $skip('waybill_already', (string)$existing->number);
+            return $skip('mass_has_waybill', (string)$existing->number);
         }
         $draft = $this->orders->draft($orderId);
         if (is_string($draft)) {
