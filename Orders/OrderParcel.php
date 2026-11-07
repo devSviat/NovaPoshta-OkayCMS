@@ -49,9 +49,12 @@ final class OrderParcel
         return CartMetrics::fromPurchases($purchases, $total)->inUah(round($total * $uahRate, 2));
     }
 
-    /** The order in the shape CartQuotes prices a cart in. */
+    /** The order in the shape CartQuotes prices a cart in: like a cart's, its total is the goods without delivery. */
     public static function asCart(object $order, array $purchases): object
     {
-        return (object)['purchases' => $purchases, 'total_price' => (float)($order->total_price ?? 0)];
+        $total = (float)($order->total_price ?? 0);
+        $goods = empty($order->separate_delivery) ? $total - (float)($order->delivery_price ?? 0) : $total;
+
+        return (object)['purchases' => $purchases, 'total_price' => max(0.0, $goods)];
     }
 }

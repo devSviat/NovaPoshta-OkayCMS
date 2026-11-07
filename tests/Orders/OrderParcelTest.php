@@ -19,10 +19,11 @@ class OrderParcelTest extends TestCase
     public function testAsCartCarriesPurchasesAndTotal(): void
     {
         $purchases = self::purchases();
-        $cart = OrderParcel::asCart((object)['total_price' => '2454'], $purchases);
+        $cart = OrderParcel::asCart((object)['total_price' => '2454', 'delivery_price' => '95', 'separate_delivery' => 0], $purchases);
 
-        self::assertSame(2454.0, $cart->total_price);
+        self::assertSame(2359.0, $cart->total_price);
         self::assertSame($purchases, $cart->purchases);
+        self::assertSame(2454.0, OrderParcel::asCart((object)['total_price' => 2454, 'delivery_price' => 95, 'separate_delivery' => 1], [])->total_price);
     }
 
     public function testMetricsComeFromOrderPurchases(): void
