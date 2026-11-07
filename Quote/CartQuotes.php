@@ -107,7 +107,7 @@ final class CartQuotes
         $now = time();
         $cached = $forAdmin ? null : QuoteSession::get($bag, $key, $now, $forOrder ? null : self::RETRY_UNREACHABLE_AFTER);
         if ($cached !== null) {
-            $forAdmin || $this->store($bag);
+            $this->store($bag);
 
             return $cached;
         }
@@ -115,7 +115,7 @@ final class CartQuotes
         $wantPrice = $forAdmin || (empty($delivery->hide_front_delivery_price) && (float)($delivery->free_from ?? 0) > (float)($cart->total_price ?? 0));
         $wantTerm = $config->showTerm;
         if (!$wantPrice && !$wantTerm) {
-            $forAdmin || $this->store($bag);
+            $this->store($bag);
 
             return new DeliveryQuote(null, null, 'none', null);
         }
