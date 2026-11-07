@@ -52,6 +52,18 @@ class SchemaTest extends TestCase
         self::assertArrayHasKey(\Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class, Init::orderTables());
     }
 
+    public function testWaybillTableIsInstalled(): void
+    {
+        $tables = Init::waybillTables();
+        self::assertArrayHasKey(\Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class, Init::tables());
+        $fields = $tables[\Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class];
+        self::assertSame(
+            ['id', 'order_id', 'number', 'ref', 'api', 'services', 'audit_status', 'audit', 'created_at', 'updated_at'],
+            array_map(static fn(EntityField $f): string => $f->getName(), $fields),
+        );
+        self::assertArrayHasKey(EntityField::INDEX_UNIQUE, $fields[1]->getIndexes());
+    }
+
     public function testDictionaryIdsAreNovaPoshtaIdsNotAutoIncrement(): void
     {
         foreach (Init::dictionaryTables() as $entityClass => $fields) {

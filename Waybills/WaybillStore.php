@@ -1,0 +1,71 @@
+<?php
+
+namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
+
+use Okay\Core\EntityFactory;
+use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
+
+final class WaybillStore
+{
+    public function __construct(private readonly EntityFactory $entityFactory)
+    {
+    }
+
+    public function forOrder(int $orderId): ?object
+    {
+        return $this->entity()->findOne(['order_id' => $orderId]) ?: null;
+    }
+
+    /** The order a number is already attached to, if any. */
+    public function orderOfNumber(string $number): ?int
+    {
+        $row = $this->entity()->findOne(['number' => $number]);
+
+        return $row ? (int)$row->order_id : null;
+    }
+
+    /**
+     * @param 'new'|'old'|'attached' $api
+     * @param array<string, mixed> $services what was ordered, for the audit and the card
+     */
+    public function add(int $orderId, string $number, ?string $ref, string $api, array $services): void
+    {
+        $now = date('Y-m-d H:i:s');
+        $this->entity()->add([
+            'order_id' => $orderId,
+            'number' => $number,
+            'ref' => $ref,
+            'api' => $api,
+            'services' => json_encode($services, JSON_UNESCAPED_UNICODE),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    /** @param list<array<string, string>> $findings */
+    public function saveAudit(int $orderId, string $status, array $findings): void
+    {
+        $row = $this->forOrder($orderId);
+        if ($row === null) {
+            return;
+        }
+        $this->entity()->update((int)$row->id, [
+            'audit_status' => $status,
+            'audit' => json_encode($findings, JSON_UNESCAPED_UNICODE),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function remove(int $orderId): void
+    {
+        $row = $this->forOrder($orderId);
+        if ($row !== null) {
+            $this->entity()->delete((int)$row->id);
+        }
+    }
+
+    private function entity(): WaybillEntity
+    {
+        return $this->entityFactory->get(WaybillEntity::class);
+    }
+}

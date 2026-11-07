@@ -29,6 +29,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\CityRefEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
+use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Groups\DefaultGroups;
@@ -92,6 +93,13 @@ class Init extends AbstractInit
         self::markSchema('0.6.0');
     }
 
+    /** Waybills of orders (stage 4a). */
+    public function update_0_7_0()
+    {
+        $this->createMissingTables(self::waybillTables());
+        self::markSchema('0.7.0');
+    }
+
     /** Fields the module keeps on core tables, under its own names (§9). */
     /**
      * Columns on core tables exist only after install/update has run. Registering them earlier
@@ -99,7 +107,7 @@ class Init extends AbstractInit
      * orders fail — the storefront loses products and payment methods — so init() waits for this.
      */
     private const string SCHEMA_SETTING = 'sviat__novaposhta__schema';
-    private const string SCHEMA = '0.6.0';
+    private const string SCHEMA = '0.7.0';
 
     private static function markSchema(string $version): void
     {
@@ -196,7 +204,7 @@ class Init extends AbstractInit
                 new EntityField('value')->setTypeMediumText()->setNullable(),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],
-        ] + self::dictionaryTables() + self::orderTables() + self::quoteTables();
+        ] + self::dictionaryTables() + self::orderTables() + self::quoteTables() + self::waybillTables();
     }
 
     /** Precomputed by the dictionary run: city search over ~9.7k such settlements instead of 27.5k. */
@@ -235,6 +243,25 @@ class Init extends AbstractInit
             new EntityField('price_source')->setTypeVarchar(16),
             new EntityField('delivery_term')->setTypeVarchar(10),
             new EntityField('cod')->setTypeTinyInt(1, false)->setDefault(0),
+        ];
+    }
+
+    /** @return array<class-string, list<EntityField>> tables added in 0.7.0 */
+    public static function waybillTables(): array
+    {
+        return [
+            WaybillEntity::class => [
+                new EntityField('id')->setIndexPrimaryKey()->setTypeInt(11, false)->setAutoIncrement(),
+                new EntityField('order_id')->setTypeInt(11, false)->setIndexUnique(),
+                new EntityField('number')->setTypeVarchar(14, false)->setIndex(),
+                new EntityField('ref')->setTypeVarchar(36)->setNullable(),
+                new EntityField('api')->setTypeVarchar(8, false),
+                new EntityField('services')->setTypeText()->setNullable(),
+                new EntityField('audit_status')->setTypeVarchar(16)->setNullable(),
+                new EntityField('audit')->setTypeText()->setNullable(),
+                new EntityField('created_at')->setTypeDatetime(false),
+                new EntityField('updated_at')->setTypeDatetime(false),
+            ],
         ];
     }
 
