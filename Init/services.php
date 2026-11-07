@@ -48,6 +48,8 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderParties;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SettlementCityRefs;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDrafts;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\InvoicePaymentData;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\MassOrderSource;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\MassWaybills;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\AmountDue;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillSettings;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderContacts;
@@ -246,6 +248,14 @@ return [
     WaybillDrafts::class => [
         'class' => WaybillDrafts::class,
         'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(CodPayments::class), new SR(OrderParcel::class), new SR(AmountDue::class), new SR(InvoicePaymentData::class)],
+    ],
+    MassOrderSource::class => [
+        'class' => MassOrderSource::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(Module::class), new SR(WaybillDrafts::class)],
+    ],
+    MassWaybills::class => [
+        'class' => MassWaybills::class,
+        'arguments' => [new SR(WaybillService::class), new SR(WaybillStore::class), new SR(MassOrderSource::class)],
     ],
     InvoicePaymentData::class => [
         'class' => InvoicePaymentData::class,
