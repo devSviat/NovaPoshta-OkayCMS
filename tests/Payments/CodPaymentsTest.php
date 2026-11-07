@@ -39,6 +39,13 @@ class CodPaymentsTest extends TestCase
         self::assertNull(CodPayments::kindOf((object)['module' => 'null'], CodKind::Money), 'no column yet means no cash on delivery');
     }
 
+    public function testMigrateLegacyMapsByOldGlobalKind(): void
+    {
+        self::assertSame([10 => 3, 11 => 3], CodPayments::migratedFlags([10 => 1, 11 => 1, 12 => 0, 13 => 3], CodKind::Control));
+        self::assertSame([10 => 2, 11 => 2], CodPayments::migratedFlags([10 => 1, 11 => 1, 12 => 0, 13 => 3], null));
+        self::assertSame([], CodPayments::migratedFlags([12 => 0, 13 => 2], CodKind::Control), 'a second run changes nothing');
+    }
+
     public function testDeliveryWithoutCodPaymentWantsNoFee(): void
     {
         self::assertFalse(CodPayments::wantsFee([6, 20], [18]));

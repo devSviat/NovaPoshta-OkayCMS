@@ -457,34 +457,24 @@
     </div>
 </form>
 
-{* Cash on delivery *}
-<form method="post" id="np_cod_form">
-    <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
-    <input type="hidden" name="np_action" value="cod">
-    <div class="row">
-        <div class="col-lg-8 col-md-12">
-            <div class="boxed mb-2">
-                <div class="heading_box mb-1">{$btr->sviat__novaposhta__cod_box|escape}</div>
-                {if $np_cod_saved}
-                    <div class="alert alert--success" role="status"><div class="alert__content"><p>{$btr->sviat__novaposhta__shipping_saved|escape}</p></div></div>
-                {/if}
-                <fieldset class="np_fieldset">
-                    <legend class="heading_label">{$btr->sviat__novaposhta__cod_kind|escape}</legend>
-                    <label class="np_check"><input type="radio" name="cod_kind" value="money" {if $np_cod.kind == 'money'}checked{/if}> <span><b>{$btr->sviat__novaposhta__cod_kind_money|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__cod_kind_money_note|escape}</span></span></label>
-                    <label class="np_check"><input type="radio" name="cod_kind" value="control" {if $np_cod.kind == 'control'}checked{/if}> <span><b>{$btr->sviat__novaposhta__cod_kind_control|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__cod_kind_control_note|escape}</span></span></label>
-                </fieldset>
-                <div class="heading_label mt-1">{$btr->sviat__novaposhta__cod_payments|escape}</div>
-                <p class="text_grey">{$btr->sviat__novaposhta__cod_payments_note|escape}</p>
-                {foreach $np_cod.payments as $payment}
-                    <label class="np_check np_payment_row"><input type="checkbox" name="cod_payments[]" value="{$payment->id|escape}" {if $payment->cod}checked{/if}> <span>{$payment->name|escape}{if !$payment->enabled} <span class="text_grey">({$btr->sviat__novaposhta__cod_payment_disabled|escape})</span>{/if}</span></label>
-                {foreachelse}
-                    <p class="text_grey">{$btr->sviat__novaposhta__cod_no_payments|escape}</p>
-                {/foreach}
-                <div><button type="submit" class="btn btn_small btn_blue mt-1"><span>{$btr->sviat__novaposhta__shipping_save|escape}</span></button></div>
-            </div>
+{* Cash on delivery: an overview; it is switched on in each payment method *}
+<div class="row">
+    <div class="col-lg-8 col-md-12">
+        <div class="boxed mb-2">
+            <div class="heading_box mb-1">{$btr->sviat__novaposhta__cod_box|escape}</div>
+            <p class="text_grey">{$btr->sviat__novaposhta__cod_overview_note|escape}</p>
+            {foreach $np_cod_payments as $payment}
+                <div class="np_payment_row np_cod_row">
+                    <span>{$payment->name|escape}{if !$payment->enabled} <span class="text_grey">({$btr->sviat__novaposhta__cod_payment_disabled|escape})</span>{/if}</span>
+                    <span>{if $payment->cod_kind == 'control'}{$btr->sviat__novaposhta__waybill_cod_control_title|escape}{elseif $payment->cod_kind == 'money'}{$btr->sviat__novaposhta__cod_kind_money|escape}{else}<span class="text_grey">—</span>{/if}</span>
+                    <a href="index.php?controller=PaymentMethodAdmin&amp;id={$payment->id|escape:'url'}">{$btr->sviat__novaposhta__cod_configure|escape}</a>
+                </div>
+            {foreachelse}
+                <p class="text_grey">{$btr->sviat__novaposhta__cod_no_payments|escape}</p>
+            {/foreach}
         </div>
     </div>
-</form>
+</div>
 
 {* Popular cities *}
 <form method="post" id="np_popular_form">
@@ -565,6 +555,7 @@
     .np_payment_row { padding: 8px 0; border-bottom: 1px solid var(--ok-line, #e4e6e9); margin: 0; }
     .np_check { display: flex; align-items: flex-start; gap: 8px; }
     .np_check input { margin-top: 4px; }
+    .np_cod_row { display: grid; grid-template-columns: 1fr 180px auto; gap: 12px; align-items: center; }
     @media (max-width: 575px) { .np_key_buttons .btn, #np_dict_form .btn { width: 100%; } }
 </style>
 

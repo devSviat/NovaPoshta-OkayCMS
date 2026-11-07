@@ -114,6 +114,13 @@ class Init extends AbstractInit
         self::markSchema('0.8.0');
     }
 
+    /** Cash on delivery kind per payment method: the old flag 1 becomes the kind the shop had chosen. */
+    public function update_0_10_0()
+    {
+        $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
+        ServiceLocator::getInstance()->getService(CodPayments::class)->migrateLegacy();
+    }
+
     /** Fields the module keeps on core tables, under its own names (§9). */
     /**
      * Columns on core tables exist only after install/update has run. Registering them earlier

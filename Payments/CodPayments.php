@@ -90,35 +90,37 @@ final class CodPayments
         return array_intersect(array_map('intval', $deliveryPaymentIds), $codIds) !== [];
     }
 
-    /** @param mixed $posted ids from the settings form */
-    public function save(mixed $posted): void
-    {
-        $entity = $this->entityFactory->get(PaymentsEntity::class);
-        $existing = array_map(static fn(object $m): int => (int)$m->id, $this->all());
-        $marked = self::normalize($posted, $existing);
-        foreach ($existing as $id) {
-            $entity->update($id, [self::FIELD => in_array($id, $marked, true) ? 1 : 0]);
-        }
-    }
-
     /**
-     * @param list<int> $existing
-     * @return list<int> posted ids that exist, ascending, without repeats
+     * The old flag 1 rewritten as the kind it meant under the old shop-wide setting (update_0_10_0).
+     * @param array<int, int> $flags payment id => stored flag
+     * @return array<int, int> only the payments whose flag changes
      */
-    public static function normalize(mixed $posted, array $existing): array
+    public static function migratedFlags(array $flags, ?CodKind $legacy): array
     {
-        if (!is_array($posted)) {
-            return [];
-        }
-        $ids = [];
-        foreach ($posted as $value) {
-            if ((is_string($value) || is_int($value)) && preg_match('/^\d+$/', (string)$value) && in_array((int)$value, $existing, true)) {
-                $ids[(int)$value] = (int)$value;
+        $changed = [];
+        foreach ($flags as $id => $flag) {
+            if ($flag === 1) {
+                $changed[$id] = (CodKind::fromFlag(1, $legacy) ?? CodKind::Money)->flag();
             }
         }
-        ksort($ids);
 
-        return array_values($ids);
+        return $changed;
+    }
+
+    /** @return int how many payment methods were rewritten */
+    public function migrateLegacy(): int
+    {
+        $entity = $this->entityFactory->get(PaymentsEntity::class);
+        $flags = [];
+        foreach ($entity->noLimit()->find() as $method) {
+            $flags[(int)$method->id] = (int)($method->{self::FIELD} ?? 0);
+        }
+        $changed = self::migratedFlags($flags, $this->legacy());
+        foreach ($changed as $id => $flag) {
+            $entity->update($id, [self::FIELD => $flag]);
+        }
+
+        return count($changed);
     }
 
     private function legacy(): ?CodKind
