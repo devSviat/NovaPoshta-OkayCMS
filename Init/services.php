@@ -38,6 +38,8 @@ use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillSettings;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderContacts;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
@@ -209,6 +211,14 @@ return [
     CartSelectionValidator::class => [
         'class' => CartSelectionValidator::class,
         'arguments' => [new SR(EntityFactory::class), new SR(GroupsStore::class), new SR(Module::class), new SR(SettlementSearch::class), new SR(ShippingSettings::class)],
+    ],
+    WaybillSettings::class => [
+        'class' => WaybillSettings::class,
+        'arguments' => [new SR(Settings::class)],
+    ],
+    SenderContacts::class => [
+        'class' => SenderContacts::class,
+        'arguments' => [new SR(OldApiClient::class), new SR(ModuleState::class)],
     ],
     WaybillStore::class => [
         'class' => WaybillStore::class,

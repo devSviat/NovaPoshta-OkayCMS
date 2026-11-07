@@ -23,6 +23,9 @@ use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsInput;
 use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsView;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderContacts;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderContactsUnavailable;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillSettings;
 
 class NovaPoshtaSettingsAdmin extends IndexAdmin
 {
@@ -39,6 +42,8 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         SenderDivisions $senderDivisions,
         EntityFactory $entityFactory,
         CodPayments $codPayments,
+        WaybillSettings $waybillSettings,
+        SenderContacts $senderContacts,
     ) {
         $submission = null;
         // Stock 4.5.3 checks session_id only after the controller has run, so a forged
@@ -65,6 +70,14 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
                     $shippingSettings->saveCodKind($this->request->post('cod_kind'));
                     $codPayments->save($this->request->post('cod_payments'));
                     $this->design->assign('np_cod_saved', true);
+                    break;
+                case 'waybill':
+                    $errors = $waybillSettings->save($_POST);
+                    if ($errors === []) {
+                        $this->design->assign('np_waybill_saved', true);
+                    } else {
+                        $this->design->assign('np_waybill_errors', $errors);
+                    }
                     break;
                 case 'groups':
                     $input = GroupsInput::parse($_POST);
@@ -102,6 +115,12 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
             'city' => $senderCity ? ['id' => (int)$senderCity->id, 'name' => (string)($lang === 'en' && $senderCity->name_en ? $senderCity->name_en : $senderCity->name_uk)] : null,
             'divisions' => $senderCity ? $senderDivisions->forSettlement((int)$senderCity->id, $lang) : [],
         ]);
+        try {
+            $waybillSender = ['sender' => $senderContacts->sender(), 'contacts' => $senderContacts->contacts(), 'unavailable' => false];
+        } catch (SenderContactsUnavailable) {
+            $waybillSender = ['sender' => null, 'contacts' => [], 'unavailable' => true];
+        }
+        $this->design->assign('np_waybill', ['config' => $waybillSettings->read()] + $waybillSender);
         $this->response->setContent($this->design->fetch('settings.tpl'));
     }
 
