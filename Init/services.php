@@ -2,6 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta;
 
+use Okay\Core\Config;
 use Okay\Core\Database;
 use Okay\Core\Cart;
 use Okay\Core\Design;
@@ -58,6 +59,7 @@ use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTables;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
 use Okay\Modules\Sviat\NovaPoshta\Quote\AddressCityResolver;
 use Okay\Modules\Sviat\NovaPoshta\Cart\StreetSearch;
@@ -293,5 +295,9 @@ return [
     OrderDeliveryStore::class => [
         'class' => OrderDeliveryStore::class,
         'arguments' => [new SR(EntityFactory::class)],
+    ],
+    LegacyTables::class => [
+        'class' => LegacyTables::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class), new SR(Config::class), new SR(Settings::class), new SR(EntityFactory::class)],
     ],
 ];
