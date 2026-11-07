@@ -67,6 +67,8 @@ use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlacesDb;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyOrders;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyOrdersDb;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTables;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTargets;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTargetsDb;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
 use Okay\Modules\Sviat\NovaPoshta\Quote\AddressCityResolver;
 use Okay\Modules\Sviat\NovaPoshta\Cart\StreetSearch;
@@ -326,5 +328,9 @@ return [
     LegacyOrders::class => [
         'class' => LegacyOrdersDb::class,
         'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillStore::class)],
+    ],
+    LegacyTargets::class => [
+        'class' => LegacyTargetsDb::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(Settings::class), new SR(PopularCities::class)],
     ],
 ];
