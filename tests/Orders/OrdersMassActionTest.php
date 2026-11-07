@@ -45,7 +45,7 @@ class OrdersMassActionTest extends TestCase
         $noSleep = static function (): void {
         };
         $sender = new class implements SenderSource {
-            public function party(): SenderParty|string
+            public function party(): SenderParty
             {
                 return W::sender();
             }
@@ -62,7 +62,7 @@ class OrdersMassActionTest extends TestCase
                 return $orderId !== 990062;
             }
 
-            public function draft(int $orderId): WaybillDraft|string
+            public function draft(int $orderId): WaybillDraft
             {
                 return W::point(['orderId' => $orderId, 'cod' => true, 'codAmount' => 500.0]);
             }

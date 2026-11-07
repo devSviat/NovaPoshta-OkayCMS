@@ -51,7 +51,7 @@ class MassWaybillsTest extends TestCase
         };
         $jwt = new JwtProvider($this->http, new InMemoryState(), $apiKey, static fn(): int => 1_900_000_000);
         $sender = new class implements SenderSource {
-            public function party(): SenderParty|string
+            public function party(): SenderParty
             {
                 return W::sender();
             }
