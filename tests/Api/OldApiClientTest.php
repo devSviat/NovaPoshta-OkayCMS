@@ -48,6 +48,14 @@ class OldApiClientTest extends TestCase
         self::fail('expected NpApiException');
     }
 
+    public function testSaveKeepsWarnings(): void
+    {
+        $this->http->json(200, ['success' => true, 'data' => [['Ref' => 'r1']], 'errors' => [], 'warnings' => ['CargoType is changed to Cargo']]);
+
+        self::assertSame(['data' => [['Ref' => 'r1']], 'warnings' => ['CargoType is changed to Cargo']], $this->client()->callWithWarnings('InternetDocumentGeneral', 'save', ['a' => 1]));
+        self::assertCount(1, $this->http->requests());
+    }
+
     public function testReturnsData(): void
     {
         $this->http->json(200, ['success' => true, 'data' => [['Ref' => 'r1']], 'errors' => []]);

@@ -57,6 +57,17 @@ final class OldApiClient
     /** @return array the `data` part of the answer */
     public function call(string $model, string $method, array $properties = []): array
     {
+        return $this->callWithWarnings($model, $method, $properties)['data'];
+    }
+
+    /**
+     * Like call(), with Nova Poshta's warnings: a saved waybill can come back changed
+     * ("CargoType is changed to Cargo").
+     *
+     * @return array{data: array, warnings: list<string>}
+     */
+    public function callWithWarnings(string $model, string $method, array $properties = []): array
+    {
         $key = $this->fixedKey ?? $this->apiKey->value()
             ?? throw NpApiException::fromNp(NpErrorKind::InvalidKey, ['API key is not set']);
 
@@ -110,7 +121,7 @@ final class OldApiClient
         }
 
         if ($answer['success'] === true) {
-            return (array)($answer['data'] ?? []);
+            return ['data' => (array)($answer['data'] ?? []), 'warnings' => array_values(array_map(strval(...), array_filter((array)($answer['warnings'] ?? []), is_scalar(...))))];
         }
 
         $texts = array_values(array_map(strval(...), (array)($answer['errors'] ?? [])));
