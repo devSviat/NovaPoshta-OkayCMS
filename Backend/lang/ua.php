@@ -455,3 +455,7 @@ $lang['sviat__novaposhta__waybill_cod_control_tip'] = 'Гроші від отр�
 $lang['sviat__novaposhta__waybill_cod_money_title'] = 'Грошовий переказ';
 $lang['sviat__novaposhta__waybill_cod_money_tip'] = 'НП бере гроші з отримувача й передає їх відправнику переказом.';
 $lang['sviat__novaposhta__waybill_description_tip'] = 'Що в посилці — так буде в накладній.';
+$lang['sviat__novaposhta__codpay_title'] = 'Післяплата Нової Пошти';
+$lang['sviat__novaposhta__codpay_tip'] = 'Покупець платить Новій Пошті при отриманні. Діє, коли замовлення доставляє Нова Пошта.';
+$lang['sviat__novaposhta__codpay_money_note'] = 'Комісію НП платить покупець. Кошик показує її під цим способом оплати.';
+$lang['sviat__novaposhta__codpay_control_note'] = 'Потрібен договір з НП. Гроші йдуть на рахунок магазину, комісію платить магазин.';

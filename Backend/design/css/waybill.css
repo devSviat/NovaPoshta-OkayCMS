@@ -91,3 +91,7 @@
 .np-wb__switch .switch { margin: 0; flex: none; }
 .np-wb__attach > summary.btn { display: inline-block; list-style: none; margin-top: 6px; }
 .np-wb__attach > summary.btn::-webkit-details-marker { display: none; }
+
+.np-codpay__kinds{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.np-codpay__kind{display:flex;gap:8px;align-items:flex-start;font-weight:400;cursor:pointer;line-height:1.4}
+.np-codpay__kind input{margin-top:3px;flex:none}

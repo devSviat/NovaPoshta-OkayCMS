@@ -455,3 +455,7 @@ $lang['sviat__novaposhta__waybill_cod_control_tip'] = 'Деньги получа
 $lang['sviat__novaposhta__waybill_cod_money_title'] = 'Денежный перевод';
 $lang['sviat__novaposhta__waybill_cod_money_tip'] = 'НП берёт деньги с получателя и передаёт их отправителю переводом.';
 $lang['sviat__novaposhta__waybill_description_tip'] = 'Что в посылке — так будет в накладной.';
+$lang['sviat__novaposhta__codpay_title'] = 'Наложенный платёж Новой Почты';
+$lang['sviat__novaposhta__codpay_tip'] = 'Покупатель платит Новой Почте при получении. Действует, когда заказ доставляет Новая Почта.';
+$lang['sviat__novaposhta__codpay_money_note'] = 'Комиссию НП платит покупатель. Корзина показывает её под этим способом оплаты.';
+$lang['sviat__novaposhta__codpay_control_note'] = 'Нужен договор с НП. Деньги идут на счёт магазина, комиссию платит магазин.';

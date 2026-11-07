@@ -22,6 +22,8 @@ use Okay\Entities\VariantsEntity;
 use Okay\Admin\Helpers\BackendOrdersHelper;
 use Okay\Entities\OrdersEntity;
 use Okay\Admin\Requests\BackendProductsRequest;
+use Okay\Admin\Requests\BackendPaymentsRequest;
+use Okay\Admin\Helpers\BackendPaymentsHelper;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
@@ -159,6 +161,9 @@ class Init extends AbstractInit
                 $this->registerEntityField(OrderDeliveryEntity::class, $field->getName());
             }
             $this->addBackendBlock('product_variant', 'variant_volume.tpl');
+            $this->registerChainExtension([BackendPaymentsRequest::class, 'postPayment'], [BackendExtender::class, 'paymentPost']);
+            $this->registerQueueExtension([BackendPaymentsHelper::class, 'getPaymentMethod'], [BackendExtender::class, 'assignPaymentCod']);
+            $this->addBackendBlock('payment_switch_checkboxes', 'payment_cod.tpl');
         }
         $this->registerChainExtension(
             [BackendProductsRequest::class, 'postVariants'],

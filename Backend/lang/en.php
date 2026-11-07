@@ -455,3 +455,7 @@ $lang['sviat__novaposhta__waybill_cod_control_tip'] = 'Nova Poshta credits the r
 $lang['sviat__novaposhta__waybill_cod_money_title'] = 'Money transfer';
 $lang['sviat__novaposhta__waybill_cod_money_tip'] = 'Nova Poshta collects the money from the recipient and sends it to the sender as a transfer.';
 $lang['sviat__novaposhta__waybill_description_tip'] = 'What is in the parcel — as the waybill will show it.';
+$lang['sviat__novaposhta__codpay_title'] = 'Nova Poshta cash on delivery';
+$lang['sviat__novaposhta__codpay_tip'] = 'The customer pays Nova Poshta on receipt. Applies when Nova Poshta delivers the order.';
+$lang['sviat__novaposhta__codpay_money_note'] = 'The customer pays NP\'s commission. The cart shows it under this payment method.';
+$lang['sviat__novaposhta__codpay_control_note'] = 'Needs a contract with NP. The money goes to the shop\'s account; the shop pays the commission.';

@@ -63,6 +63,11 @@ final class CodPayments
         return $method ? self::kindOf($method, $this->legacy()) : null;
     }
 
+    public function kindOfPayment(object $payment): ?CodKind
+    {
+        return self::kindOf($payment, $this->legacy());
+    }
+
     public function isCod(int $paymentId): bool
     {
         return $this->kind($paymentId) !== null;
