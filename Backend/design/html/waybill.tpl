@@ -3,7 +3,7 @@
 {if $np_waybill}
 {function name=np_wb_attach}
 <details class="np-wb__attach">
-    <summary>{$btr->sviat__novaposhta__waybill_attach_open|escape}</summary>
+    <summary class="btn btn_border_blue">{$btr->sviat__novaposhta__waybill_attach_open|escape}</summary>
     <div class="np-wb__attach-row">
         <input class="form-control" data-attach="number" inputmode="numeric" maxlength="20" placeholder="{$btr->sviat__novaposhta__waybill_attach_placeholder|escape}">
         <button type="button" class="btn btn_small btn_border_blue fn_np_wb_attach">{$btr->sviat__novaposhta__waybill_attach|escape}</button>
@@ -12,14 +12,31 @@
     <div class="np-wb__issues np-wb__issues--attach" role="alert"></div>
 </details>
 {/function}
+{function name=np_wb_tip}<i class="fn_tooltips np-wb__tip" title="{$text|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>{/function}
+{function name=np_wb_switch}
+<label class="np-wb__switch">
+    <span class="switch switch-default"><input class="switch-input" type="checkbox" data-field="{$field|escape}" value="1" {if $on}checked{/if}><span class="switch-label"></span><span class="switch-handle"></span></span>
+    <span>{$label|escape}</span>
+</label>
+{/function}
+{* form="np-wb-none" keeps the radios out of the order form: saving the order must not post them. *}
+{function name=np_wb_radios}
+<div class="np-wb__radios" role="radiogroup">
+    {foreach $options as $v => $label}
+        <div class="okay_type_radio_wrap">
+            <input id="np_wb_{$field|escape}_{$v|escape}" class="hidden_check" form="np-wb-none" name="np_wb_{$field|escape}" type="radio" data-field="{$field|escape}" value="{$v|escape}" {if $value == $v}checked{/if}>
+            <label for="np_wb_{$field|escape}_{$v|escape}" class="okay_type_radio"><span>{$label|escape}</span></label>
+        </div>
+    {/foreach}
+</div>
+{/function}
 {$w = $np_waybill}
 <div class="np-wb fn_np_waybill" data-url="{$smarty.server.SCRIPT_NAME|escape}?controller=Sviat.NovaPoshta.WaybillAdmin" data-order="{$w.orderId|escape}" data-token="{$smarty.session.id|escape}"
      data-confirm-remove="{$btr->sviat__novaposhta__waybill_confirm_remove|escape}" data-confirm-unlink="{$btr->sviat__novaposhta__waybill_confirm_unlink|escape}" data-unlink="{$btr->sviat__novaposhta__waybill_unlink|escape}"
      data-busy="{$btr->sviat__novaposhta__waybill_creating|escape}" data-failed-create="{$btr->sviat__novaposhta__waybill_failed_create|escape}" data-failed-attach="{$btr->sviat__novaposhta__waybill_failed_attach|escape}" data-failed-remove="{$btr->sviat__novaposhta__waybill_failed_remove|escape}" data-failed-refresh="{$btr->sviat__novaposhta__waybill_failed_refresh|escape}" data-what-to-do="{$btr->sviat__novaposhta__waybill_what_to_do|escape}"
      data-details="{$btr->sviat__novaposhta__waybill_details|escape}" data-network="{$btr->sviat__novaposhta__waybill_network|escape}">
     <div class="np-wb__head">
-        <span class="heading_label">{$btr->sviat__novaposhta__waybill_title|escape}</span>
-        {if !$w.row}<span class="text_grey">{$btr->sviat__novaposhta__waybill_not_created|escape}</span>{/if}
+        <span class="np-wb__title">{if $w.row || $w.refusal}{$btr->sviat__novaposhta__waybill_title|escape}{else}{$btr->sviat__novaposhta__waybill_form_title|escape}{/if}</span>
     </div>
     <div class="np-wb__notices" role="status"></div>
 
@@ -131,87 +148,75 @@
                 <div class="alert alert--warning"><div class="alert__content"><p>{$btr->sviat__novaposhta__waybill_text_address|escape}</p></div></div>
             {/if}
 
-            <div class="np-wb__group">{$btr->sviat__novaposhta__waybill_recipient_group|escape}</div>
             {$org = $d->recipientType == 'Organization'}
-            <div class="row mb-h np-wb__recipient-type" role="radiogroup">
-                <div class="col-md-6">
-                    <div class="okay_type_radio_wrap">
-                        <input id="np_wb_rt_private" class="hidden_check" name="np_wb_recipient_type" type="radio" data-field="recipient_type" value="PrivatePerson" {if !$org}checked{/if}>
-                        <label for="np_wb_rt_private" class="okay_type_radio"><span>{$btr->sviat__novaposhta__waybill_recipient_private|escape}</span></label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="okay_type_radio_wrap">
-                        <input id="np_wb_rt_org" class="hidden_check" name="np_wb_recipient_type" type="radio" data-field="recipient_type" value="Organization" {if $org}checked{/if}>
-                        <label for="np_wb_rt_org" class="okay_type_radio"><span>{$btr->sviat__novaposhta__waybill_recipient_org|escape}</span></label>
-                    </div>
-                </div>
-            </div>
+            <div class="heading_label np-wb__label">{$btr->sviat__novaposhta__waybill_recipient_group|escape}</div>
+            {np_wb_radios field='recipient_type' value=$d->recipientType options=['PrivatePerson' => $btr->sviat__novaposhta__waybill_recipient_private, 'Organization' => $btr->sviat__novaposhta__waybill_recipient_org]}
             <div class="np-wb__org" {if !$org}hidden{/if}>
-                {if $d->fromInvoice}<div class="np-wb__ok">{$btr->sviat__novaposhta__waybill_from_invoice|escape}</div>{/if}
+                {if $d->fromInvoice}<div class="text_grey font_12">{$btr->sviat__novaposhta__waybill_from_invoice|escape}</div>{/if}
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_edrpou|escape}</span><input class="form-control" inputmode="numeric" data-field="edrpou" maxlength="20" value="{$d->edrpou|escape}"><span class="np-wb__error" data-for="edrpou"></span></label>
-                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_company|escape}</span><input class="form-control" data-field="company_name" maxlength="100" value="{$d->companyName|escape}"><span class="np-wb__error" data-for="company_name"></span></label>
+                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_company|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_company_tip}</span><input class="form-control" data-field="company_name" maxlength="100" value="{$d->companyName|escape}"><span class="np-wb__error" data-for="company_name"></span></label>
             </div>
-            <div class="np-wb__grid">
-                <label class="np-wb__field"><span class="heading_label np-wb__name-label" data-private="{$btr->sviat__novaposhta__waybill_recipient_name|escape}" data-org="{$btr->sviat__novaposhta__waybill_contact_name|escape}">{if $org}{$btr->sviat__novaposhta__waybill_contact_name|escape}{else}{$btr->sviat__novaposhta__waybill_recipient_name|escape}{/if}</span><input class="form-control" data-field="recipient_name" maxlength="60" value="{$d->recipientName|escape}"><span class="np-wb__error" data-for="recipient_name"></span></label>
-                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_recipient_phone|escape}</span><input class="form-control" type="tel" data-field="phone" maxlength="20" value="{$d->recipientPhone|escape}"><span class="np-wb__error" data-for="phone"></span></label>
+            <div class="np-wb__who">
+                <span class="np-wb__who-label" data-private="{$btr->sviat__novaposhta__waybill_who_private|escape}" data-org="{$btr->sviat__novaposhta__waybill_who_org|escape}">{if $org}{$btr->sviat__novaposhta__waybill_who_org|escape}{else}{$btr->sviat__novaposhta__waybill_who_private|escape}{/if}</span>
+                <span class="text_600 fn_np_wb_who_name">{$d->recipientName|escape}</span>, <span class="fn_np_wb_who_phone">{$d->recipientPhone|escape}</span>
+                <div class="text_grey font_12">{$btr->sviat__novaposhta__waybill_who_source|escape}</div>
+                <input type="hidden" data-field="recipient_name" value="{$d->recipientName|escape}">
+                <input type="hidden" data-field="phone" value="{$d->recipientPhone|escape}">
+                <span class="np-wb__error" data-for="recipient_name"></span>
+                <span class="np-wb__error" data-for="phone"></span>
             </div>
 
-            <div class="np-wb__group">{$btr->sviat__novaposhta__waybill_cargo_group|escape}</div>
-            <div class="np-wb__grid">
+            <div class="np-wb__pair">
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_weight|escape}</span><input class="form-control" inputmode="decimal" data-field="weight" value="{$d->weightKg|escape}"><span class="np-wb__error" data-for="weight"></span></label>
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_volume|escape}</span><input class="form-control" inputmode="decimal" data-field="volume" value="{$d->volumeM3|escape}"><span class="np-wb__error" data-for="volume"></span></label>
-                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_declared_cost|escape}</span><input class="form-control" inputmode="decimal" data-field="declared_cost" value="{$d->declaredCost|escape}"><span class="np-wb__error" data-for="declared_cost"></span></label>
-                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cargo|escape}</span><select class="form-control" data-field="cargo_type">
-                    <option value="Parcel" {if $d->cargoType == 'Parcel'}selected{/if}>{$btr->sviat__novaposhta__waybill_cargo_parcel|escape}</option>
-                    <option value="Cargo" {if $d->cargoType == 'Cargo'}selected{/if}>{$btr->sviat__novaposhta__waybill_cargo_cargo|escape}</option>
-                    <option value="Documents" {if $d->cargoType == 'Documents'}selected{/if}>{$btr->sviat__novaposhta__waybill_cargo_documents|escape}</option>
-                </select><span class="np-wb__error" data-for="cargo_type"></span></label>
             </div>
-            <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_description|escape}</span><input class="form-control" data-field="description" maxlength="100" value="{$d->description|escape}"><span class="np-wb__error" data-for="description"></span></label>
-
-            {if $d->mode->value == 'address'}
-                <div class="np-wb__group">{$btr->sviat__novaposhta__waybill_address_group|escape}</div>
-                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_address_note|escape}</span><input class="form-control" data-field="address_note" maxlength="50" value="{$d->addressNote|escape}"></label>
-                <label class="np_check"><input type="checkbox" data-field="lifting" {if $d->lifting}checked{/if}> <span>{$btr->sviat__novaposhta__order_lifting|escape}</span></label>
-                <div class="np-wb__grid np-wb__lifting" {if !$d->lifting}hidden{/if}>
-                    <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__order_floor|escape}</span><input class="form-control" inputmode="numeric" data-field="floor" value="{$d->floor|escape}"><span class="np-wb__error" data-for="floor"></span></label>
-                    <label class="np_check"><input type="checkbox" data-field="elevator" {if $d->elevator}checked{/if}> <span>{$btr->sviat__novaposhta__order_elevator|escape}</span></label>
+            <div class="np-wb__pair">
+                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_declared_cost|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_declared_tip}</span><input class="form-control" inputmode="decimal" data-field="declared_cost" value="{$d->declaredCost|escape}"><span class="np-wb__error" data-for="declared_cost"></span></label>
+                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cod_amount|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_amount_tip}</span><input class="form-control" inputmode="decimal" data-field="cod_amount" value="{$d->codAmount|escape}" {if !$d->cod}disabled{/if}><span class="np-wb__error" data-for="cod_amount"></span></label>
+            </div>
+            {$control = $d->codKind->value == 'control'}
+            <div class="heading_label np-wb__label">{if $control}{$btr->sviat__novaposhta__waybill_cod_control_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_control_tip}{else}{$btr->sviat__novaposhta__waybill_cod_money_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_money_tip}{/if}</div>
+            <div class="np-wb__switch">
+                <label class="switch switch-default{if $w.paid} switch-disabled{/if}">
+                    <input class="switch-input" type="checkbox" data-field="cod" value="1" {if $d->cod}checked{/if} {if $w.paid}disabled{/if}>
+                    <span class="switch-label"></span><span class="switch-handle"></span>
+                </label>
+                <span class="text_grey font_12">{if $w.paid}{$btr->sviat__novaposhta__waybill_cod_paid|escape}{elseif $w.codPayment}{$btr->sviat__novaposhta__waybill_cod_auto|escape}{else}{$btr->sviat__novaposhta__waybill_cod_manual|escape}{/if}</span>
+            </div>
+            <input type="hidden" data-field="cod_kind" value="{$d->codKind->value|escape}">
+            {if !$control}
+                <div class="np-wb__cod" {if !$d->cod}hidden{/if}>
+                    <div class="heading_label np-wb__label">{$btr->sviat__novaposhta__waybill_cod_payer|escape}</div>
+                    {np_wb_radios field='cod_payer' value=$d->codPayer options=['Sender' => $btr->sviat__novaposhta__waybill_sender_party, 'Recipient' => $btr->sviat__novaposhta__waybill_recipient]}
                 </div>
             {/if}
 
-            <div class="np-wb__group">{$btr->sviat__novaposhta__waybill_payment_group|escape}</div>
-            <div class="np-wb__grid">
-                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_payer|escape}</span><select class="form-control" data-field="payer_type">
-                    <option value="Recipient" {if $d->payerType == 'Recipient'}selected{/if}>{$btr->sviat__novaposhta__waybill_recipient|escape}</option>
-                    <option value="Sender" {if $d->payerType == 'Sender'}selected{/if}>{$btr->sviat__novaposhta__waybill_sender_party|escape}</option>
-                </select></label>
-                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_payment|escape}</span><select class="form-control" data-field="payment_method">
-                    <option value="Cash" {if $d->paymentMethod == 'Cash'}selected{/if}>{$btr->sviat__novaposhta__waybill_cash|escape}</option>
-                    <option value="NonCash" {if $d->paymentMethod == 'NonCash'}selected{/if}>{$btr->sviat__novaposhta__waybill_noncash|escape}</option>
-                </select></label>
-            </div>
-            <label class="np_check"><input type="checkbox" data-field="cod" {if $d->cod}checked{/if}> <span><b>{$btr->sviat__novaposhta__waybill_cod|escape}</b><br><span class="text_grey">{if $w.paid}{$btr->sviat__novaposhta__waybill_cod_paid|escape}{elseif $w.codPayment}{$btr->sviat__novaposhta__waybill_cod_auto|escape}{else}{$btr->sviat__novaposhta__waybill_cod_manual|escape}{/if}</span></span></label>
-            <div class="np-wb__cod" {if !$d->cod}hidden{/if}>
-                <div class="np-wb__grid">
-                    <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cod_amount|escape}</span><input class="form-control" inputmode="decimal" data-field="cod_amount" value="{$d->codAmount|escape}"><span class="np-wb__error" data-for="cod_amount"></span></label>
-                    <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cod_kind|escape}</span><select class="form-control" data-field="cod_kind">
-                        <option value="money" {if $d->codKind->value == 'money'}selected{/if}>{$btr->sviat__novaposhta__waybill_cod_money|escape}</option>
-                        <option value="control" {if $d->codKind->value == 'control'}selected{/if}>{$btr->sviat__novaposhta__waybill_cod_control|escape}</option>
-                    </select><span class="np-wb__error" data-for="cod_kind"></span></label>
-                </div>
-                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cod_payer|escape}</span><select class="form-control" data-field="cod_payer">
-                    <option value="Recipient" {if $d->codPayer == 'Recipient'}selected{/if}>{$btr->sviat__novaposhta__waybill_recipient|escape}</option>
-                    <option value="Sender" {if $d->codPayer == 'Sender'}selected{/if}>{$btr->sviat__novaposhta__waybill_sender_party|escape}</option>
-                </select></label>
-            </div>
+            <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_description|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_description_tip}</span><input class="form-control" data-field="description" maxlength="100" value="{$d->description|escape}"><span class="np-wb__error" data-for="description"></span></label>
 
-            <div class="np-wb__group">{$btr->sviat__novaposhta__waybill_dispatch_group|escape}</div>
-            <div class="np-wb__line"><span class="text_600">{$btr->sviat__novaposhta__waybill_ship_date|escape}:</span> {$d->shipDate|escape}</div>
+            {if $d->mode->value == 'address'}
+                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_address_note|escape}</span><input class="form-control" data-field="address_note" maxlength="50" value="{$d->addressNote|escape}"></label>
+                {np_wb_switch field='lifting' on=$d->lifting label=$btr->sviat__novaposhta__order_lifting}
+                <div class="np-wb__pair np-wb__lifting" {if !$d->lifting}hidden{/if}>
+                    <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__order_floor|escape}</span><input class="form-control" inputmode="numeric" data-field="floor" value="{$d->floor|escape}"><span class="np-wb__error" data-for="floor"></span></label>
+                    {np_wb_switch field='elevator' on=$d->elevator label=$btr->sviat__novaposhta__order_elevator}
+                </div>
+            {/if}
+
+            <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cargo|escape}</span><select class="form-control" data-field="cargo_type">
+                <option value="Parcel" {if $d->cargoType == 'Parcel'}selected{/if}>{$btr->sviat__novaposhta__waybill_cargo_parcel|escape}</option>
+                <option value="Cargo" {if $d->cargoType == 'Cargo'}selected{/if}>{$btr->sviat__novaposhta__waybill_cargo_cargo|escape}</option>
+                <option value="Documents" {if $d->cargoType == 'Documents'}selected{/if}>{$btr->sviat__novaposhta__waybill_cargo_documents|escape}</option>
+            </select><span class="np-wb__error" data-for="cargo_type"></span></label>
+            <div class="heading_label np-wb__label">{$btr->sviat__novaposhta__waybill_payer|escape}</div>
+            {np_wb_radios field='payer_type' value=$d->payerType options=['Sender' => $btr->sviat__novaposhta__waybill_sender_party, 'Recipient' => $btr->sviat__novaposhta__waybill_recipient]}
+            <div class="heading_label np-wb__label">{$btr->sviat__novaposhta__waybill_payment|escape}</div>
+            {np_wb_radios field='payment_method' value=$d->paymentMethod options=['Cash' => $btr->sviat__novaposhta__waybill_cash, 'NonCash' => $btr->sviat__novaposhta__waybill_noncash]}
+
+            <div class="np-wb__line text_grey">{$btr->sviat__novaposhta__waybill_ship_date|escape}: {$d->shipDate|escape}</div>
 
             <div class="np-wb__issues" role="alert"></div>
             <div class="np-wb__actions">
-                <button type="button" class="btn btn_small btn_blue fn_np_wb_create">{$btr->sviat__novaposhta__waybill_create|escape}</button>
+                <button type="button" class="btn btn-info fn_np_wb_create">{$btr->sviat__novaposhta__waybill_create|escape}</button>
             </div>
             {np_wb_attach}
         </div>

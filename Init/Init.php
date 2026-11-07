@@ -175,8 +175,9 @@ class Init extends AbstractInit
             $this->registerEntityFilter(OrdersEntity::class, 'np_without_waybill', OrdersEntityFilters::class, 'filter__np_without_waybill');
             $this->addBackendBlock('orders_list_name', 'orders_status.tpl');
         }
-        $this->addBackendBlock('order_contact', 'order_delivery.tpl');
+        // The core prints a block's templates last-registered first: the point goes above the waybill.
         $this->addBackendBlock('order_contact', 'waybill.tpl');
+        $this->addBackendBlock('order_contact', 'order_delivery.tpl');
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
         $this->registerBackendController('WaybillAdmin');
