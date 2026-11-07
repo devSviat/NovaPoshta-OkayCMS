@@ -13,7 +13,9 @@ final class WaybillStore implements WaybillRows
 
     public function forOrder(int $orderId): ?object
     {
-        return $this->entity()->findOne(['order_id' => $orderId]) ?: null;
+        $row = $this->entity()->findOne(['order_id' => $orderId]);
+
+        return is_object($row) ? $row : null;
     }
 
     /** The order a number is already attached to, if any. */
@@ -21,7 +23,7 @@ final class WaybillStore implements WaybillRows
     {
         $row = $this->entity()->findOne(['number' => $number]);
 
-        return $row ? (int)$row->order_id : null;
+        return is_object($row) ? (int)$row->order_id : null;
     }
 
     /**
@@ -59,7 +61,7 @@ final class WaybillStore implements WaybillRows
     {
         $row = $this->forOrder($orderId);
         if ($row !== null) {
-            $this->entity()->delete((int)$row->id);
+            $this->entity()->delete([(int)$row->id]);
         }
     }
 
