@@ -154,6 +154,8 @@ class Init extends AbstractInit
         $this->addBackendBlock('order_contact', 'order_delivery.tpl');
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
+        $this->registerBackendController('WaybillAdmin');
+        $this->addBackendControllerPermission('WaybillAdmin', 'orders');
 
         $this->addFrontBlock('front_cart_delivery', 'cart_delivery.tpl');
         $this->addFrontBlock('front_scripts_after_validate', 'cart_validation.tpl');
