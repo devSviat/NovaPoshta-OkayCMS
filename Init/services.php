@@ -38,6 +38,8 @@ use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDrafts;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\AmountDue;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillSettings;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderContacts;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
@@ -219,6 +221,13 @@ return [
     SenderContacts::class => [
         'class' => SenderContacts::class,
         'arguments' => [new SR(OldApiClient::class), new SR(ModuleState::class)],
+    ],
+    AmountDue::class => [
+        'class' => AmountDue::class,
+    ],
+    WaybillDrafts::class => [
+        'class' => WaybillDrafts::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(CodPayments::class), new SR(Money::class), new SR(AmountDue::class)],
     ],
     WaybillStore::class => [
         'class' => WaybillStore::class,
