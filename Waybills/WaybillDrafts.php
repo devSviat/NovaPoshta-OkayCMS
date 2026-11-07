@@ -134,7 +134,7 @@ final class WaybillDrafts
             $waybill->payerType,
             $waybill->paymentMethod,
             $codPayment && empty($order->paid),
-            $amountDue ? round($amountDue($totalUah), 2) : $totalUah,
+            round($amountDue ? $amountDue($totalUah) : $totalUah),
             $shipping->codKind,
             $waybill->codPayer,
             ShipDate::for($now, $waybill->cutoff),

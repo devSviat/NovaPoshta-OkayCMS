@@ -43,6 +43,11 @@ class WaybillIssuesTest extends TestCase
         self::assertSame('waybill_advice_control_unavailable', $issue['advice']);
     }
 
+    public function testAlreadyDeletedAtNovaPoshta(): void
+    {
+        self::assertSame('waybill_advice_deleted', WaybillIssues::explain(NpApiException::fromNp(NpErrorKind::Rejected, ['shipment_was_deleted']))['advice']);
+    }
+
     public function testKeyProblem(): void
     {
         $issue = WaybillIssues::explain(NpApiException::fromNp(NpErrorKind::InvalidKey, ['API key expired']));

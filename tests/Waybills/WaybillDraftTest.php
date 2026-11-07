@@ -89,6 +89,14 @@ class WaybillDraftTest extends TestCase
         self::assertFalse(self::build()->cod);
     }
 
+    public function testCodAmountIsWholeHryvnias(): void
+    {
+        $draft = self::build(self::order(['total_price' => 1234.56]), cod: true);
+
+        self::assertSame(1235.0, $draft->codAmount);
+        self::assertSame(1234.0, $draft->withInput(['cod' => '1', 'cod_amount' => '1234.4'])->codAmount);
+    }
+
     public function testAmountsInUah(): void
     {
         $draft = self::build(self::order(['total_price' => 50.0, 'delivery_price' => 0.0]), cod: true, rate: 40.0);

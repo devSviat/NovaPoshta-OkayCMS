@@ -15,10 +15,16 @@ use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 final class WaybillService
 {
     private const int TIMEOUT_SECONDS = 30;
+    /** A reservation older than this belongs to a request that died (NP calls time out at 30 s). */
+    private const int PENDING_STALE_SECONDS = 120;
 
     private readonly \Closure $today;
+    private readonly \Closure $now;
 
-    /** @param ?\Closure(): string $today d.m.Y */
+    /**
+     * @param ?\Closure(): string $today d.m.Y
+     * @param ?\Closure(): int $now
+     */
     public function __construct(
         private readonly OldApiClient $oldApi,
         private readonly NewApiClient $newApi,
@@ -26,14 +32,30 @@ final class WaybillService
         private readonly SenderSource $sender,
         private readonly RecipientCities $cities,
         ?\Closure $today = null,
+        ?\Closure $now = null,
     ) {
         $this->today = $today ?? static fn(): string => date('d.m.Y');
+        $this->now = $now ?? time(...);
+    }
+
+    /** A reservation of a request still running; a stale one is not. */
+    public static function isPending(?object $row, int $now): bool
+    {
+        return $row !== null && $row->api === 'pending' && $now - (int)strtotime((string)($row->created_at ?? '')) < self::PENDING_STALE_SECONDS;
     }
 
     public function create(int $orderId, WaybillDraft $draft): WaybillOutcome
     {
+        $notices = [];
         $existing = $this->rows->forOrder($orderId);
-        if ($existing !== null) {
+        if (self::isPending($existing, ($this->now)())) {
+            return WaybillOutcome::refused('waybill_pending');
+        }
+        if ($existing !== null && $existing->api === 'pending') {
+            // That request died midway: its waybill may exist at NP, the manager is told to check.
+            $this->rows->release($orderId);
+            $notices[] = 'waybill_stale_attempt';
+        } elseif ($existing !== null) {
             return WaybillOutcome::refused('waybill_already', (string)$existing->number);
         }
         $sender = $this->sender->party();
@@ -41,14 +63,13 @@ final class WaybillService
             return WaybillOutcome::refused($sender);
         }
 
-        $notices = [];
         $route = WaybillRoute::for($draft, ($this->today)());
         if ($route === 'new') {
             $request = fn(): array => $this->newApi->quick(self::TIMEOUT_SECONDS)->post('/shipments', NewShipmentRequest::build($draft, $sender));
         } else {
             if ($draft->mode === DeliveryMode::Address) {
                 [$properties, $notice] = $this->addressRequest($draft, $sender);
-                $notices = array_filter([$notice]);
+                $notices = [...$notices, ...array_filter([$notice])];
             } else {
                 $properties = OldDocumentRequest::forDivision($draft, $sender);
             }
@@ -59,13 +80,14 @@ final class WaybillService
             $request = fn(): array => $this->oldApi->quick(self::TIMEOUT_SECONDS)->callWithWarnings('InternetDocumentGeneral', 'save', $properties);
         }
 
-        // Re-checked right before the only request that makes a waybill.
-        if ($this->rows->forOrder($orderId) !== null) {
-            return WaybillOutcome::refused('waybill_already', (string)$this->rows->forOrder($orderId)->number);
+        if (!$this->rows->reserve($orderId)) {
+            return WaybillOutcome::refused('waybill_pending');
         }
         try {
             $answer = $request();
         } catch (NpApiException $e) {
+            $this->rows->release($orderId);
+
             return WaybillOutcome::failed(self::uncertain($e) ? WaybillIssues::explain('waybill_uncertain') : WaybillIssues::explain($e));
         }
 
@@ -79,10 +101,12 @@ final class WaybillService
             $notices = [...$notices, ...WaybillIssues::notices($answer['warnings'])];
         }
         if (WaybillNumber::normalize($number) === null) {
+            $this->rows->release($orderId);
+
             return WaybillOutcome::refused('waybill_uncertain');
         }
 
-        $this->rows->add($orderId, $number, $ref !== '' ? $ref : null, $route, [
+        $saved = $this->rows->complete($orderId, $number, $ref !== '' ? $ref : null, $route, [
             'mode' => $draft->mode->value,
             'cod' => $draft->cod,
             'codAmount' => $draft->codAmount,
@@ -91,6 +115,11 @@ final class WaybillService
             'lifting' => $draft->lifting,
             'floor' => $draft->floor,
         ]);
+        if (!$saved) {
+            $this->rows->release($orderId);
+
+            return WaybillOutcome::refused('waybill_not_saved', $number);
+        }
         $audit = WaybillAudit::compare($draft, $this->status($number, $draft->recipientPhone) ?? []);
         $this->rows->saveAudit($orderId, $audit);
 
@@ -104,7 +133,12 @@ final class WaybillService
             return WaybillOutcome::refused('waybill_bad_number');
         }
         $existing = $this->rows->forOrder($orderId);
-        if ($existing !== null) {
+        if (self::isPending($existing, ($this->now)())) {
+            return WaybillOutcome::refused('waybill_pending');
+        }
+        if ($existing !== null && $existing->api === 'pending') {
+            $this->rows->release($orderId);
+        } elseif ($existing !== null) {
             return WaybillOutcome::refused('waybill_already', (string)$existing->number);
         }
         $owner = $this->rows->orderOfNumber($number);
@@ -123,7 +157,9 @@ final class WaybillService
         if ((string)$status['StatusCode'] === '2') {
             return WaybillOutcome::refused('waybill_deleted');
         }
-        $this->rows->add($orderId, $number, null, 'attached', []);
+        if (!$this->rows->add($orderId, $number, null, 'attached', [])) {
+            return WaybillOutcome::refused('waybill_pending');
+        }
 
         return new WaybillOutcome(true, $number);
     }
@@ -131,7 +167,7 @@ final class WaybillService
     public function remove(int $orderId): WaybillOutcome
     {
         $row = $this->rows->forOrder($orderId);
-        if ($row === null) {
+        if ($row === null || $row->api === 'pending') {
             return WaybillOutcome::refused('waybill_none');
         }
         $ref = (string)($row->ref ?? '');
@@ -146,6 +182,21 @@ final class WaybillService
             } catch (NpApiException $e) {
                 return WaybillOutcome::failed(WaybillIssues::explain($e));
             }
+        }
+        $this->rows->remove($orderId);
+
+        return new WaybillOutcome(true, (string)$row->number);
+    }
+
+    /**
+     * Forgets the order's waybill without asking Nova Poshta: for one NP will not delete (already
+     * deleted in its account, or accepted for delivery). It stays in the NP account.
+     */
+    public function unlink(int $orderId): WaybillOutcome
+    {
+        $row = $this->rows->forOrder($orderId);
+        if ($row === null || $row->api === 'pending') {
+            return WaybillOutcome::refused('waybill_none');
         }
         $this->rows->remove($orderId);
 

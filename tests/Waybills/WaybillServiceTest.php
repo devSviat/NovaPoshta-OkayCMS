@@ -63,7 +63,7 @@ class WaybillServiceTest extends TestCase
             }
         };
 
-        return new WaybillService(new OldApiClient($this->http, $apiKey, $noSleep), new NewApiClient($this->http, $jwt, $noSleep), $this->rows, $sender, $cities, static fn(): string => '07.11.2026');
+        return new WaybillService(new OldApiClient($this->http, $apiKey, $noSleep), new NewApiClient($this->http, $jwt, $noSleep), $this->rows, $sender, $cities, static fn(): string => '07.11.2026', fn(): int => $this->rows->now);
     }
 
     private function jwt(): void
@@ -147,6 +147,66 @@ class WaybillServiceTest extends TestCase
         self::assertSame('waybill_already', $outcome->issues[0]['advice']);
         self::assertSame('20450000000001', $outcome->issues[0]['message']);
         self::assertSame([], $this->http->requests());
+    }
+
+    public function testCreateInProgressIsRefusedWithoutRequest(): void
+    {
+        $this->rows->add(self::ORDER, '', null, 'pending', []);
+        $this->rows->now += 30;
+
+        $outcome = $this->service()->create(self::ORDER, W::point());
+
+        self::assertSame('waybill_pending', $outcome->issues[0]['advice']);
+        self::assertSame([], $this->http->requests());
+    }
+
+    public function testLostReservationRaceIsRefusedWithoutRequest(): void
+    {
+        $this->rows->failReserve = true;
+
+        $outcome = $this->service()->create(self::ORDER, W::point());
+
+        self::assertFalse($outcome->ok);
+        self::assertSame('waybill_pending', $outcome->issues[0]['advice']);
+        self::assertSame([], $this->http->requests());
+    }
+
+    public function testStaleAttemptIsReplacedWithAWarning(): void
+    {
+        $this->rows->add(self::ORDER, '', null, 'pending', []);
+        $this->rows->now += 600;
+        $this->jwt();
+        $this->http->json(201, W::fixture('new_created'));
+        $this->statusAnswer('status_new_documents');
+
+        $outcome = $this->service()->create(self::ORDER, W::point());
+
+        self::assertTrue($outcome->ok);
+        self::assertContains('waybill_stale_attempt', $outcome->notices);
+        self::assertSame('new', $this->rows->forOrder(self::ORDER)->api);
+    }
+
+    public function testSaveFailureAfterNovaPoshtaNamesTheNumber(): void
+    {
+        $this->rows->failComplete = true;
+        $this->http->json(200, W::fixture('old_save_ok'));
+
+        $outcome = $this->service()->create(self::ORDER, W::point(['cod' => true]));
+
+        self::assertFalse($outcome->ok);
+        self::assertSame('waybill_not_saved', $outcome->issues[0]['advice']);
+        self::assertSame(W::fixture('old_save_ok')['data'][0]['IntDocNumber'], $outcome->issues[0]['message']);
+        self::assertCount(1, $this->http->requests());
+    }
+
+    public function testUnlinkKeepsTheWaybillAtNovaPoshta(): void
+    {
+        $this->rows->add(2, '20450000000002', 'ref-2', 'old', []);
+
+        self::assertTrue($this->service()->unlink(2)->ok);
+        self::assertNull($this->rows->forOrder(2));
+        self::assertSame([], $this->http->requests());
+        self::assertSame('waybill_none', $this->service()->unlink(2)->issues[0]['advice']);
     }
 
     public function testSenderProblemStopsBeforeNovaPoshta(): void

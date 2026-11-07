@@ -292,3 +292,7 @@ $lang['sviat__novaposhta__waybill_error_cod_amount'] = 'Сума післяпл�
 $lang['sviat__novaposhta__waybill_error_floor'] = 'Поверх — ціле число від 1 до 200.';
 $lang['sviat__novaposhta__waybill_point_unchecked'] = 'Пункт видачі Нова Пошта покаже трохи пізніше — звірте його в кабінеті НП.';
 $lang['sviat__novaposhta__waybill_deleted'] = 'Цю накладну видалено в Новій Пошті — прив\'язувати нема чого. Створіть нову.';
+$lang['sviat__novaposhta__waybill_pending'] = 'Накладна саме створюється іншим запитом. Оновіть сторінку за хвилину.';
+$lang['sviat__novaposhta__waybill_stale_attempt'] = 'Попередня спроба створити накладну не завершилась. Перевірте кабінет НП: якщо там є зайва накладна, видаліть її.';
+$lang['sviat__novaposhta__waybill_not_saved'] = 'Нова Пошта створила накладну (номер вище), але сайт не зміг її зберегти. Прив\'яжіть її за номером, не створюйте нову.';
+$lang['sviat__novaposhta__waybill_advice_deleted'] = 'Накладну вже видалено в Новій Пошті. Відв\'яжіть її від замовлення.';

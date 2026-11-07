@@ -112,6 +112,9 @@
                     }
                 }
                 showIssues(root, answer.issues || [], issuesBox, root.getAttribute('data-failed-' + action));
+                if (action === 'remove') {
+                    offerUnlink(root);
+                }
             })
             .catch(function () {
                 showIssues(root, [{ field: null, message: null, advice: root.getAttribute('data-network'), details: '' }], issuesBox, root.getAttribute('data-failed-' + action));
@@ -122,8 +125,19 @@
             });
     }
 
+    /** Nova Poshta would not delete it (gone from its account, or already accepted): the order can still let it go. */
+    function offerUnlink(root) {
+        var box = root.querySelector('.np-wb__issues');
+        if (!box || box.querySelector('.fn_np_wb_unlink')) {
+            return;
+        }
+        var button = el('button', 'btn btn_small btn_border_blue fn_np_wb_unlink', root.getAttribute('data-unlink'));
+        button.type = 'button';
+        box.appendChild(button);
+    }
+
     document.addEventListener('click', function (event) {
-        var button = event.target.closest('.fn_np_wb_create, .fn_np_wb_attach, .fn_np_wb_remove');
+        var button = event.target.closest('.fn_np_wb_create, .fn_np_wb_attach, .fn_np_wb_remove, .fn_np_wb_unlink');
         var root = button ? rootOf(button) : null;
         if (!root) {
             return;
@@ -134,6 +148,10 @@
         } else if (button.classList.contains('fn_np_wb_attach')) {
             var number = root.querySelector('[data-attach="number"]');
             send(root, button, 'attach', { number: number ? number.value : '' }, root.querySelector('.np-wb__issues--attach'));
+        } else if (button.classList.contains('fn_np_wb_unlink')) {
+            if (window.confirm(root.getAttribute('data-confirm-unlink'))) {
+                send(root, button, 'unlink', {});
+            }
         } else {
             var question = root.getAttribute(button.getAttribute('data-attached') ? 'data-confirm-unlink' : 'data-confirm-remove');
             if (window.confirm(question)) {

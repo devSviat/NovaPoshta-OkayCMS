@@ -292,3 +292,7 @@ $lang['sviat__novaposhta__waybill_error_cod_amount'] = 'Сумма наложе�
 $lang['sviat__novaposhta__waybill_error_floor'] = 'Этаж — целое число от 1 до 200.';
 $lang['sviat__novaposhta__waybill_point_unchecked'] = 'Пункт выдачи Новая Почта покажет чуть позже — сверьте его в кабинете НП.';
 $lang['sviat__novaposhta__waybill_deleted'] = 'Эта накладная удалена в Новой Почте — привязывать нечего. Создайте новую.';
+$lang['sviat__novaposhta__waybill_pending'] = 'Накладная сейчас создаётся другим запросом. Обновите страницу через минуту.';
+$lang['sviat__novaposhta__waybill_stale_attempt'] = 'Предыдущая попытка создать накладную не завершилась. Проверьте кабинет НП: если там есть лишняя накладная, удалите её.';
+$lang['sviat__novaposhta__waybill_not_saved'] = 'Новая Почта создала накладную (номер выше), но сайт не смог её сохранить. Привяжите её по номеру, не создавайте новую.';
+$lang['sviat__novaposhta__waybill_advice_deleted'] = 'Накладная уже удалена в Новой Почте. Отвяжите её от заказа.';

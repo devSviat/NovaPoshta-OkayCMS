@@ -14,6 +14,7 @@ final class WaybillIssues
 {
     /** More specific names first: RecipientAddressName before RecipientAddress. */
     private const array RULES = [
+        ['~shipment_was_deleted|already deleted|was deleted~i', null, 'deleted'],
         ['~AfterpaymentOnGoodsCost is unavailable~i', 'cod_kind', 'control_unavailable'],
         ['~RecipientContactName|RecipientName|recipient\.name|Empty user name|counterparty person creation|contains invalid words~i', 'recipient_name', 'recipient_name'],
         ['~RecipientsPhone|RecipientPhone|recipient\.phone|Invalid phone~i', 'phone', 'phone'],

@@ -33,6 +33,15 @@ final class WaybillView
         $view = ['orderId' => $orderId, 'row' => null, 'draft' => null, 'refusal' => null];
 
         $row = $this->rows->forOrder($orderId);
+        if (WaybillService::isPending($row, time())) {
+            $view['refusal'] = 'waybill_pending';
+            $view['refusalKey'] = 'sviat__novaposhta__waybill_pending';
+
+            return $view;
+        }
+        if ($row !== null && $row->api === 'pending') {
+            $row = null;
+        }
         if ($row !== null) {
             $view['row'] = [
                 'number' => (string)$row->number,

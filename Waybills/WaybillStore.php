@@ -30,10 +30,12 @@ final class WaybillStore implements WaybillRows
      * @param 'new'|'old'|'attached' $api
      * @param array<string, mixed> $services what was ordered, for the audit and the card
      */
-    public function add(int $orderId, string $number, ?string $ref, string $api, array $services): void
+    public function add(int $orderId, string $number, ?string $ref, string $api, array $services): bool
     {
         $now = date('Y-m-d H:i:s');
-        $this->entity()->add([
+
+        // The core swallows the duplicate-key error and returns false: that is the lost race.
+        return (bool)$this->entity()->add([
             'order_id' => $orderId,
             'number' => $number,
             'ref' => $ref,
@@ -42,6 +44,37 @@ final class WaybillStore implements WaybillRows
             'created_at' => $now,
             'updated_at' => $now,
         ]);
+    }
+
+    public function reserve(int $orderId): bool
+    {
+        return $this->add($orderId, '', null, 'pending', []);
+    }
+
+    public function complete(int $orderId, string $number, ?string $ref, string $api, array $services): bool
+    {
+        $row = $this->forOrder($orderId);
+        if ($row === null || $row->api !== 'pending') {
+            return false;
+        }
+        $this->entity()->update((int)$row->id, [
+            'number' => $number,
+            'ref' => $ref,
+            'api' => $api,
+            'services' => json_encode($services, JSON_UNESCAPED_UNICODE),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        $saved = $this->forOrder($orderId);
+
+        return $saved !== null && $saved->number === $number;
+    }
+
+    public function release(int $orderId): void
+    {
+        $row = $this->forOrder($orderId);
+        if ($row !== null && $row->api === 'pending') {
+            $this->entity()->delete([(int)$row->id]);
+        }
     }
 
     public function saveAudit(int $orderId, AuditResult $audit): void

@@ -50,7 +50,7 @@ final readonly class WaybillDraft
         public string $payerType,
         public string $paymentMethod,
         public bool $cod,
-        /** In hryvnias. */
+        /** Whole hryvnias: the old API takes RedeliveryString as an integer, the card shows what is sent. */
         public float $codAmount,
         public CodKind $codKind,
         public string $codPayer,
@@ -146,7 +146,7 @@ final readonly class WaybillDraft
             'paymentMethod' => $choice('payment_method', $this->paymentMethod, ['Cash', 'NonCash']),
             'codPayer' => $choice('cod_payer', $this->codPayer, ['Recipient', 'Sender']),
             'cod' => $cod,
-            'codAmount' => (float)$codAmount,
+            'codAmount' => round((float)$codAmount),
             'codKind' => $codKind ?? $this->codKind,
             'lifting' => $lifting,
             'floor' => $lifting ? (int)$floor : $this->floor,

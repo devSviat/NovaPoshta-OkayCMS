@@ -44,6 +44,7 @@ class WaybillAdmin extends IndexAdmin
             'create' => $this->create($service, $drafts, $orderId),
             'attach' => $service->attach($orderId, (string)$this->request->post('number'), NpPhone::normalize((string)($order->phone ?? ''))),
             'remove' => $service->remove($orderId),
+            'unlink' => $service->unlink($orderId),
             default => null,
         };
         if ($outcome === null) {
