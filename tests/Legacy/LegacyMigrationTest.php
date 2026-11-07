@@ -6,6 +6,7 @@ require_once __DIR__ . '/../Support/InMemoryState.php';
 
 use Modules\Sviat\NovaPoshta\Support\InMemoryState;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyBudget;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyGate;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigration;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyReport;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyStep;
@@ -46,18 +47,75 @@ class LegacyMigrationTest extends TestCase
         };
     }
 
+    private static function ready(?string $problem = null): LegacyGate
+    {
+        return new class($problem) implements LegacyGate {
+            public function __construct(private ?string $p)
+            {
+            }
+
+            public function problem(): ?string
+            {
+                return $this->p;
+            }
+        };
+    }
+
+    public function testTickTakesNothingFromTheScheduler(): void
+    {
+        // The core scheduler builds typed arguments with `new Type` and never uses defaults.
+        self::assertSame(0, new \ReflectionMethod(LegacyMigration::class, 'tick')->getNumberOfParameters());
+    }
+
+    public function testNothingRunsWhileNotReady(): void
+    {
+        $seen = [];
+        $state = new InMemoryState();
+        $migration = new LegacyMigration($state, self::ready('legacy_needs_update'), self::step('orders', 2, $seen));
+
+        self::assertFalse($migration->request());
+        $state->set(LegacyMigration::STATE, json_encode(['status' => 'queued']));
+        $migration->run(new LegacyBudget(PHP_INT_MAX, 10));
+        self::assertSame([], $seen);
+        self::assertSame('queued', $migration->state()['status']);
+    }
+
+    public function testOneOffStepsRunOnlyTheFirstTime(): void
+    {
+        $seen = [];
+        $migration = new LegacyMigration(new InMemoryState(), self::ready(), self::step('orders', 1, $seen), self::step('payments', 1, $seen), self::step('settings', 1, $seen));
+        $migration->request();
+        $migration->run(new LegacyBudget(PHP_INT_MAX, 10));
+        $migration->request();
+        $migration->run(new LegacyBudget(PHP_INT_MAX, 10));
+
+        self::assertSame(['orders1', 'payments1', 'settings1', 'orders1'], $seen, 'a re-run must not switch COD back on or refill settings the manager cleared');
+        self::assertSame('done', $migration->state()['status']);
+    }
+
+    public function testStalledRunCanBeRestarted(): void
+    {
+        $seen = [];
+        $migration = new LegacyMigration(new InMemoryState(), self::ready(), self::step('orders', 5, $seen));
+        $migration->request(1_000_000);
+        $migration->run(new LegacyBudget(PHP_INT_MAX, 0), 1_000_000);
+
+        self::assertFalse($migration->request(1_000_000 + 600), 'still moving recently');
+        self::assertTrue($migration->request(1_000_000 + 3 * 3600), 'no progress for hours: the manager may start again');
+    }
+
     public function testResumesFromCursor(): void
     {
         $seen = [];
         $state = new InMemoryState();
-        $migration = new LegacyMigration($state, self::step('orders', 5, $seen), self::step('waybills', 1, $seen));
+        $migration = new LegacyMigration($state, self::ready(), self::step('orders', 5, $seen), self::step('waybills', 1, $seen));
 
         self::assertTrue($migration->request());
-        $migration->tick(new LegacyBudget(PHP_INT_MAX, 3));
+        $migration->run(new LegacyBudget(PHP_INT_MAX, 3));
         self::assertSame(['orders1', 'orders2', 'orders3'], $seen);
         self::assertSame('running', $migration->state()['status']);
 
-        $migration->tick(new LegacyBudget(PHP_INT_MAX, 10));
+        $migration->run(new LegacyBudget(PHP_INT_MAX, 10));
         self::assertSame(['orders1', 'orders2', 'orders3', 'orders4', 'orders5', 'waybills1'], $seen, 'no row twice');
         self::assertSame(5, LegacyReport::fromArray($migration->state()['report'])->counts('orders')['done']);
     }
@@ -65,27 +123,27 @@ class LegacyMigrationTest extends TestCase
     public function testDoneAfterLastStep(): void
     {
         $seen = [];
-        $migration = new LegacyMigration(new InMemoryState(), self::step('orders', 1, $seen), self::step('waybills', 0, $seen));
+        $migration = new LegacyMigration(new InMemoryState(), self::ready(), self::step('orders', 1, $seen), self::step('waybills', 0, $seen));
         $migration->request();
-        $migration->tick(new LegacyBudget(PHP_INT_MAX, 10));
+        $migration->run(new LegacyBudget(PHP_INT_MAX, 10));
 
         $state = $migration->state();
         self::assertSame('done', $state['status']);
         self::assertNotNull($state['finished_at']);
 
-        $migration->tick(new LegacyBudget(PHP_INT_MAX, 10));
+        $migration->run(new LegacyBudget(PHP_INT_MAX, 10));
         self::assertSame(['orders1'], $seen, 'a finished run does nothing more');
     }
 
     public function testRequestIgnoredWhileRunning(): void
     {
         $seen = [];
-        $migration = new LegacyMigration(new InMemoryState(), self::step('orders', 5, $seen));
+        $migration = new LegacyMigration(new InMemoryState(), self::ready(), self::step('orders', 5, $seen));
         self::assertTrue($migration->request());
         self::assertFalse($migration->request(), 'queued');
-        $migration->tick(new LegacyBudget(PHP_INT_MAX, 1));
+        $migration->run(new LegacyBudget(PHP_INT_MAX, 1));
         self::assertFalse($migration->request(), 'running');
-        $migration->tick(new LegacyBudget(PHP_INT_MAX, 10));
+        $migration->run(new LegacyBudget(PHP_INT_MAX, 10));
         self::assertTrue($migration->request(), 'done → may run again');
         self::assertSame('queued', $migration->state()['status']);
         self::assertSame([], LegacyReport::fromArray($migration->state()['report'])->fails());
@@ -94,8 +152,8 @@ class LegacyMigrationTest extends TestCase
     public function testNothingBeforeRequest(): void
     {
         $seen = [];
-        $migration = new LegacyMigration(new InMemoryState(), self::step('orders', 5, $seen));
-        $migration->tick(new LegacyBudget(PHP_INT_MAX, 10));
+        $migration = new LegacyMigration(new InMemoryState(), self::ready(), self::step('orders', 5, $seen));
+        $migration->run(new LegacyBudget(PHP_INT_MAX, 10));
 
         self::assertSame([], $seen);
         self::assertNull($migration->state()['status']);

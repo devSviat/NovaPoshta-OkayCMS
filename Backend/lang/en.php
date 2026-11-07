@@ -504,3 +504,6 @@ $lang['sviat__novaposhta__legacy_fail_namesakes_popular'] = 'the city could not 
 $lang['sviat__novaposhta__legacy_fail_setting'] = 'the value does not fit — not carried over';
 $lang['sviat__novaposhta__legacy_fail_sender'] = 'the sender\'s point was not found — choose it in «Sender and calculation»';
 $lang['sviat__novaposhta__legacy_order_unmatched'] = 'Carried over from the old module without a dictionary match: choose the settlement and the point again («Change»).';
+$lang['sviat__novaposhta__legacy_needs_update'] = 'First press «Update» for the Nova Poshta module in «Modules»: database version 0.11.0 is needed.';
+$lang['sviat__novaposhta__legacy_needs_dictionaries'] = 'First load NP\'s dictionaries (the «Dictionaries» block below): orders cannot be matched without them.';
+$lang['sviat__novaposhta__legacy_stalled'] = 'The run has not moved for a long time (NP does not answer or the key does not work). Check the key and run again — what is carried over is skipped.';

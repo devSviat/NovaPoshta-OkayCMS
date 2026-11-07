@@ -504,3 +504,6 @@ $lang['sviat__novaposhta__legacy_fail_namesakes_popular'] = 'не вдалося
 $lang['sviat__novaposhta__legacy_fail_setting'] = 'значення не підходить — не перенесено';
 $lang['sviat__novaposhta__legacy_fail_sender'] = 'відділення відправника не знайдено — виберіть у блоці «Відправник і розрахунок»';
 $lang['sviat__novaposhta__legacy_order_unmatched'] = 'Перенесено зі старого модуля без збігу в довіднику: виберіть населений пункт і пункт заново («Змінити»).';
+$lang['sviat__novaposhta__legacy_needs_update'] = 'Спершу натисніть «Оновити» для модуля Нової Пошти в «Модулях» — потрібна версія бази 0.11.0.';
+$lang['sviat__novaposhta__legacy_needs_dictionaries'] = 'Спершу завантажте довідники НП (блок «Довідники» нижче): без них замовлення не зіставити.';
+$lang['sviat__novaposhta__legacy_stalled'] = 'Перенесення давно не просувається (НП не відповідає або ключ не працює). Перевірте ключ і запустіть ще раз — уже перенесене пропуститься.';

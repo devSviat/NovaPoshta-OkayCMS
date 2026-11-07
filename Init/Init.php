@@ -143,6 +143,12 @@ class Init extends AbstractInit
         ServiceLocator::getInstance()->getService(Settings::class)->set(self::SCHEMA_SETTING, $version);
     }
 
+    /** For services that must not act on a schema the "Update" button has not created yet. */
+    public static function schemaAtLeast(string $version): bool
+    {
+        return self::schemaReady($version);
+    }
+
     private static function schemaReady(string $version): bool
     {
         return version_compare((string)ServiceLocator::getInstance()->getService(Settings::class)->get(self::SCHEMA_SETTING), $version, '>=');

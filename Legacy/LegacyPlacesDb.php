@@ -15,7 +15,6 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefStore;
 final class LegacyPlacesDb implements LegacyPlaces
 {
     private const int TIMEOUT_SECONDS = 5;
-    private const int NAMED_MAX = 50;
 
     public function __construct(
         private readonly Database $db,
@@ -59,8 +58,9 @@ final class LegacyPlacesDb implements LegacyPlaces
         return $this->select($this->queryFactory->newSelect()
             ->cols(['s.id', 's.name_uk', 's.area_uk', 's.district_uk', 's.has_pickup'])
             ->from(SettlementEntity::getTable() . ' AS s')
-            ->where('s.name_uk LIKE :name')
-            ->bindValue('name', '%' . addcslashes($place, '%_\\') . '%')
+            // Our names carry the type ("село Іванівка"): the place is the whole name or its last words.
+            ->where('(s.name_uk = :exact OR s.name_uk LIKE :tail)')
+            ->bindValues(['exact' => $place, 'tail' => '% ' . addcslashes($place, '%_\\')])
             ->limit(self::NAMED_MAX));
     }
 
@@ -81,7 +81,7 @@ final class LegacyPlacesDb implements LegacyPlaces
         try {
             $rows = $this->api->quick(self::TIMEOUT_SECONDS)->call('Address', 'getWarehouses', ['CityRef' => $cityRef, 'Limit' => '1']);
         } catch (NpApiException $e) {
-            if ($e->kind === NpErrorKind::Rejected) {
+            if (!self::worthRetrying($e->kind)) {
                 return null;
             }
             throw new LegacyPlacesUnavailable($e->getMessage(), 0, $e);
@@ -89,6 +89,15 @@ final class LegacyPlacesDb implements LegacyPlaces
         $index = is_array($rows[0] ?? null) ? trim((string)($rows[0]['WarehouseIndex'] ?? '')) : '';
 
         return $index !== '' ? $index : null;
+    }
+
+    /**
+     * Whether the row should wait for a later tick. A refused or unreadable answer will not change;
+     * a bad key or an outage may be fixed, and guessing "not found" then would leave orders unmatched.
+     */
+    public static function worthRetrying(NpErrorKind $kind): bool
+    {
+        return !in_array($kind, [NpErrorKind::Rejected, NpErrorKind::Malformed], true);
     }
 
     private function divisions(): \Okay\Core\QueryFactory\Select

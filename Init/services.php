@@ -69,6 +69,8 @@ use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyOrdersDb;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTables;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyData;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigration;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyGate;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyReadiness;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\OrdersStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\PaymentsStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\PopularStep;
@@ -365,9 +367,13 @@ return [
         'class' => SettingsStep::class,
         'arguments' => [new SR(LegacyData::class), new SR(LegacyTargets::class), new SR(LegacyCityMatcher::class), new SR(LegacyDivisionMatcher::class)],
     ],
+    LegacyGate::class => [
+        'class' => LegacyReadiness::class,
+        'arguments' => [new SR(DictionaryCounts::class)],
+    ],
     LegacyMigration::class => [
         'class' => LegacyMigration::class,
         // Orders before waybills: a waybill's card reads the order's point.
-        'arguments' => [new SR(ModuleState::class), new SR(OrdersStep::class), new SR(WaybillsStep::class), new SR(PaymentsStep::class), new SR(VolumesStep::class), new SR(PopularStep::class), new SR(SettingsStep::class)],
+        'arguments' => [new SR(ModuleState::class), new SR(LegacyGate::class), new SR(OrdersStep::class), new SR(WaybillsStep::class), new SR(PaymentsStep::class), new SR(VolumesStep::class), new SR(PopularStep::class), new SR(SettingsStep::class)],
     ],
 ];

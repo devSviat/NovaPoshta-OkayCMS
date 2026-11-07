@@ -52,4 +52,18 @@ class LegacyMigrationViewTest extends TestCase
         self::assertSame(101, $vars['fails'][0]['order']);
         self::assertSame([['id' => 3, 'name' => 'Нова Пошта', 'mode' => 'points'], ['id' => 1, 'name' => 'Кур\'єр', 'mode' => 'address'], ['id' => 7, 'name' => 'Дивний', 'mode' => null]], $vars['switch']);
     }
+
+    public function testBlockedUntilReadyAndStalledMayRestart(): void
+    {
+        $blocked = LegacyMigrationView::vars(self::state(null), self::COUNTS, ['OkayCMS/NovaposhtaCost'], [], self::STEPS, 'legacy_needs_dictionaries');
+        self::assertSame('legacy_needs_dictionaries', $blocked['problem']);
+        self::assertFalse($blocked['canStart']);
+
+        $stalled = LegacyMigrationView::vars(self::state('running', 0), self::COUNTS, [], [], self::STEPS, null, true);
+        self::assertTrue($stalled['canStart'], 'a run held for hours may be started again');
+        self::assertTrue($stalled['stalled']);
+
+        self::assertFalse(LegacyMigrationView::vars(self::state('running', 0), self::COUNTS, [], [], self::STEPS)['canStart']);
+        self::assertTrue(LegacyMigrationView::vars(self::state('done', 6), self::COUNTS, [], [], self::STEPS)['canStart']);
+    }
 }

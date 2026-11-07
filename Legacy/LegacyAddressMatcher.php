@@ -16,7 +16,11 @@ final class LegacyAddressMatcher
         if ($place === '') {
             return [null, 'legacy_fail_no_place'];
         }
-        $found = array_values(array_filter($this->places->settlementsNamed($place), static fn(object $s): bool => LegacyNames::place((string)$s->name_uk) === $place));
+        $named = $this->places->settlementsNamed($place);
+        if (count($named) >= LegacyPlaces::NAMED_MAX) {
+            return [null, 'legacy_fail_namesakes'];
+        }
+        $found = array_values(array_filter($named, static fn(object $s): bool => LegacyNames::place((string)$s->name_uk) === $place));
         if ($area !== null && trim($area) !== '') {
             $found = array_values(array_filter($found, static fn(object $s): bool => LegacyNames::area((string)$s->area_uk) === LegacyNames::area($area)));
         }

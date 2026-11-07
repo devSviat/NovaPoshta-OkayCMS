@@ -109,6 +109,8 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
             $legacyData->enabledModules(),
             $legacyData->legacyDeliveries(),
             $legacyMigration->stepNames(),
+            $legacyMigration->problem(),
+            $legacyMigration->stalled(),
         ));
         $byCategory = $dictionaryCounts->byCategory();
         $this->design->assign('np_key', KeySettingsView::vars($apiKey->value(), $keySettings->lastResult(), $submission));

@@ -21,9 +21,11 @@ final class LegacyCityMatcher
         if ($cityRef !== '' && ($known = $this->places->settlementOfCityRef($cityRef)) !== null) {
             return [$known, null];
         }
-        if ($cityName !== null && ($place = LegacyNames::place($cityName)) !== '') {
+        // getCities adds "(… р-н)" to namesakes: such a name is not unique by itself, NP decides.
+        if ($cityName !== null && !str_contains($cityName, '(') && ($place = LegacyNames::place($cityName)) !== ''
+            && count($named = $this->places->settlementsNamed($place)) < LegacyPlaces::NAMED_MAX) {
             $found = array_values(array_filter(
-                $this->places->settlementsNamed($place),
+                $named,
                 static fn(object $s): bool => (int)$s->has_pickup === 1 && LegacyNames::place((string)$s->name_uk) === $place,
             ));
             // Not remembered as a city Ref: a name is not proof, and the price lookups trust those pairs.

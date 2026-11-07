@@ -5,6 +5,9 @@ namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 /** Our dictionary as the migration needs it, and the one Nova Poshta question it may ask. */
 interface LegacyPlaces
 {
+    /** A name search that returns this many rows may have been cut: its result is not proof of uniqueness. */
+    public const int NAMED_MAX = 1000;
+
     /** @return object|null id, name_uk, area_uk, district_uk */
     public function settlement(int $id): ?object;
 

@@ -109,4 +109,34 @@ class LegacyMatchersTest extends TestCase
 
         self::assertSame([null, LegacyCityMatcher::BUDGET], (new LegacyCityMatcher($places))->match('ref-ivanivka', 'Іванівка', new LegacyBudget(PHP_INT_MAX, 5)));
     }
+
+    public function testCappedNameSearchIsAmbiguous(): void
+    {
+        $places = new FakeLegacyPlaces();
+        for ($i = 0; $i < \Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlaces::NAMED_MAX; $i++) {
+            $places->settlements[] = (object)['id' => 1000 + $i, 'name_uk' => 'село Петрівка', 'area_uk' => $i === 0 ? 'Сумська область' : 'Інша область', 'district_uk' => null, 'has_pickup' => $i === 0 ? 1 : 0];
+        }
+
+        self::assertSame([null, 'legacy_fail_namesakes'], new LegacyAddressMatcher($places)->match('Петрівка', 'Сумська', null), 'the search was cut: more may exist');
+        self::assertSame([null, LegacyCityMatcher::BUDGET], new LegacyCityMatcher($places)->match('ref-p', 'Петрівка', new LegacyBudget(PHP_INT_MAX, 0)), 'not guessed offline');
+    }
+
+    public function testDistrictInOldCityNameSkipsNameMatch(): void
+    {
+        $places = self::places();
+        $places->settlements[2]->has_pickup = 0;
+        $matcher = new LegacyCityMatcher($places);
+
+        self::assertSame([null, LegacyCityMatcher::BUDGET], $matcher->match('ref-iv', 'Іванівка (Березівський р-н)', new LegacyBudget(PHP_INT_MAX, 0)), 'getCities marks namesakes: ask NP');
+        $places->indexOfCity['ref-iv'] = '15/1';
+        self::assertSame([2, null], $matcher->match('ref-iv', 'Іванівка (Березівський р-н)', new LegacyBudget(PHP_INT_MAX, 1)));
+    }
+
+    public function testNpAnswersThatWillNotChangeAreFinal(): void
+    {
+        self::assertFalse(\Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlacesDb::worthRetrying(\Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind::Malformed));
+        self::assertFalse(\Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlacesDb::worthRetrying(\Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind::Rejected));
+        self::assertTrue(\Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlacesDb::worthRetrying(\Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind::Unavailable));
+        self::assertTrue(\Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlacesDb::worthRetrying(\Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind::InvalidKey), 'a key fixed later must not leave orders unmatched');
+    }
 }

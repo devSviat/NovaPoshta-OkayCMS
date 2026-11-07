@@ -16,6 +16,12 @@
                 <li>{$btr->sviat__novaposhta__legacy_step5|escape}</li>
             </ol>
 
+            {if $L.problem}
+                <div class="alert alert--warning" role="alert"><div class="alert__content"><p>{$btr->getTranslation('sviat__novaposhta__'|cat:$L.problem)|escape}</p></div></div>
+            {/if}
+            {if $L.stalled}
+                <div class="alert alert--warning" role="alert"><div class="alert__content"><p>{$btr->sviat__novaposhta__legacy_stalled|escape}</p></div></div>
+            {/if}
             {if $np_legacy_backup_missing}
                 <div class="alert alert--warning" role="alert"><div class="alert__content"><p>{$btr->sviat__novaposhta__legacy_backup_missing|escape}</p></div></div>
             {/if}
@@ -65,7 +71,7 @@
                 <p class="text_grey mt-1">{$btr->sviat__novaposhta__legacy_again_note|escape}</p>
             {/if}
 
-            {if $L.phase != 'running'}
+            {if $L.canStart}
                 <form method="post">
                     <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
                     <input type="hidden" name="np_action" value="legacy_migrate">
