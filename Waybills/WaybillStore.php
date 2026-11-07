@@ -98,6 +98,28 @@ final class WaybillStore implements WaybillRows
         }
     }
 
+    /**
+     * A waybill carried over from NovaPoshtaTracking (stage 5), with the status and tracking it had.
+     * @param array{number:string, ref:?string, api:string, status_code:?int, status_text:?string, status_at:?string, scheduled_at:?string, tracking:?array, tracked_at:?string} $values
+     * @return bool false when the order already has a waybill
+     */
+    public function importLegacy(int $orderId, array $values): bool
+    {
+        if ($this->forOrder($orderId) !== null || !$this->add($orderId, $values['number'], $values['ref'], $values['api'], [])) {
+            return false;
+        }
+        $this->update($orderId, [
+            'status_code' => $values['status_code'],
+            'status_text' => $values['status_text'],
+            'status_at' => $values['status_at'],
+            'scheduled_at' => $values['scheduled_at'],
+            'tracking' => $values['tracking'] !== null ? json_encode($values['tracking'], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) : null,
+            'tracked_at' => $values['tracked_at'],
+        ]);
+
+        return true;
+    }
+
     public function saveStatus(int $orderId, int $code, string $text, ?string $statusAt, ?string $scheduledAt): void
     {
         $this->update($orderId, [

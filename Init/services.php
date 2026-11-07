@@ -64,6 +64,8 @@ use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyCityMatcher;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyDivisionMatcher;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlaces;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlacesDb;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyOrders;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyOrdersDb;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTables;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
 use Okay\Modules\Sviat\NovaPoshta\Quote\AddressCityResolver;
@@ -320,5 +322,9 @@ return [
     LegacyAddressMatcher::class => [
         'class' => LegacyAddressMatcher::class,
         'arguments' => [new SR(LegacyPlaces::class)],
+    ],
+    LegacyOrders::class => [
+        'class' => LegacyOrdersDb::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillStore::class)],
     ],
 ];
