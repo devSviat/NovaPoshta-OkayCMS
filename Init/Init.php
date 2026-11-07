@@ -30,6 +30,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Groups\DefaultGroups;
@@ -210,6 +211,13 @@ class Init extends AbstractInit
                 ->time('*/5 * * * *')
                 ->overlap(false)
                 ->timeout(3600)
+        );
+        $this->registerSchedule(
+            new Schedule([WaybillTracking::class, 'tick'])
+                ->name('Nova Poshta: waybill tracking')
+                ->time('*/15 * * * *')
+                ->overlap(false)
+                ->timeout(900)
         );
     }
 

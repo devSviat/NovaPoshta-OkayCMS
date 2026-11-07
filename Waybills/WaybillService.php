@@ -120,8 +120,13 @@ final class WaybillService
 
             return WaybillOutcome::refused('waybill_not_saved', $number);
         }
-        $audit = WaybillAudit::compare($draft, $this->status($number, $draft->recipientPhone) ?? []);
+        $status = $this->status($number, $draft->recipientPhone);
+        $audit = WaybillAudit::compare($draft, $status ?? []);
         $this->rows->saveAudit($orderId, $audit);
+        if ($status !== null) {
+            // The same answer fills the card: no second request.
+            $this->rows->saveTracking($orderId, $status);
+        }
 
         return new WaybillOutcome(true, $number, [], array_values(array_unique($notices)), $audit);
     }

@@ -112,6 +112,8 @@ class WaybillServiceTest extends TestCase
         self::assertSame('InternetDocumentGeneral', $this->requestBody(0)['modelName']);
         self::assertSame('verified', $outcome->audit->status);
         self::assertSame('verified', $this->rows->forOrder(self::ORDER)->audit_status);
+        self::assertSame(W::fixture('status_cod')['Number'], json_decode($this->rows->forOrder(self::ORDER)->tracking, true)['Number']);
+        self::assertCount(2, $this->http->requests());
     }
 
     public function testTransportErrorOnSaveIsUncertain(): void
