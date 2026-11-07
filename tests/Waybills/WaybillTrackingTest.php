@@ -146,6 +146,17 @@ class WaybillTrackingTest extends TestCase
         self::assertSame('380500000000', json_decode($this->http->requests()[0]->body, true)['methodProperties']['Documents'][0]['Phone']);
     }
 
+    public function testRefreshUsesTheWaybillsRecipientPhone(): void
+    {
+        $this->waybill(12);
+        $this->rows->saveTracking(12, ['StatusCode' => '1', 'PhoneRecipient' => '380500000000']);
+        $this->http->json(200, ['success' => true, 'data' => [W::fixture('status_cod')], 'errors' => []]);
+
+        $this->tracking()->refresh(12, '380501234567');
+
+        self::assertSame('380500000000', json_decode($this->http->requests()[0]->body, true)['methodProperties']['Documents'][0]['Phone']);
+    }
+
     public function testRefreshWithoutPhoneExplains(): void
     {
         $this->waybill(11);

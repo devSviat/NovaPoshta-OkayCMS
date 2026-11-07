@@ -48,6 +48,7 @@ final class WaybillView
                 'numberSpaced' => trim(chunk_split((string)$row->number, 4, ' ')),
                 'attached' => $row->api === 'attached',
                 'trackingUrl' => self::TRACKING_URL . rawurlencode((string)$row->number),
+                'card' => WaybillCard::fromDocument(is_string($row->tracking ?? null) ? (json_decode($row->tracking, true) ?: null) : null, $row),
                 'services' => json_decode((string)$row->services, true) ?: [],
                 'audit' => $row->audit_status ? AuditResult::fromArray(json_decode((string)$row->audit, true) ?: ['status' => $row->audit_status])->toArray() : null,
             ];

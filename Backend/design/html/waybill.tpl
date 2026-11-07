@@ -15,7 +15,7 @@
 {$w = $np_waybill}
 <div class="np-wb fn_np_waybill" data-url="{$smarty.server.SCRIPT_NAME|escape}?controller=Sviat.NovaPoshta.WaybillAdmin" data-order="{$w.orderId|escape}" data-token="{$smarty.session.id|escape}"
      data-confirm-remove="{$btr->sviat__novaposhta__waybill_confirm_remove|escape}" data-confirm-unlink="{$btr->sviat__novaposhta__waybill_confirm_unlink|escape}" data-unlink="{$btr->sviat__novaposhta__waybill_unlink|escape}"
-     data-busy="{$btr->sviat__novaposhta__waybill_creating|escape}" data-failed-create="{$btr->sviat__novaposhta__waybill_failed_create|escape}" data-failed-attach="{$btr->sviat__novaposhta__waybill_failed_attach|escape}" data-failed-remove="{$btr->sviat__novaposhta__waybill_failed_remove|escape}" data-what-to-do="{$btr->sviat__novaposhta__waybill_what_to_do|escape}"
+     data-busy="{$btr->sviat__novaposhta__waybill_creating|escape}" data-failed-create="{$btr->sviat__novaposhta__waybill_failed_create|escape}" data-failed-attach="{$btr->sviat__novaposhta__waybill_failed_attach|escape}" data-failed-remove="{$btr->sviat__novaposhta__waybill_failed_remove|escape}" data-failed-refresh="{$btr->sviat__novaposhta__waybill_failed_refresh|escape}" data-what-to-do="{$btr->sviat__novaposhta__waybill_what_to_do|escape}"
      data-details="{$btr->sviat__novaposhta__waybill_details|escape}" data-network="{$btr->sviat__novaposhta__waybill_network|escape}">
     <div class="np-wb__head">
         <span class="heading_label">{$btr->sviat__novaposhta__waybill_title|escape}</span>
@@ -25,8 +25,57 @@
 
     {if $w.row}
         {$r = $w.row}
+        {$c = $r.card}
         <div class="np-wb__card">
-            <div class="np-wb__number"><a href="{$r.trackingUrl|escape}" target="_blank" rel="noopener noreferrer">{$r.numberSpaced|escape}</a></div>
+            {if $c.created}<div class="text_grey font_12">{$btr->sviat__novaposhta__card_created|escape} {$c.created|escape}</div>{/if}
+            <div class="np-wb__number">
+                <a href="{$c.link|escape}" target="_blank" rel="noopener noreferrer">{$c.numberSpaced|escape} ↗</a>
+                {if $c.statusKey}<span class="np-wb__badge np-wb__badge--{$c.statusGroup|escape}">{$btr->getTranslation($c.statusKey)|escape}</span>{/if}
+            </div>
+            {if $c.description || $c.announced}
+                <div class="np-wb__cells">
+                    {if $c.description}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_description|escape}</span>{$c.description|escape}</div>{/if}
+                    {if $c.announced}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_announced|escape}</span><b>{$c.announced|escape}</b></div>{/if}
+                </div>
+            {/if}
+            {if $c.route}
+                <div class="np-wb__section np-wb__route">
+                    {if $c.route.from}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_from|escape}</span>{$c.route.from|escape}</div>{/if}
+                    {if $c.route.status}<div class="np-wb__status">{$c.route.status|escape}</div>{/if}
+                    {if $c.route.plan}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_plan|escape}</span>{$c.route.plan|escape}</div>{/if}
+                    {if $c.route.to}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_to|escape}</span>{$c.route.to|escape}</div>{/if}
+                </div>
+            {/if}
+            {if $c.recipient && ($c.recipient.name || $c.recipient.phone)}
+                <div class="np-wb__section">
+                    <div class="np-wb__group">{$btr->sviat__novaposhta__card_recipient|escape}</div>
+                    {if $c.recipient.name}<div>{$c.recipient.name|escape}</div>{/if}
+                    {if $c.recipient.phone}<div>{$c.recipient.phone|escape}</div>{/if}
+                    {if $c.recipient.received}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_received|escape}</span>{$c.recipient.received|escape}</div>{/if}
+                </div>
+            {/if}
+            {if $c.services && ($c.services.redelivery || $c.services.control || $c.services.returnOrRedirect)}
+                <div class="np-wb__section">
+                    <div class="np-wb__group">{$btr->sviat__novaposhta__card_services|escape}</div>
+                    {if $c.services.redelivery}
+                        <div><span class="np-wb__label">{$btr->sviat__novaposhta__card_redelivery|escape}</span><b>{$c.services.redelivery|escape}</b>{if $c.services.redeliveryPayer}, {$btr->sviat__novaposhta__card_fee_payer|escape} {$btr->getTranslation($c.services.redeliveryPayer)|escape}{/if}{if $c.services.redeliveryNumber}, № {$c.services.redeliveryNumber|escape}{/if}</div>
+                    {/if}
+                    {if $c.services.control}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_control|escape}</span><b>{$c.services.control|escape}</b></div>{/if}
+                    {if $c.services.returnOrRedirect}<div><span class="np-wb__label">{$btr->getTranslation($c.services.returnOrRedirect.kind)|escape}</span>{$c.services.returnOrRedirect.number|escape}</div>{/if}
+                </div>
+            {/if}
+            {if $c.payment && ($c.payment.cost || $c.payment.payer)}
+                <div class="np-wb__section">
+                    <div class="np-wb__group">{$btr->sviat__novaposhta__card_payment|escape}</div>
+                    {if $c.payment.cost}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_cost|escape}</span><b>{$c.payment.cost|escape}</b></div>{/if}
+                    {if $c.payment.payer}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_payer|escape}</span>{$btr->getTranslation($c.payment.payer)|escape}{if $c.payment.method}, {$btr->getTranslation($c.payment.method)|escape}{/if}</div>{/if}
+                </div>
+            {elseif $r.services.cod}
+                <div class="np-wb__line"><span class="text_600">{$btr->sviat__novaposhta__waybill_cod|escape}:</span> {$r.services.codAmount|escape} ₴ ({if $r.services.codKind == 'control'}{$btr->sviat__novaposhta__waybill_cod_control|escape}{else}{$btr->sviat__novaposhta__waybill_cod_money|escape}{/if})</div>
+            {/if}
+            {if $r.services.lifting}
+                <div class="np-wb__line"><span class="text_600">{$btr->sviat__novaposhta__order_lifting|escape}:</span> {$r.services.floor|escape}</div>
+            {/if}
             {if $r.attached}
                 <div class="text_grey">{$btr->sviat__novaposhta__waybill_attached_note|escape}</div>
             {elseif $r.audit}
@@ -47,13 +96,24 @@
                     <div class="text_grey">{if $kind == 'point'}{$btr->sviat__novaposhta__waybill_point_unchecked|escape}{else}{$btr->sviat__novaposhta__waybill_lifting_unchecked|escape}{/if}</div>
                 {/foreach}
             {/if}
-            {if $r.services.cod}
-                <div class="np-wb__line"><span class="text_600">{$btr->sviat__novaposhta__waybill_cod|escape}:</span> {$r.services.codAmount|escape} ₴ ({if $r.services.codKind == 'control'}{$btr->sviat__novaposhta__waybill_cod_control|escape}{else}{$btr->sviat__novaposhta__waybill_cod_money|escape}{/if})</div>
-            {/if}
-            {if $r.services.lifting}
-                <div class="np-wb__line"><span class="text_600">{$btr->sviat__novaposhta__order_lifting|escape}:</span> {$r.services.floor|escape}</div>
+            {if $c.more}
+                <details class="np-wb__more">
+                    <summary>{$btr->sviat__novaposhta__card_more|escape}</summary>
+                    {if $c.more.type}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_type|escape}</span>{$btr->getTranslation($c.more.type)|escape}</div>{/if}
+                    {if $c.more.weight}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_weight|escape}</span>{$c.more.weight|escape}</div>{/if}
+                    {if $c.more.volumeWeight}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_volume_weight|escape}</span>{$c.more.volumeWeight|escape}</div>{/if}
+                    <div><span class="np-wb__label">{$btr->sviat__novaposhta__card_seats|escape}</span>{$c.more.seats|escape}</div>
+                    {if $c.more.barcode}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_barcode|escape}</span>{$c.more.barcode|escape}</div>{/if}
+                    {if $c.more.factualWeight}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_factual_weight|escape}</span>{$c.more.factualWeight|escape}</div>{/if}
+                    {if $c.more.serviceType}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_service_type|escape}</span>{$btr->getTranslation($c.more.serviceType)|escape}</div>{/if}
+                    {if $c.recipient && $c.recipient.address}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_address|escape}</span>{$c.recipient.address|escape}</div>{/if}
+                </details>
             {/if}
             <div class="np-wb__issues" role="alert"></div>
+            <div class="np-wb__footer">
+                <span class="text_grey">{if $c.updated}{$btr->sviat__novaposhta__card_updated|escape} {$c.updated|escape}{else}{$btr->sviat__novaposhta__card_not_updated|escape}{/if}</span>
+                <button type="button" class="np-wb__link fn_np_wb_refresh">{$btr->sviat__novaposhta__card_refresh|escape}</button>
+            </div>
             <div class="np-wb__actions">
                 <button type="button" class="btn btn_small btn-outline-danger fn_np_wb_remove" data-attached="{if $r.attached}1{/if}">{if $r.attached}{$btr->sviat__novaposhta__waybill_unlink|escape}{else}{$btr->sviat__novaposhta__waybill_remove|escape}{/if}</button>
             </div>

@@ -87,13 +87,18 @@ final class WaybillTracking
         return $result;
     }
 
-    /** The full document for the card; without the recipient's phone NP hides part of it. */
+    /**
+     * The full document for the card; without the recipient's phone NP hides part of it. The phone
+     * the waybill was made for wins over the order's: the manager may have changed it in the form.
+     */
     public function refresh(int $orderId, ?string $phone): WaybillOutcome
     {
         $row = $this->rows->forOrder($orderId);
         if ($row === null || $row->api === 'pending') {
             return WaybillOutcome::refused('waybill_none');
         }
+        $known = json_decode((string)($row->tracking ?? ''), true);
+        $phone = NpPhone::normalize((string)($known['PhoneRecipient'] ?? '')) ?? $phone;
         try {
             $document = $this->oldApi->quick(self::TIMEOUT_SECONDS)->call('TrackingDocument', 'getStatusDocuments', ['Documents' => [['DocumentNumber' => (string)$row->number, 'Phone' => (string)$phone]]])[0] ?? null;
         } catch (NpApiException $e) {
