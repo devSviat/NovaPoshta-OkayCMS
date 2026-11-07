@@ -17,7 +17,7 @@ class OrderDeliveryViewTest extends TestCase
             'division_address' => 'вул. Київська, 1',
         ]);
 
-        self::assertSame(['city' => 'місто Бровари, Броварський район, Київська область', 'point' => 'Відділення №3: вул. Київська, 1', 'term' => null, 'priceUnconfirmed' => false, 'address' => null, 'lifting' => false, 'codFee' => null, 'codFeePublic' => true], $lines);
+        self::assertSame(['city' => 'місто Бровари, Броварський район, Київська область', 'point' => 'Відділення №3: вул. Київська, 1', 'term' => null, 'priceUnconfirmed' => false, 'legacyUnmatched' => false, 'address' => null, 'lifting' => false, 'codFee' => null, 'codFeePublic' => true], $lines);
     }
 
     public function testMissingPartsAreLeftOut(): void
@@ -30,7 +30,7 @@ class OrderDeliveryViewTest extends TestCase
             'division_address' => null,
         ]);
 
-        self::assertSame(['city' => 'місто Київ', 'point' => 'Поштомат №5', 'term' => null, 'priceUnconfirmed' => false, 'address' => null, 'lifting' => false, 'codFee' => null, 'codFeePublic' => true], $lines);
+        self::assertSame(['city' => 'місто Київ', 'point' => 'Поштомат №5', 'term' => null, 'priceUnconfirmed' => false, 'legacyUnmatched' => false, 'address' => null, 'lifting' => false, 'codFee' => null, 'codFeePublic' => true], $lines);
     }
 
     public function testTermAndUnconfirmedPrice(): void

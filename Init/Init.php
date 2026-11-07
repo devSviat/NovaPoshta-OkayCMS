@@ -34,6 +34,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigration;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersEntityFilters;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
@@ -243,6 +244,13 @@ class Init extends AbstractInit
                 ->time('*/5 * * * *')
                 ->overlap(false)
                 ->timeout(3600)
+        );
+        $this->registerSchedule(
+            new Schedule([LegacyMigration::class, 'tick'])
+                ->name('Nova Poshta: data from the old modules')
+                ->time('*/5 * * * *')
+                ->overlap(false)
+                ->timeout(300)
         );
         $this->registerSchedule(
             new Schedule([WaybillTracking::class, 'tick'])

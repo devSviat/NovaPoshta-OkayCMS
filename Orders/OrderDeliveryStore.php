@@ -76,6 +76,9 @@ final class OrderDeliveryStore
             unset($pricing['cod_fee']);
         }
         $row = $pricing + $row;
+        if ($existing && self::stored('legacy')) {
+            $row['legacy'] = self::legacyAfterChoice($existing->legacy ?? null);
+        }
         $existing ? $entity->update((int)$existing->id, $row) : $entity->add($row + ['created_at' => $now]);
     }
 
@@ -116,6 +119,12 @@ final class OrderDeliveryStore
         $rows = $this->entityFactory->get(OrderDeliveryEntity::class)->find(['order_id' => $orderIds, 'limit' => 1]);
 
         return $rows ? reset($rows) : null;
+    }
+
+    /** A point or address chosen again from the dictionary: a carried-over row is now matched. */
+    public static function legacyAfterChoice(?string $was): ?string
+    {
+        return $was === null ? null : 'migrated';
     }
 
     /** Column lengths of the order table: values from old modules are cut to fit, never rejected. */

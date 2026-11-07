@@ -26,6 +26,7 @@ final class OrderDeliveryView
             'term' => preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $term, $m) ? "{$m[3]}.{$m[2]}.{$m[1]}" : null,
             // Nova Poshta gave no price at checkout: no delivery is charged, the manager states it.
             'priceUnconfirmed' => ($row->price_source ?? null) === 'fallback' && !($orderDeliveryPrice > 0),
+            'legacyUnmatched' => ($row->legacy ?? null) === 'unmatched',
             'address' => ($row->mode ?? null) === 'address' ? self::address($row) : null,
             'lifting' => !empty($row->lifting),
             // Paid by the recipient at the branch, not part of the order total.

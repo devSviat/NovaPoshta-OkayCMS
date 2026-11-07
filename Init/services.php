@@ -67,6 +67,14 @@ use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlacesDb;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyOrders;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyOrdersDb;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTables;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyData;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigration;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\OrdersStep;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\PaymentsStep;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\PopularStep;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\SettingsStep;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\VolumesStep;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\WaybillsStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTargets;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTargetsDb;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
@@ -305,10 +313,6 @@ return [
         'class' => OrderDeliveryStore::class,
         'arguments' => [new SR(EntityFactory::class)],
     ],
-    LegacyTables::class => [
-        'class' => LegacyTables::class,
-        'arguments' => [new SR(Database::class), new SR(QueryFactory::class), new SR(Config::class), new SR(Settings::class), new SR(EntityFactory::class)],
-    ],
     LegacyPlaces::class => [
         'class' => LegacyPlacesDb::class,
         'arguments' => [new SR(Database::class), new SR(QueryFactory::class), new SR(DbCityRefStore::class), new SR(OldApiClient::class)],
@@ -332,5 +336,38 @@ return [
     LegacyTargets::class => [
         'class' => LegacyTargetsDb::class,
         'arguments' => [new SR(EntityFactory::class), new SR(Settings::class), new SR(PopularCities::class)],
+    ],
+    LegacyData::class => [
+        'class' => LegacyTables::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class), new SR(Config::class), new SR(Settings::class), new SR(EntityFactory::class)],
+    ],
+    OrdersStep::class => [
+        'class' => OrdersStep::class,
+        'arguments' => [new SR(LegacyData::class), new SR(LegacyOrders::class), new SR(LegacyPlaces::class), new SR(LegacyCityMatcher::class), new SR(LegacyDivisionMatcher::class), new SR(LegacyAddressMatcher::class)],
+    ],
+    WaybillsStep::class => [
+        'class' => WaybillsStep::class,
+        'arguments' => [new SR(LegacyData::class), new SR(LegacyOrders::class)],
+    ],
+    PaymentsStep::class => [
+        'class' => PaymentsStep::class,
+        'arguments' => [new SR(LegacyData::class), new SR(LegacyTargets::class)],
+    ],
+    VolumesStep::class => [
+        'class' => VolumesStep::class,
+        'arguments' => [new SR(LegacyData::class), new SR(LegacyTargets::class)],
+    ],
+    PopularStep::class => [
+        'class' => PopularStep::class,
+        'arguments' => [new SR(LegacyData::class), new SR(LegacyTargets::class), new SR(LegacyCityMatcher::class)],
+    ],
+    SettingsStep::class => [
+        'class' => SettingsStep::class,
+        'arguments' => [new SR(LegacyData::class), new SR(LegacyTargets::class), new SR(LegacyCityMatcher::class), new SR(LegacyDivisionMatcher::class)],
+    ],
+    LegacyMigration::class => [
+        'class' => LegacyMigration::class,
+        // Orders before waybills: a waybill's card reads the order's point.
+        'arguments' => [new SR(ModuleState::class), new SR(OrdersStep::class), new SR(WaybillsStep::class), new SR(PaymentsStep::class), new SR(VolumesStep::class), new SR(PopularStep::class), new SR(SettingsStep::class)],
     ],
 ];

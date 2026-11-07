@@ -28,4 +28,11 @@ class OrderDeliveryStoreLegacyTest extends TestCase
         $names = array_map(static fn($f) => $f->getName(), Init::orderTables()[\Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class]);
         self::assertContains('legacy', $names, 'a clean install creates it too');
     }
+
+    public function testChoosingAPointClearsTheUnmatchedMark(): void
+    {
+        self::assertSame('migrated', OrderDeliveryStore::legacyAfterChoice('unmatched'));
+        self::assertSame('migrated', OrderDeliveryStore::legacyAfterChoice('migrated'));
+        self::assertNull(OrderDeliveryStore::legacyAfterChoice(null));
+    }
 }
