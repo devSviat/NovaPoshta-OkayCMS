@@ -808,36 +808,76 @@
         return value && value !== 'transparent' && !/rgba\([^)]*,\s*0\)$/.test(value) ? value : null;
     }
 
+    /** A colour that says "chosen": not black, white or grey, which themes use for plain text and lines. */
+    function accentColor(value) {
+        var color = visibleColor(value);
+        var rgb = color ? color.match(/\d+(\.\d+)?/g) : null;
+        if (!rgb || rgb.length < 3) {
+            return null;
+        }
+        var r = Number(rgb[0]), g = Number(rgb[1]), b = Number(rgb[2]);
+        return Math.max(r, g, b) - Math.min(r, g, b) > 24 ? color : null;
+    }
+
+    function isDark(color) {
+        var rgb = color.match(/\d+(\.\d+)?/g).map(Number);
+        return 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2] < 160;
+    }
+
     /**
-     * okay_shop-derived themes do not all expose their colours as CSS variables (broken_new
-     * compiles them away), so the colours are read from the theme's own checkout button and
-     * input on this page. vibe_shop needs nothing: the block uses its chip component.
+     * The colour the theme marks a chosen option with: the mark of the chosen delivery method (an svg
+     * tick or a styled radio), else the checkout button. Not the first .form__button: that is the
+     * coupon button, pale in broken_new (QA 07.11.2026).
+     */
+    function themeAccent() {
+        var chosen = document.querySelector('input[name="delivery_id"]:checked');
+        var label = chosen ? (chosen.closest('label') || document.querySelector('label[for="' + chosen.id + '"]')) : null;
+        var found = null;
+        if (label) {
+            label.querySelectorAll('svg, svg *').forEach(function (node) {
+                var style = getComputedStyle(node);
+                found = found || accentColor(style.stroke) || accentColor(style.fill);
+            });
+            [chosen, label].forEach(function (node) {
+                ['::before', '::after'].forEach(function (pseudo) {
+                    var style = getComputedStyle(node, pseudo);
+                    found = found || accentColor(style.backgroundColor) || accentColor(style.borderTopColor);
+                });
+            });
+            found = found || accentColor(getComputedStyle(chosen).accentColor);
+        }
+        var button = found ? null : document.querySelector('[name="checkout"].form__button, button[name="checkout"]');
+        if (button) {
+            var style = getComputedStyle(button);
+            // A gradient button (broken_new) has its brand colour in the gradient or on the border.
+            var gradient = (style.backgroundImage.match(/rgba?\([^)]*\)/g) || []);
+            found = accentColor(style.backgroundColor) || accentColor(gradient[gradient.length - 1]) || accentColor(gradient[0]) || accentColor(style.borderTopColor);
+        }
+        return found;
+    }
+
+    /**
+     * okay_shop-derived themes do not all expose their colours as CSS variables (broken_new and the
+     * built stands compile them away), so colour and corners are read from the page. vibe_shop needs
+     * nothing: the block uses its chip component.
      */
     function adoptThemeColours(root) {
         if (!root.classList.contains('np-cart--okay')) {
             return;
         }
-        var button = document.querySelector('form .form__button, .form__button');
-        var input = root.querySelector('.np-cart__city-input');
-        if (button) {
-            var style = getComputedStyle(button);
-            // A flat button has a background colour; a gradient one (broken_new) has its brand
-            // colour on the border, or as the first stop of the gradient.
-            var gradient = (style.backgroundImage.match(/rgba?\([^)]*\)/) || [])[0];
-            var border = visibleColor(style.borderTopColor);
-            var accent = visibleColor(style.backgroundColor)
-                || (border && border !== style.color ? border : null)
-                || visibleColor(gradient);
-            if (accent) {
-                root.style.setProperty('--np-accent', accent);
-                root.style.setProperty('--np-accent-text', style.color);
-            }
+        var accent = themeAccent();
+        if (accent) {
+            root.style.setProperty('--np-accent', accent);
+            root.style.setProperty('--np-accent-text', isDark(accent) ? '#fff' : '#222');
         }
+        var input = root.querySelector('.np-cart__city-input');
         if (input) {
-            var line = visibleColor(getComputedStyle(input).borderTopColor);
+            var style = getComputedStyle(input);
+            var line = visibleColor(style.borderTopColor);
             if (line) {
                 root.style.setProperty('--np-border', line);
             }
+            root.style.setProperty('--np-radius', style.borderTopLeftRadius);
         }
     }
 
@@ -852,17 +892,13 @@
         if (window.jQuery) {
             window.jQuery(document).on('change', 'input[name="delivery_id"]', function () {
                 blocks.forEach(function (block) {
+                    // The theme marks only the chosen method: its colour is readable now.
+                    adoptThemeColours(block.root);
                     block.showUnpricedSummary();
                     if (block.settlement) {
                         block.load();
                         block.requestQuote();
                     }
-                });
-            });
-            // Cash on delivery is a payment method (author's decision): its commission changes the price.
-            window.jQuery(document).on('change', 'input[name="payment_method_id"]', function () {
-                blocks.forEach(function (block) {
-                    block.requestQuote();
                 });
             });
         }

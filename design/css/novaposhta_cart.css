@@ -89,7 +89,7 @@
     color: var(--np-text);
     background: var(--np-surface);
     border: 1px solid var(--np-border);
-    border-radius: 17px;
+    border-radius: var(--np-radius, 17px);
     cursor: pointer;
 }
 .np-chip:hover { border-color: var(--np-accent); }
