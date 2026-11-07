@@ -55,6 +55,9 @@
         this.cityLine = root.querySelector('.np-cart__city-line');
         this.chosen = root.querySelector('.np-cart__chosen');
         this.step = 'city';
+        this.codPayments = (root.getAttribute('data-cod-payments') || '').split(',').filter(Boolean);
+        this.priceHidden = root.getAttribute('data-price-hidden') === '1';
+        this.codFeeText = null;
         this.suggest = root.querySelector('.np-cart__suggest');
         this.points = root.querySelector('.np-cart__points');
         this.groups = root.querySelector('.np-cart__groups');
@@ -98,6 +101,7 @@
         this.searchTimer = null;
         this.bind();
         this.showUnpricedSummary();
+        this.showCodLines();
         if (this.mode === 'address') {
             this.bindAddress();
         }
@@ -143,6 +147,43 @@
         if (step !== 'points') {
             this.points.hidden = true;
         }
+    };
+
+    /**
+     * One line inside the label of each "cash on delivery" payment: Nova Poshta's commission is paid
+     * at the branch and is not part of the total. Inside the label, not after it: themes show the
+     * payment's description only right after its label.
+     */
+    Block.prototype.showCodLines = function () {
+        var self = this;
+        var input = this.themeInput();
+        var mine = input && input.length && input.is(':checked');
+        document.querySelectorAll('.np-cod-line[data-np-delivery="' + this.deliveryId + '"]').forEach(function (line) {
+            if (!mine) {
+                line.remove();
+            }
+        });
+        if (!mine) {
+            return;
+        }
+        var text = this.codFeeText && !this.priceHidden
+            ? format(this.texts.cart_cod_fee, { fee: this.codFeeText })
+            : this.texts.cart_cod_fee_unknown || '';
+        this.codPayments.forEach(function (id) {
+            var payment = document.getElementById('payment_' + id.replace(/[^0-9]/g, ''));
+            var label = payment ? (payment.closest('label') || document.querySelector('label[for="' + payment.id + '"]')) : null;
+            if (!label) {
+                return;
+            }
+            var host = label.querySelector('.vs-option-card__body') || label.querySelector('.delivery__name') || label;
+            var line = host.querySelector('.np-cod-line');
+            if (!line) {
+                line = el('span', 'np-cod-line');
+                line.setAttribute('data-np-delivery', self.deliveryId);
+                host.appendChild(line);
+            }
+            line.textContent = text;
+        });
     };
 
     Block.prototype.showChosen = function () {
@@ -596,6 +637,8 @@
         }
         this.quoteBox.hidden = true;
         this.quoteBox.textContent = '';
+        this.codFeeText = null;
+        this.showCodLines();
         this.restoreTheme();
     };
 
@@ -663,6 +706,8 @@
         } else if (problem && !priced && data.problem !== 'no_city_ref') {
             lines.push(this.texts.cart_price_unreachable);
         }
+        this.codFeeText = data.codFeeText || null;
+        this.showCodLines();
         this.showLifting(data);
         this.quoteBox.textContent = '';
         var self = this;
@@ -895,6 +940,7 @@
                     // The theme marks only the chosen method: its colour is readable now.
                     adoptThemeColours(block.root);
                     block.showUnpricedSummary();
+                    block.showCodLines();
                     if (block.settlement) {
                         block.load();
                         block.requestQuote();

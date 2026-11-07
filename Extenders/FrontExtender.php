@@ -213,6 +213,7 @@ class FrontExtender implements ExtensionInterface
         $this->design->assign('np_texts_json', json_encode($texts, JSON_UNESCAPED_UNICODE));
         $this->design->assign('np_modes', array_map(static fn($d): string => DeliveryMode::fromServiceType($d->settings['service_type'] ?? null) === DeliveryMode::Address ? 'address' : 'points', $own));
         $this->design->assign('np_prefill', $this->prefill(array_keys($own), $lang));
+        $this->design->assign('np_cod_payments', array_map(fn($d): string => implode(',', $this->quotes->codFeePayments($d)), $own));
     }
 
     /**

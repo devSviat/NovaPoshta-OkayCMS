@@ -23,7 +23,9 @@
      data-division="{$np_choice.division_json|escape}"
      data-texts="{$np_texts_json|escape}"
      data-chip="{$np_theme.chip|escape}"
-     data-chip-selected="{$np_theme.chipSelected|escape}">
+     data-chip-selected="{$np_theme.chipSelected|escape}"
+     data-cod-payments="{$np_cod_payments[$delivery->id]|default:''|escape}"
+     data-price-hidden="{if $delivery->hide_front_delivery_price}1{else}0{/if}">
 
     {if $np_popular}
         <div class="np-cart__popular {$np_theme.chips|escape}" role="group" aria-label="{$lang->sviat__novaposhta__cart_popular|escape}">

@@ -179,8 +179,22 @@ final class CartQuotes
     /** The commission is asked whenever the method can be paid by money-transfer COD (shown under that payment). */
     private function codFeeWanted(object $delivery, ShippingConfig $config): bool
     {
-        return $config->codKind === CodKind::Money
-            && CodPayments::wantsFee((array)$this->entityFactory->get(DeliveriesEntity::class)->getDeliveryPayments((int)$delivery->id), $this->codPayments->codIds());
+        return $this->codFeePayments($delivery, $config) !== [];
+    }
+
+    /**
+     * Payment methods of this delivery method under which the cart shows Nova Poshta's commission:
+     * marked as its cash on delivery, and only for a money transfer (payment control is the shop's cost).
+     * @return list<int>
+     */
+    public function codFeePayments(object $delivery, ?ShippingConfig $config = null): array
+    {
+        if (($config ?? $this->shipping->read())->codKind !== CodKind::Money) {
+            return [];
+        }
+        $linked = array_map('intval', (array)$this->entityFactory->get(DeliveriesEntity::class)->getDeliveryPayments((int)$delivery->id));
+
+        return CodPayments::wantsFee($linked, $codIds = $this->codPayments->codIds()) ? array_values(array_intersect($linked, $codIds)) : [];
     }
 
     public function isCodPayment(int $paymentId): bool

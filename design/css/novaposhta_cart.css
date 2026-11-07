@@ -156,3 +156,5 @@
 /* Narrower sides let "Відділення 652 | Поштомат 7389" fit one line on a 390 px phone; longer names wrap. */
 .np-cart__groups > * { padding-left: 10px; padding-right: 10px; white-space: nowrap; }
 
+/* Inside the theme's payment label (outside .np-cart): the module's colour variables are not set there. */
+.np-cod-line { display: block; margin-top: 3px; font-size: 13px; font-style: normal; font-weight: 400; line-height: 1.35; color: #a35a00; }
