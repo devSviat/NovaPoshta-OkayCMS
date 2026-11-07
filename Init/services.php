@@ -59,6 +59,11 @@ use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyAddressMatcher;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyCityMatcher;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyDivisionMatcher;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlaces;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlacesDb;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTables;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
 use Okay\Modules\Sviat\NovaPoshta\Quote\AddressCityResolver;
@@ -299,5 +304,21 @@ return [
     LegacyTables::class => [
         'class' => LegacyTables::class,
         'arguments' => [new SR(Database::class), new SR(QueryFactory::class), new SR(Config::class), new SR(Settings::class), new SR(EntityFactory::class)],
+    ],
+    LegacyPlaces::class => [
+        'class' => LegacyPlacesDb::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class), new SR(DbCityRefStore::class), new SR(OldApiClient::class)],
+    ],
+    LegacyCityMatcher::class => [
+        'class' => LegacyCityMatcher::class,
+        'arguments' => [new SR(LegacyPlaces::class)],
+    ],
+    LegacyDivisionMatcher::class => [
+        'class' => LegacyDivisionMatcher::class,
+        'arguments' => [new SR(LegacyPlaces::class)],
+    ],
+    LegacyAddressMatcher::class => [
+        'class' => LegacyAddressMatcher::class,
+        'arguments' => [new SR(LegacyPlaces::class)],
     ],
 ];
