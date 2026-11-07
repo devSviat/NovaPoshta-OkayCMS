@@ -10,7 +10,11 @@
     function fields(root) {
         var data = {};
         root.querySelectorAll('[data-field]').forEach(function (input) {
-            if (input.type === 'checkbox') {
+            if (input.type === 'radio') {
+                if (input.checked) {
+                    data[input.getAttribute('data-field')] = input.value;
+                }
+            } else if (input.type === 'checkbox') {
                 if (input.checked) {
                     data[input.getAttribute('data-field')] = '1';
                 }
@@ -179,5 +183,17 @@
         if (hide) {
             hide.closest('.fn_np_mass_report').hidden = true;
         }
+    });
+
+    document.addEventListener('change', function (event) {
+        var input = event.target;
+        if (!input.matches || !input.matches('[data-field="recipient_type"]')) {
+            return;
+        }
+        var root = rootOf(input);
+        var org = input.value === 'Organization' && input.checked;
+        root.querySelector('.np-wb__org').hidden = !org;
+        var label = root.querySelector('.np-wb__name-label');
+        label.textContent = label.getAttribute(org ? 'data-org' : 'data-private');
     });
 })();
