@@ -1,0 +1,24 @@
+{
+ "success": true,
+ "data": [
+  {
+   "Description": "Відправник Тестовий Тестович",
+   "Phones": "380670000000",
+   "Email": "",
+   "Ref": "00000000-0000-0000-0000-000000000010",
+   "LastName": "Відправник",
+   "FirstName": "Тестовий",
+   "MiddleName": "Тестович",
+   "MarketplacePartnerDescription": "Мобільний додаток"
+  }
+ ],
+ "errors": [],
+ "warnings": [],
+ "info": {
+  "totalCount": 1
+ },
+ "messageCodes": [],
+ "errorCodes": [],
+ "warningCodes": [],
+ "infoCodes": []
+}

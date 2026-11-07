@@ -1,0 +1,22 @@
+{
+ "success": true,
+ "data": [
+  {
+   "Ref": "01a1b619-d62d-7ec7-bdcf-410e848d4fcc",
+   "Description": "Хрещатик вул. 22 кв. 5 Під'їзд 2"
+  }
+ ],
+ "errors": [],
+ "warnings": [
+  "Building already exists",
+  "Address already exists"
+ ],
+ "info": [],
+ "messageCodes": [],
+ "errorCodes": [],
+ "warningCodes": [
+  "30000500679",
+  "30000500677"
+ ],
+ "infoCodes": []
+}

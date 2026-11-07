@@ -352,6 +352,111 @@
     </div>
 </form>
 
+{* Waybills: sender and the form defaults *}
+<form method="post" id="np_waybill_form">
+    <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
+    <input type="hidden" name="np_action" value="waybill">
+    <div class="row">
+        <div class="col-lg-8 col-md-12">
+            <div class="boxed mb-2">
+                <div class="heading_box mb-1">{$btr->sviat__novaposhta__waybill_box|escape}</div>
+                <p class="text_grey">{$btr->sviat__novaposhta__waybill_intro|escape}</p>
+                {if $np_waybill_saved}
+                    <div class="alert alert--success" role="status"><div class="alert__content"><p>{$btr->sviat__novaposhta__shipping_saved|escape}</p></div></div>
+                {/if}
+                {if $np_waybill_errors}
+                    <div class="alert alert--error" role="alert"><div class="alert__content">
+                        {foreach $np_waybill_errors as $error}
+                            <p>
+                                {if $error == 'waybill_error_contact'}{$btr->sviat__novaposhta__waybill_error_contact|escape}
+                                {elseif $error == 'waybill_error_phone'}{$btr->sviat__novaposhta__waybill_error_phone|escape}
+                                {elseif $error == 'waybill_error_cutoff'}{$btr->sviat__novaposhta__waybill_error_cutoff|escape}
+                                {elseif $error == 'waybill_error_description'}{$btr->sviat__novaposhta__waybill_error_description|escape}
+                                {else}{$btr->sviat__novaposhta__waybill_error_choice|escape}{/if}
+                            </p>
+                        {/foreach}
+                    </div></div>
+                {/if}
+                {if $np_waybill.unavailable}
+                    <div class="alert alert--warning" role="status"><div class="alert__content"><p>{$btr->sviat__novaposhta__waybill_sender_unavailable|escape}</p></div></div>
+                {elseif !$np_waybill.contacts}
+                    <div class="alert alert--warning" role="status"><div class="alert__content"><p>{$btr->sviat__novaposhta__waybill_no_contact|escape}</p></div></div>
+                {/if}
+                <div class="np_shipping_grid np_waybill_grid">
+                    <div>
+                        <div class="heading_label"><label for="np_waybill_sender">{$btr->sviat__novaposhta__waybill_sender|escape}</label>
+                            <i class="fn_tooltips np_tip hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__waybill_sender_tip|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__waybill_sender_tip|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>
+                        </div>
+                        <input id="np_waybill_sender" class="form-control" type="text" value="{if $np_waybill.sender}{$np_waybill.sender.name|escape}{/if}" disabled>
+                    </div>
+                    <div>
+                        <label class="heading_label" for="np_waybill_contact">{$btr->sviat__novaposhta__waybill_contact|escape}</label>
+                        <select id="np_waybill_contact" name="contact_ref" class="form-control">
+                            {if !$np_waybill.contacts && $np_waybill.config->contactRef}<option value="{$np_waybill.config->contactRef|escape}" selected>{$btr->sviat__novaposhta__waybill_contact_saved|escape}</option>{/if}
+                            {foreach $np_waybill.contacts as $contact}
+                                <option value="{$contact.ref|escape}" {if $contact.ref == $np_waybill.config->contactRef}selected{/if}>{$contact.name|escape}{if $contact.phone}, {$contact.phone|escape}{/if}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div>
+                        <div class="heading_label"><label for="np_waybill_phone">{$btr->sviat__novaposhta__waybill_phone|escape}</label>
+                            <i class="fn_tooltips np_tip hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__waybill_phone_tip|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__waybill_phone_tip|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>
+                        </div>
+                        <input id="np_waybill_phone" class="form-control" type="tel" name="sender_phone" maxlength="20" value="{$np_waybill.config->senderPhone|escape}" placeholder="{$btr->sviat__novaposhta__waybill_phone_placeholder|escape}">
+                    </div>
+                    <div>
+                        <div class="heading_label"><label for="np_waybill_cutoff">{$btr->sviat__novaposhta__waybill_cutoff|escape}</label>
+                            <i class="fn_tooltips np_tip hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__waybill_cutoff_tip|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__waybill_cutoff_tip|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>
+                        </div>
+                        <input id="np_waybill_cutoff" class="form-control" type="text" name="cutoff" maxlength="5" inputmode="numeric" value="{$np_waybill.config->cutoff|escape}">
+                    </div>
+                </div>
+                <div class="heading_label mt-1">{$btr->sviat__novaposhta__waybill_defaults|escape}</div>
+                <div class="np_shipping_grid np_waybill_grid">
+                    <div>
+                        <label class="heading_label" for="np_waybill_payer">{$btr->sviat__novaposhta__waybill_payer|escape}</label>
+                        <select id="np_waybill_payer" name="payer_type" class="form-control">
+                            <option value="Recipient" {if $np_waybill.config->payerType == 'Recipient'}selected{/if}>{$btr->sviat__novaposhta__waybill_recipient|escape}</option>
+                            <option value="Sender" {if $np_waybill.config->payerType == 'Sender'}selected{/if}>{$btr->sviat__novaposhta__waybill_sender_party|escape}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="heading_label" for="np_waybill_payment">{$btr->sviat__novaposhta__waybill_payment|escape}</label>
+                        <select id="np_waybill_payment" name="payment_method" class="form-control">
+                            <option value="Cash" {if $np_waybill.config->paymentMethod == 'Cash'}selected{/if}>{$btr->sviat__novaposhta__waybill_cash|escape}</option>
+                            <option value="NonCash" {if $np_waybill.config->paymentMethod == 'NonCash'}selected{/if}>{$btr->sviat__novaposhta__waybill_noncash|escape}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="heading_label" for="np_waybill_cargo">{$btr->sviat__novaposhta__waybill_cargo|escape}</label>
+                        <select id="np_waybill_cargo" name="cargo_type" class="form-control">
+                            <option value="Parcel" {if $np_waybill.config->cargoType == 'Parcel'}selected{/if}>{$btr->sviat__novaposhta__waybill_cargo_parcel|escape}</option>
+                            <option value="Cargo" {if $np_waybill.config->cargoType == 'Cargo'}selected{/if}>{$btr->sviat__novaposhta__waybill_cargo_cargo|escape}</option>
+                            <option value="Documents" {if $np_waybill.config->cargoType == 'Documents'}selected{/if}>{$btr->sviat__novaposhta__waybill_cargo_documents|escape}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="heading_label"><label for="np_waybill_cod_payer">{$btr->sviat__novaposhta__waybill_cod_payer|escape}</label>
+                            <i class="fn_tooltips np_tip hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__waybill_cod_payer_tip|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__waybill_cod_payer_tip|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>
+                        </div>
+                        <select id="np_waybill_cod_payer" name="cod_payer" class="form-control">
+                            <option value="Recipient" {if $np_waybill.config->codPayer == 'Recipient'}selected{/if}>{$btr->sviat__novaposhta__waybill_recipient|escape}</option>
+                            <option value="Sender" {if $np_waybill.config->codPayer == 'Sender'}selected{/if}>{$btr->sviat__novaposhta__waybill_sender_party|escape}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-1">
+                    <div class="heading_label"><label for="np_waybill_description">{$btr->sviat__novaposhta__waybill_description|escape}</label>
+                            <i class="fn_tooltips np_tip hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__waybill_description_tip|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__waybill_description_tip|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>
+                        </div>
+                    <input id="np_waybill_description" class="form-control" type="text" name="description" maxlength="100" value="{$np_waybill.config->description|escape}">
+                </div>
+                <div><button type="submit" class="btn btn_small btn_blue mt-1"><span>{$btr->sviat__novaposhta__shipping_save|escape}</span></button></div>
+            </div>
+        </div>
+    </div>
+</form>
+
 {* Cash on delivery *}
 <form method="post" id="np_cod_form">
     <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
@@ -450,6 +555,9 @@
     .np_suggest { position: absolute; left: 0; right: 0; z-index: 10; margin: 2px 0 0; padding: 4px 0; list-style: none; background: var(--ok-surface, #fff); border: 1px solid var(--ok-control-line, #8a8f95); border-radius: 6px; max-height: 280px; overflow-y: auto; }
     .np_suggest li { padding: 8px 12px; cursor: pointer; }
     .np_suggest li[aria-selected="true"], .np_suggest li:hover { background: var(--ok-sunken, #fafbfc); }
+    /* Stock has no wide hints: long texts wrap instead of running off the screen. */
+    .np_tip[data-hint]:after { width: max-content; max-width: 280px; white-space: normal; font-style: normal; font-weight: 400; font-size: 13px; line-height: 1.35; text-align: left; padding: 8px 10px; color: #23272b; background: #fff; border: 1px solid #d0d5da; border-radius: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, .08); text-shadow: none; }
+    .np_waybill_grid > div { display: flex; flex-direction: column; justify-content: flex-end; }
     .np_shipping_grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
     .np_shipping_grid .bootstrap-select { width: 100% !important; }
     .np_shipping_grid .np_popular_add { margin-top: 0; }

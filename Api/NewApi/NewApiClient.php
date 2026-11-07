@@ -47,6 +47,12 @@ final class NewApiClient
         return $this->send('POST', self::BASE_URL . $path, json_encode($body, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
     }
 
+    /** Never repeated, like POST: the first request may already have deleted it. */
+    public function delete(string $path): array
+    {
+        return $this->send('DELETE', self::BASE_URL . $path, null);
+    }
+
     private function send(string $method, string $url, ?string $body): array
     {
         // A POST may have reached Nova Poshta before the connection broke: repeating it could create a second shipment.

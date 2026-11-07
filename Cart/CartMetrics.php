@@ -30,12 +30,18 @@ final readonly class CartMetrics
     /** @param object $cart Okay\Core\Cart::get() */
     public static function fromCart(object $cart): self
     {
+        return self::fromPurchases((array)($cart->purchases ?? []), is_numeric($cart->total_price ?? null) ? (float)$cart->total_price : 0.0);
+    }
+
+    /** @param iterable<object> $purchases each with `amount` and `variant` (weight, volume) */
+    public static function fromPurchases(iterable $purchases, float $total): self
+    {
         $weight = 0.0;
         $volume = 0.0;
         $noWeight = 0;
         $noVolume = 0;
         $weightUnknown = false;
-        foreach ((array)($cart->purchases ?? []) as $purchase) {
+        foreach ($purchases as $purchase) {
             $amount = max(0, (int)($purchase->amount ?? 0));
             $unitWeight = $purchase->variant->weight ?? null;
             if (is_numeric($unitWeight) && (float)$unitWeight > 0) {
@@ -55,7 +61,7 @@ final readonly class CartMetrics
         return new self(
             $weight,
             $weightUnknown,
-            is_numeric($cart->total_price ?? null) ? (float)$cart->total_price : 0.0,
+            $total,
             $volume,
             $noWeight,
             $noVolume,

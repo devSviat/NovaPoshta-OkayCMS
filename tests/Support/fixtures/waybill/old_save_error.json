@@ -1,0 +1,19 @@
+{
+ "success": false,
+ "data": [],
+ "errors": [
+  "Counterparty creation problem. RecipientName incorrect",
+  "Recipient counterparty person creation problem.",
+  "RecipientsPhone invalid format"
+ ],
+ "warnings": [],
+ "info": [],
+ "messageCodes": [],
+ "errorCodes": [
+  "20000201103",
+  "20000201059",
+  "20000300434"
+ ],
+ "warningCodes": [],
+ "infoCodes": []
+}

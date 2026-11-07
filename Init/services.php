@@ -37,6 +37,15 @@ use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderParties;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\SettlementCityRefs;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDrafts;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\AmountDue;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillSettings;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderContacts;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
@@ -89,7 +98,7 @@ return [
     ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
-        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class)],
+        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class)],
     ],
     DbCityRefStore::class => [
         'class' => DbCityRefStore::class,
@@ -208,6 +217,41 @@ return [
     CartSelectionValidator::class => [
         'class' => CartSelectionValidator::class,
         'arguments' => [new SR(EntityFactory::class), new SR(GroupsStore::class), new SR(Module::class), new SR(SettlementSearch::class), new SR(ShippingSettings::class)],
+    ],
+    WaybillSettings::class => [
+        'class' => WaybillSettings::class,
+        'arguments' => [new SR(Settings::class)],
+    ],
+    SenderContacts::class => [
+        'class' => SenderContacts::class,
+        'arguments' => [new SR(OldApiClient::class), new SR(ModuleState::class)],
+    ],
+    AmountDue::class => [
+        'class' => AmountDue::class,
+    ],
+    WaybillDrafts::class => [
+        'class' => WaybillDrafts::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(CodPayments::class), new SR(Money::class), new SR(AmountDue::class)],
+    ],
+    SenderParties::class => [
+        'class' => SenderParties::class,
+        'arguments' => [new SR(SenderContacts::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(EntityFactory::class)],
+    ],
+    SettlementCityRefs::class => [
+        'class' => SettlementCityRefs::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(AddressCityResolver::class)],
+    ],
+    WaybillView::class => [
+        'class' => WaybillView::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillStore::class), new SR(WaybillDrafts::class), new SR(CodPayments::class)],
+    ],
+    WaybillService::class => [
+        'class' => WaybillService::class,
+        'arguments' => [new SR(OldApiClient::class), new SR(NewApiClient::class), new SR(WaybillStore::class), new SR(SenderParties::class), new SR(SettlementCityRefs::class)],
+    ],
+    WaybillStore::class => [
+        'class' => WaybillStore::class,
+        'arguments' => [new SR(EntityFactory::class)],
     ],
     OrderDeliveryStore::class => [
         'class' => OrderDeliveryStore::class,
