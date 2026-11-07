@@ -46,6 +46,8 @@
 
     function Block(root) {
         this.root = root;
+        root.npBlock = this;
+        this.pointCheck = root.querySelector('.np-cart__point-check');
         this.texts = parse(root.getAttribute('data-texts')) || {};
         this.chip = root.getAttribute('data-chip');
         this.chipSelected = root.getAttribute('data-chip-selected');
@@ -184,6 +186,14 @@
             }
             line.textContent = text;
         });
+    };
+
+    /** Clears a message the theme's validator showed, once the field is right. */
+    Block.prototype.revalidate = function (element) {
+        var $ = window.jQuery;
+        if (element && $ && $(element).hasClass('error') && $(element.form).data('validator')) {
+            $(element).valid();
+        }
     };
 
     Block.prototype.showChosen = function () {
@@ -379,6 +389,7 @@
         }
         this.showChoice();
         this.setStep('points');
+        this.revalidate(this.city);
         this.load();
         if (this.mode === 'address') {
             this.requestQuote();
@@ -549,6 +560,7 @@
             option.classList.add('np-cart__option--selected');
             option.setAttribute('aria-selected', 'true');
             self.setStep('chosen');
+            self.revalidate(self.pointCheck);
             self.requestQuote();
         });
         return option;
@@ -926,12 +938,65 @@
         }
     }
 
+    var blocks = [];
+    var rulesAdded = false;
+
+    /**
+     * Checks of the Nova Poshta fields in the theme's own jQuery Validate (as NovaposhtaCost did), so
+     * a message stands under its field before the form is sent, all at once. Fields of other delivery
+     * methods are disabled by the theme and hidden steps are not visible, so the validator skips both.
+     * The server checks everything again.
+     */
+    function addRules() {
+        var $ = window.jQuery;
+        var form = $ ? $('.fn_validate_cart') : null;
+        if (rulesAdded || !form || !form.length || !$.validator || !form.data('validator') || blocks.length === 0) {
+            return;
+        }
+        rulesAdded = true;
+        var blockOf = function (element) {
+            var root = element.closest('.np-cart');
+            return root ? root.npBlock : null;
+        };
+        $.validator.addMethod('npCity', function (value, element) {
+            var block = blockOf(element);
+            return !block || !!block.settlement;
+        });
+        $.validator.addMethod('npPoint', function (value, element) {
+            var block = blockOf(element);
+            return !block || !!block.division;
+        });
+        blocks.forEach(function (block) {
+            var texts = block.texts;
+            $(block.city).rules('add', { npCity: true, messages: { npCity: texts.error_city } });
+            if (block.pointCheck) {
+                $(block.pointCheck).rules('add', { npPoint: true, messages: { npPoint: texts.error_point } });
+            }
+            if (block.street) {
+                $(block.street).rules('add', { required: true, minlength: 2, messages: { required: texts.error_street, minlength: texts.error_street } });
+            }
+            if (block.house) {
+                $(block.house).rules('add', { required: true, messages: { required: texts.error_house } });
+            }
+            if (block.floor) {
+                $(block.floor).rules('add', {
+                    required: function () { return !!(block.liftingInput && block.liftingInput.checked && !block.lifting.hidden); },
+                    digits: true,
+                    range: [1, 200],
+                    messages: { required: texts.error_lifting_floor, digits: texts.error_floor, range: texts.error_floor }
+                });
+            }
+        });
+    }
+
+    window.SviatNovaPoshtaCart = { addRules: addRules };
+
     function init() {
-        var blocks = [];
         document.querySelectorAll('.np-cart').forEach(function (root) {
             adoptThemeColours(root);
             blocks.push(new Block(root));
         });
+        addRules();
         // The theme re-fires `change` on the chosen delivery after the cart changes (jQuery
         // trigger, which plain listeners do not see): the weight and total may have changed.
         if (window.jQuery) {

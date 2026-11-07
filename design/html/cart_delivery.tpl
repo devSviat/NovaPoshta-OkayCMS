@@ -39,7 +39,8 @@
         {if $np_theme.family == 'vibe'}
             <label class="{$np_theme.label|escape}" for="np_city_{$delivery->id|escape}">{$lang->sviat__novaposhta__cart_city|escape}*</label>
         {/if}
-        <input id="np_city_{$delivery->id|escape}" class="np-cart__city-input {$np_theme.input|escape}" type="text" autocomplete="off"
+        {* Named only for the theme's jQuery Validate (it skips nameless fields); the server ignores it. *}
+        <input id="np_city_{$delivery->id|escape}" class="np-cart__city-input {$np_theme.input|escape}" type="text" autocomplete="off" name="novaposhta[{$delivery->id|escape}][city_q]"
                role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="np_city_list_{$delivery->id|escape}"
                value="{if $np_choice.settlement}{$np_choice.settlement.name|escape}{/if}"
                {if $np_theme.family == 'vibe'}placeholder="{$lang->sviat__novaposhta__cart_city_placeholder|escape}"{/if}>
@@ -74,12 +75,14 @@
             {if $np_theme.family == 'vibe'}
                 <label class="{$np_theme.label|escape}" for="np_search_{$delivery->id|escape}">{$lang->sviat__novaposhta__cart_search|escape}</label>
             {/if}
-            <input id="np_search_{$delivery->id|escape}" class="np-cart__search-input {$np_theme.input|escape}" type="search" autocomplete="off"
+            <input id="np_search_{$delivery->id|escape}" class="np-cart__search-input {$np_theme.input|escape}" type="search" autocomplete="off" name="novaposhta[{$delivery->id|escape}][search_q]"
                    {if $np_theme.family == 'vibe'}placeholder="{$lang->sviat__novaposhta__cart_search_placeholder|escape}"{/if}>
             {if $np_theme.family != 'vibe'}
                 <span class="{$np_theme.label|escape}">{$lang->sviat__novaposhta__cart_search|escape}</span>
             {/if}
         </div>
+        {* Carries the "choose a point" rule of jQuery Validate, so its message stands above the list. *}
+        <input class="np-cart__point-check" type="text" name="novaposhta[{$delivery->id|escape}][point_check]" value="" tabindex="-1" aria-hidden="true" autocomplete="off">
         <div class="np-cart__list" role="listbox" aria-label="{$lang->sviat__novaposhta__cart_points|escape}"></div>
         <p class="np-cart__more" hidden></p>
     </div>
