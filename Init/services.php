@@ -134,7 +134,7 @@ return [
     ],
     CodPayments::class => [
         'class' => CodPayments::class,
-        'arguments' => [new SR(EntityFactory::class)],
+        'arguments' => [new SR(EntityFactory::class), new SR(Settings::class)],
     ],
     SenderDivisions::class => [
         'class' => SenderDivisions::class,

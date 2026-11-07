@@ -3,46 +3,81 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Payments;
 
 use Okay\Core\EntityFactory;
+use Okay\Core\Settings;
 use Okay\Entities\PaymentsEntity;
+use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 
 /**
- * Payment methods marked "cash on delivery by Nova Poshta". Choosing one in the cart is the
- * customer's choice of cash on delivery (author's decision 06.11.2026: no checkbox in the cart).
+ * Payment methods marked "cash on delivery by Nova Poshta", each with its kind. Choosing one in the
+ * cart is the customer's choice of cash on delivery (author's decision 06.11.2026: no checkbox in the cart).
  */
 final class CodPayments
 {
-    /** Own field on the core payments table; NovaposhtaCost's flag lives under its own name (§9). */
+    /** Own field on the core payments table; values are CodKind flags (§9). */
     public const string FIELD = 'sviat__novaposhta__cod';
+    /** The one shop-wide kind of 0.9.0 and earlier; read only to interpret the old flag 1. */
+    public const string LEGACY_KIND = 'sviat__novaposhta__cod_kind';
 
-    public function __construct(private readonly EntityFactory $entityFactory)
-    {
+    public function __construct(
+        private readonly EntityFactory $entityFactory,
+        private readonly Settings $settings,
+    ) {
     }
 
-    /** @return list<object> every payment method with `cod` set to 0/1 */
+    /** "Manual" in the payment's type select: the core keeps it as the string 'null'. */
+    public static function isManual(mixed $module): bool
+    {
+        return $module === null || $module === '' || $module === 'null';
+    }
+
+    /** Online payments (any payment module) are never cash on delivery, whatever the column holds. */
+    public static function kindOf(object $payment, ?CodKind $legacy): ?CodKind
+    {
+        if (!self::isManual($payment->module ?? null)) {
+            return null;
+        }
+
+        return CodKind::fromFlag((int)($payment->{self::FIELD} ?? 0), $legacy);
+    }
+
+    /** @return list<object> every payment method with `cod_kind` ('money'|'control'|null) and `manual` */
     public function all(): array
     {
+        $legacy = $this->legacy();
         $methods = array_values($this->entityFactory->get(PaymentsEntity::class)->noLimit()->find());
         foreach ($methods as $method) {
-            $method->cod = (int)($method->{self::FIELD} ?? 0);
+            $method->cod_kind = self::kindOf($method, $legacy)?->value;
+            $method->manual = self::isManual($method->module ?? null);
         }
 
         return $methods;
     }
 
-    public function isCod(int $paymentId): bool
+    public function kind(int $paymentId): ?CodKind
     {
         if ($paymentId <= 0) {
-            return false;
+            return null;
         }
         $method = $this->entityFactory->get(PaymentsEntity::class)->get($paymentId);
 
-        return $method && (int)($method->{self::FIELD} ?? 0) === 1;
+        return $method ? self::kindOf($method, $this->legacy()) : null;
     }
 
-    /** @return list<int> payment methods marked as Nova Poshta's cash on delivery */
+    public function isCod(int $paymentId): bool
+    {
+        return $this->kind($paymentId) !== null;
+    }
+
+    /** @return list<int> payment methods marked as Nova Poshta's cash on delivery, any kind */
     public function codIds(): array
     {
-        return array_values(array_map(static fn(object $m): int => (int)$m->id, array_filter($this->all(), static fn(object $m): bool => $m->cod === 1)));
+        return $this->idsOf(static fn(?string $kind): bool => $kind !== null);
+    }
+
+    /** @return list<int> payment methods whose cash on delivery is a money transfer (the cart shows its commission) */
+    public function moneyIds(): array
+    {
+        return $this->idsOf(static fn(?string $kind): bool => $kind === CodKind::Money->value);
     }
 
     /**
@@ -85,5 +120,19 @@ final class CodPayments
         ksort($ids);
 
         return array_values($ids);
+    }
+
+    private function legacy(): ?CodKind
+    {
+        return CodKind::tryFrom((string)$this->settings->get(self::LEGACY_KIND));
+    }
+
+    /**
+     * @param callable(?string): bool $wanted
+     * @return list<int>
+     */
+    private function idsOf(callable $wanted): array
+    {
+        return array_values(array_map(static fn(object $m): int => (int)$m->id, array_filter($this->all(), static fn(object $m): bool => $wanted($m->cod_kind))));
     }
 }

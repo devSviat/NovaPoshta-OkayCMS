@@ -3,19 +3,40 @@
 namespace Modules\Sviat\NovaPoshta\Payments;
 
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
+use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 use PHPUnit\Framework\TestCase;
 
 class CodPaymentsTest extends TestCase
 {
-    public function testOnlyExistingIdsOnceEach(): void
+    public function testFlagsMapToKinds(): void
     {
-        self::assertSame([2, 5], CodPayments::normalize(['5', '2', 2, '99', 'abc', '-1', ['3']], [1, 2, 3, 5]));
+        self::assertSame(CodKind::Money, CodKind::fromFlag(2, null));
+        self::assertSame(CodKind::Control, CodKind::fromFlag(3, null));
+        self::assertNull(CodKind::fromFlag(0, CodKind::Control));
+        self::assertNull(CodKind::fromFlag(7, CodKind::Control));
+        self::assertSame(2, CodKind::Money->flag());
+        self::assertSame(3, CodKind::Control->flag());
     }
 
-    public function testNothingPostedMeansNone(): void
+    public function testLegacyFlagFollowsOldGlobalKind(): void
     {
-        self::assertSame([], CodPayments::normalize(null, [1, 2]));
-        self::assertSame([], CodPayments::normalize('2', [1, 2]), 'a scalar is not a list of ids');
+        self::assertSame(CodKind::Control, CodKind::fromFlag(1, CodKind::Control), 'a shop on payment control keeps it until the update runs');
+        self::assertSame(CodKind::Money, CodKind::fromFlag(1, null));
+    }
+
+    public function testManualModuleValues(): void
+    {
+        self::assertTrue(CodPayments::isManual(null));
+        self::assertTrue(CodPayments::isManual(''));
+        self::assertTrue(CodPayments::isManual('null'), 'the core stores "Manual" as the string null');
+        self::assertFalse(CodPayments::isManual('OkayCMS/LiqPay'));
+    }
+
+    public function testOnlinePaymentIsNeverCod(): void
+    {
+        self::assertNull(CodPayments::kindOf((object)['module' => 'OkayCMS/LiqPay', CodPayments::FIELD => 3], null));
+        self::assertSame(CodKind::Control, CodPayments::kindOf((object)['module' => 'null', CodPayments::FIELD => 3], null));
+        self::assertNull(CodPayments::kindOf((object)['module' => 'null'], CodKind::Money), 'no column yet means no cash on delivery');
     }
 
     public function testDeliveryWithoutCodPaymentWantsNoFee(): void
