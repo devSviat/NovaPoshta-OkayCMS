@@ -59,6 +59,12 @@ final readonly class WaybillDraft
     ) {
     }
 
+    /** @param array<string, mixed> $values property name => new value */
+    public function with(array $values): self
+    {
+        return clone($this, $values);
+    }
+
     /**
      * The manager's form on top of this draft. A missing `cod` means its checkbox is off; other
      * missing fields keep the draft's value.
