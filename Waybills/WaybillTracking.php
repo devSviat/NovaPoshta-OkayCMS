@@ -66,6 +66,10 @@ final class WaybillTracking
                     if ($row === null || !is_numeric($status['statusCode'] ?? null)) {
                         continue;
                     }
+                    if ((int)$status['statusCode'] === WaybillStatus::NOT_FOUND) {
+                        // Not known yet; only the 30-day rule below gives up on it.
+                        continue;
+                    }
                     $this->rows->saveStatus((int)$row->order_id, (int)$status['statusCode'], (string)($status['status'] ?? ''), self::date($status['statusDate'] ?? null), self::date($status['scheduledDate'] ?? null));
                     unset($byNumber[(string)$row->number]);
                     $result['updated']++;

@@ -111,7 +111,7 @@
             {/if}
             <div class="np-wb__issues" role="alert"></div>
             <div class="np-wb__footer">
-                <span class="text_grey">{if $c.updated}{$btr->sviat__novaposhta__card_updated|escape} {$c.updated|escape}{else}{$btr->sviat__novaposhta__card_not_updated|escape}{/if}</span>
+                <span class="text_grey">{if $c.updated}{$btr->sviat__novaposhta__card_updated|escape} {$c.updated|escape}{else}{$btr->sviat__novaposhta__card_not_updated|escape}{/if}{if $c.checked && $c.checked != $c.updated}<br>{$btr->sviat__novaposhta__card_checked|escape} {$c.checked|escape}{/if}</span>
                 <button type="button" class="np-wb__link fn_np_wb_refresh">{$btr->sviat__novaposhta__card_refresh|escape}</button>
             </div>
             <div class="np-wb__actions">

@@ -40,7 +40,7 @@ class WaybillCardTest extends TestCase
         self::assertSame('25 кг', $card['more']['volumeWeight']);
         self::assertSame('1', $card['more']['seats']);
         self::assertSame('2 кг', $card['more']['factualWeight']);
-        self::assertSame('07.11.2026 15:10', $card['updated']);
+        self::assertSame('07.11.2026 15:10', $card['checked']);
     }
 
     public function testLinkDependsOnStatus(): void
@@ -72,5 +72,14 @@ class WaybillCardTest extends TestCase
         $card = WaybillCard::fromDocument(['LastCreatedOnTheBasisDocumentType' => 'CargoReturn', 'LastCreatedOnTheBasisNumber' => '20450000000777'] + W::fixture('status_cod'), self::row());
 
         self::assertSame(['kind' => 'sviat__novaposhta__waybill_return', 'number' => '20450000000777'], $card['services']['returnOrRedirect']);
+    }
+
+    public function testStatusAndTimesFollowTheLatestCheck(): void
+    {
+        $card = WaybillCard::fromDocument(['_fetched_at' => '2026-11-05 10:00:00'] + W::fixture('status_cod'), self::row(['status_code' => 9, 'status_text' => 'Отримано', 'tracked_at' => '2026-11-07 15:10:00']));
+
+        self::assertSame('Отримано', $card['route']['status']);
+        self::assertSame('05.11.2026 10:00', $card['updated']);
+        self::assertSame('07.11.2026 15:10', $card['checked']);
     }
 }

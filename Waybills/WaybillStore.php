@@ -110,11 +110,16 @@ final class WaybillStore implements WaybillRows
 
     public function saveTracking(int $orderId, array $document): void
     {
-        $code = (int)($document['StatusCode'] ?? 0);
+        $row = $this->forOrder($orderId);
+        if ($row === null) {
+            return;
+        }
+        $document = WaybillTrackingDocument::merge($document, is_string($row->tracking ?? null) ? json_decode($row->tracking, true) : null, date('Y-m-d H:i:s'));
+        $code = WaybillTrackingDocument::status($document);
         $this->update($orderId, array_filter([
             'tracking' => json_encode($document, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),
-            'status_code' => $code > 0 ? $code : null,
-            'status_text' => $code > 0 ? mb_substr((string)($document['Status'] ?? ''), 0, 255) : null,
+            'status_code' => $code,
+            'status_text' => $code !== null ? mb_substr((string)($document['Status'] ?? ''), 0, 255) : null,
         ], static fn($v): bool => $v !== null));
     }
 

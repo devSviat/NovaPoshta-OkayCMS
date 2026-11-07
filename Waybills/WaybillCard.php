@@ -26,7 +26,9 @@ final class WaybillCard
             'link' => $code === 1 && $ref !== '' ? 'https://new.novaposhta.ua/edit/' . rawurlencode($ref) : 'https://novaposhta.ua/tracking/?cargo_number=' . rawurlencode($number),
             'statusGroup' => WaybillStatus::group($code),
             'statusKey' => $code ? self::KEY . WaybillStatus::textKey($code) : null,
-            'updated' => self::dateTime($row->tracked_at ?? null, 'Y-m-d H:i:s'),
+            // When the details were fetched, and when the status was last checked: two different times.
+            'updated' => self::dateTime($document['_fetched_at'] ?? null, 'Y-m-d H:i:s'),
+            'checked' => self::dateTime($row->tracked_at ?? null, 'Y-m-d H:i:s'),
             'created' => null, 'description' => null, 'announced' => null,
             'route' => null, 'recipient' => null, 'services' => null, 'payment' => null, 'more' => null,
         ];
@@ -41,7 +43,7 @@ final class WaybillCard
         $card['announced'] = self::money($amount('AnnouncedPrice'));
         $card['route'] = [
             'from' => self::cut($text('WarehouseSenderAddress') ?? $text('SenderAddress')),
-            'status' => $text('Status'),
+            'status' => trim((string)($row->status_text ?? '')) !== '' ? trim((string)$row->status_text) : $text('Status'),
             'statusGroup' => $card['statusGroup'],
             'plan' => self::date($text('ScheduledDeliveryDate')),
             'to' => self::cut($text('WarehouseRecipientAddress') ?? $text('RecipientAddress')),

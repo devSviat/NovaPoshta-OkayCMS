@@ -19,9 +19,11 @@ final class OrdersListFilter
     public static function apply(array $filter, ?string $group, ?string $keyword, callable $ordersOfNumber, callable $ordersWithCodes): array
     {
         $number = is_string($keyword) && preg_match('/^[\d\s\-]+$/', trim($keyword)) ? WaybillNumber::normalize(trim($keyword)) : null;
-        if ($number !== null) {
+        $byNumber = $number !== null ? $ordersOfNumber($number) : [];
+        // Not a waybill of this shop: the core search keeps it (a barcode in a product name, digits in an email).
+        if ($byNumber !== []) {
             unset($filter['keyword']);
-            $filter = self::narrow($filter, $ordersOfNumber($number));
+            $filter = self::narrow($filter, $byNumber);
         }
         if ($group === 'none') {
             $filter['np_without_waybill'] = 1;

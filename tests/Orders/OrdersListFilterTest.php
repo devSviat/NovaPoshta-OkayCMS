@@ -24,9 +24,10 @@ class OrdersListFilterTest extends TestCase
         }
     }
 
-    public function testUnknownWaybillFindsNothing(): void
+    public function testUnknownWaybillLeavesTheCoreSearch(): void
     {
-        self::assertSame(['id' => [0]], self::apply(['keyword' => '20459999999999'], null, '20459999999999'));
+        // Not a waybill of this shop: the core search keeps it (a barcode in a product name, digits in an email).
+        self::assertSame(['keyword' => '20459999999999'], self::apply(['keyword' => '20459999999999'], null, '20459999999999'));
     }
 
     public function testStatusGroupNarrowsIds(): void

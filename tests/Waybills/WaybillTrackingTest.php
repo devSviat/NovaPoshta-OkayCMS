@@ -157,6 +157,30 @@ class WaybillTrackingTest extends TestCase
         self::assertSame('380500000000', json_decode($this->http->requests()[0]->body, true)['methodProperties']['Documents'][0]['Phone']);
     }
 
+    public function testNotFoundAnswerDoesNotStopTracking(): void
+    {
+        $this->waybill(13);
+        $this->rows->saveTracking(13, ['StatusCode' => '3', 'Status' => 'Номер не знайдено']);
+        self::assertNull($this->rows->rows[13]->status_code);
+
+        $this->http->json(200, ['jwt' => F::jwt(self::EXP)]);
+        $this->http->json(200, ['items' => [self::item('20450000000013', 3, 'Not found')]]);
+        $this->tracking()->tick();
+
+        self::assertNull($this->rows->rows[13]->status_code);
+        self::assertSame([13], array_map(static fn($r): int => (int)$r->order_id, $this->rows->due(10, 1)));
+    }
+
+    public function testRefreshKeepsTheRecipientPhoneWhenNovaPoshtaHidesIt(): void
+    {
+        $this->waybill(14);
+        $this->rows->saveTracking(14, ['StatusCode' => '1', 'PhoneRecipient' => '380500000000']);
+        $this->http->json(200, ['success' => true, 'data' => [W::fixture('status_hidden')], 'errors' => []]);
+        $this->tracking()->refresh(14, '380501234567');
+
+        self::assertSame('380500000000', json_decode($this->rows->rows[14]->tracking, true)['PhoneRecipient']);
+    }
+
     public function testRefreshWithoutPhoneExplains(): void
     {
         $this->waybill(11);
