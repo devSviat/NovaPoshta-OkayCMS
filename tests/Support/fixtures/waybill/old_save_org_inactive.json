@@ -1,0 +1,19 @@
+{
+ "success": false,
+ "data": [],
+ "errors": [
+  "Error: Action denied, recipient’s EDRPOU has status inactive",
+  "OwnershipForm is not specified",
+  "Recipient counterparty person creation problem."
+ ],
+ "warnings": [],
+ "info": [],
+ "messageCodes": [],
+ "errorCodes": [
+  "20000204116",
+  "20000200235",
+  "20000201059"
+ ],
+ "warningCodes": [],
+ "infoCodes": []
+}

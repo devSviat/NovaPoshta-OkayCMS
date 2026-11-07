@@ -1,0 +1,71 @@
+{
+ "success": true,
+ "data": [
+  {
+   "Ref": "00000000-0000-0000-0000-000000000109",
+   "Description": "ТОВ \"ПРИКЛАД\"",
+   "FirstName": "ТОВ \"ПРИКЛАД\"",
+   "MiddleName": "",
+   "LastName": "",
+   "Counterparty": "00000000-0000-0000-0000-000000000110",
+   "OwnershipForm": "00000000-0000-0000-0000-000000000111",
+   "OwnershipFormDescription": "АТ",
+   "EDRPOU": "12345678",
+   "CounterpartyType": "Organization",
+   "ContactPerson": {
+    "success": true,
+    "data": [
+     {
+      "Description": "Петренко Іван ",
+      "Ref": "00000000-0000-0000-0000-000000000112",
+      "LastName": "Петренко",
+      "FirstName": "Іван",
+      "MiddleName": null
+     },
+     {
+      "Description": "Петренко Іван ",
+      "Ref": "00000000-0000-0000-0000-000000000113",
+      "LastName": "Петренко",
+      "FirstName": "Іван",
+      "MiddleName": null
+     },
+     {
+      "Description": "Петренко Іван ",
+      "Ref": "00000000-0000-0000-0000-000000000114",
+      "LastName": "Петренко",
+      "FirstName": "Іван",
+      "MiddleName": null
+     },
+     {
+      "Description": "Петренко Іван ",
+      "Ref": "00000000-0000-0000-0000-000000000115",
+      "LastName": "Петренко",
+      "FirstName": "Іван",
+      "MiddleName": null
+     }
+    ],
+    "errors": [],
+    "translatedErrors": [],
+    "warnings": [],
+    "info": {
+     "totalCount": 2
+    },
+    "messageCodes": [],
+    "errorCodes": [],
+    "warningCodes": [],
+    "infoCodes": []
+   }
+  }
+ ],
+ "errors": [],
+ "warnings": {
+  "DuplicateValidate": "Counterparty is not unique"
+ },
+ "info": [],
+ "messageCodes": [],
+ "errorCodes": [],
+ "warningCodes": {
+  "DuplicateValidate": "30000900779"
+ },
+ "infoCodes": []
+}
