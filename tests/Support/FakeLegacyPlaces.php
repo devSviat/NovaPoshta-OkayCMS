@@ -17,6 +17,17 @@ final class FakeLegacyPlaces implements LegacyPlaces
     public array $indexOfCity = [];
     public int $apiCalls = 0;
 
+    public function settlement(int $id): ?object
+    {
+        foreach ($this->settlements as $s) {
+            if ((int)$s->id === $id) {
+                return $s;
+            }
+        }
+
+        return null;
+    }
+
     public function settlementOfCityRef(string $cityRef): ?int
     {
         return $this->cityRefs[$cityRef] ?? null;

@@ -25,6 +25,17 @@ final class LegacyPlacesDb implements LegacyPlaces
     ) {
     }
 
+    public function settlement(int $id): ?object
+    {
+        $rows = $this->select($this->queryFactory->newSelect()
+            ->cols(['s.id', 's.name_uk', 's.area_uk', 's.district_uk'])
+            ->from(SettlementEntity::getTable() . ' AS s')
+            ->where('s.id = :id')
+            ->bindValue('id', $id));
+
+        return $rows[0] ?? null;
+    }
+
     public function settlementOfCityRef(string $cityRef): ?int
     {
         $rows = $this->select($this->queryFactory->newSelect()
