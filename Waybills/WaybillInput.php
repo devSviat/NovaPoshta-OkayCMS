@@ -15,6 +15,9 @@ final class WaybillInput
         'payment_method' => 16,
         'cod_kind' => 16,
         'cod_payer' => 16,
+        'recipient_type' => 16,
+        'edrpou' => 20,
+        'company_name' => 100,
     ];
     private const array NUMBERS = ['weight', 'volume', 'declared_cost', 'cod_amount', 'floor'];
     private const array SWITCHES = ['cod', 'lifting', 'elevator'];

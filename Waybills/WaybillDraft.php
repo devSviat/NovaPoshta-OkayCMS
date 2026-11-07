@@ -14,12 +14,14 @@ final readonly class WaybillDraft
     private const int DESCRIPTION_MAX = 100;
     private const int NOTE_MAX = 50;
     private const int FLOOR_MAX = 200;
+    private const int COMPANY_MAX = 100;
 
     /**
      * @param 'Recipient'|'Sender' $payerType
      * @param 'Cash'|'NonCash' $paymentMethod
      * @param 'Parcel'|'Cargo'|'Documents' $cargoType
      * @param 'Recipient'|'Sender' $codPayer
+     * @param 'PrivatePerson'|'Organization' $recipientType
      */
     public function __construct(
         public int $orderId,
@@ -56,6 +58,13 @@ final readonly class WaybillDraft
         public string $codPayer,
         /** d.m.Y */
         public string $shipDate,
+        public string $recipientType = 'PrivatePerson',
+        /** Digits only. */
+        public ?string $edrpou = null,
+        /** For the manager only: Nova Poshta names the organization from its registry by the code. */
+        public ?string $companyName = null,
+        /** The organization came from the order's invoice (Sviat/InvoicePayment). */
+        public bool $fromInvoice = false,
     ) {
     }
 
@@ -63,6 +72,16 @@ final readonly class WaybillDraft
     public function with(array $values): self
     {
         return clone($this, $values);
+    }
+
+    /** @return ?string language key of what is wrong with the organization; NP checks the code against its registry itself */
+    public function organizationIssue(): ?string
+    {
+        if ($this->recipientType !== 'Organization') {
+            return null;
+        }
+
+        return preg_match('/^(\d{8}|\d{10})$/', (string)$this->edrpou) ? null : 'waybill_error_edrpou';
     }
 
     /**
@@ -134,7 +153,15 @@ final readonly class WaybillDraft
         }
         $note = $this->mode === DeliveryMode::Address ? mb_substr($text('address_note', (string)$this->addressNote), 0, self::NOTE_MAX) : null;
 
+        $recipientType = $choice('recipient_type', $this->recipientType, ['PrivatePerson', 'Organization']);
+        $organization = $recipientType === 'Organization';
+        $edrpou = $organization ? preg_replace('/\D+/', '', $text('edrpou', (string)$this->edrpou)) : null;
+        $company = $organization ? mb_substr($text('company_name', (string)$this->companyName), 0, self::COMPANY_MAX) : null;
+
         $values = [
+            'recipientType' => $recipientType,
+            'edrpou' => $edrpou === '' ? null : $edrpou,
+            'companyName' => $company === '' ? null : $company,
             'recipientName' => $name,
             'recipientPhone' => $phone,
             'weightKg' => (float)$weight,
@@ -154,6 +181,13 @@ final readonly class WaybillDraft
             'addressNote' => $note === '' ? null : $note,
         ];
 
-        return $errors !== [] ? $errors : clone($this, $values);
+        if ($errors === []) {
+            $draft = clone($this, $values);
+            $issue = $draft->organizationIssue();
+
+            return $issue === null ? $draft : [['field' => 'edrpou', 'key' => $issue]];
+        }
+
+        return $errors;
     }
 }

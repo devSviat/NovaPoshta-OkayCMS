@@ -336,4 +336,70 @@ class WaybillServiceTest extends TestCase
         self::assertNotNull($this->rows->forOrder(2));
         self::assertStringContainsString('20000100000', $outcome->issues[0]['details']);
     }
+
+    private const array ORG = ['recipientType' => 'Organization', 'edrpou' => '12345678', 'companyName' => 'ТОВ «Приклад»'];
+
+    public function testOrganizationOnPointGoesToTheOldApi(): void
+    {
+        $this->http->json(200, W::fixture('old_save_org'));
+        $this->statusAnswer('status_org');
+
+        $outcome = $this->service()->create(self::ORDER, W::point(self::ORG));
+
+        self::assertTrue($outcome->ok);
+        self::assertSame('old', $this->rows->forOrder(self::ORDER)->api);
+        self::assertSame('12345678', $this->requestBody(0)['methodProperties']['EDRPOU']);
+    }
+
+    public function testOrganizationAddressByRef(): void
+    {
+        $this->http->json(200, W::fixture('counterparty_org_save'));
+        $this->http->json(200, ['success' => true, 'data' => [['Ref' => 'contact-org']], 'errors' => []]);
+        $this->http->json(200, W::fixture('address_save'));
+        $this->http->json(200, W::fixture('old_save_org'));
+        $this->statusAnswer('status_org_address');
+
+        $outcome = $this->service()->create(self::ORDER, W::address(self::ORG));
+
+        self::assertTrue($outcome->ok);
+        self::assertSame([], $outcome->notices);
+        $counterparty = $this->requestBody(0);
+        self::assertSame(['Counterparty', 'save'], [$counterparty['modelName'], $counterparty['calledMethod']]);
+        self::assertSame(['CounterpartyProperty' => 'Recipient', 'CounterpartyType' => 'Organization', 'EDRPOU' => '12345678'], $counterparty['methodProperties']);
+        $contact = $this->requestBody(1);
+        self::assertSame(['ContactPerson', 'save'], [$contact['modelName'], $contact['calledMethod']]);
+        $recipientRef = W::fixture('counterparty_org_save')['data'][0]['Ref'];
+        self::assertSame(['CounterpartyRef' => $recipientRef, 'FirstName' => 'Іван', 'LastName' => 'Петренко', 'Phone' => '380500000000'], $contact['methodProperties']);
+        self::assertSame($recipientRef, $this->requestBody(2)['methodProperties']['CounterpartyRef']);
+        $save = $this->requestBody(3)['methodProperties'];
+        self::assertSame(['Organization', $recipientRef, 'contact-org'], [$save['RecipientType'], $save['Recipient'], $save['ContactRecipient']]);
+    }
+
+    public function testOrganizationAddressFallsBackToTextWithOwnershipForm(): void
+    {
+        $this->http->json(200, W::fixture('counterparty_org_save'));
+        $this->http->json(200, ['success' => false, 'data' => [], 'errors' => ['Contact person creation problem'], 'errorCodes' => ['20000000000']]);
+        $this->http->json(200, W::fixture('old_save_org'));
+        $this->statusAnswer('status_org_address');
+
+        $outcome = $this->service()->create(self::ORDER, W::address(self::ORG));
+
+        self::assertTrue($outcome->ok);
+        self::assertContains('waybill_text_address', $outcome->notices);
+        $save = $this->requestBody(2)['methodProperties'];
+        self::assertSame(['1', 'Organization', '12345678', W::fixture('counterparty_org_save')['data'][0]['OwnershipForm']], [$save['NewAddress'], $save['RecipientType'], $save['EDRPOU'], $save['OwnershipForm']]);
+    }
+
+    public function testRefusedEdrpouStopsBeforeTheWaybill(): void
+    {
+        $answer = W::fixture('old_save_org_inactive');
+        $this->http->json(200, ['success' => false, 'data' => [], 'errors' => $answer['errors'], 'errorCodes' => $answer['errorCodes']]);
+
+        $outcome = $this->service()->create(self::ORDER, W::address(self::ORG));
+
+        self::assertFalse($outcome->ok);
+        self::assertSame('edrpou', $outcome->issues[0]['field']);
+        self::assertCount(1, $this->http->requests());
+        self::assertNull($this->rows->forOrder(self::ORDER));
+    }
 }

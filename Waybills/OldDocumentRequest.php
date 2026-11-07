@@ -30,12 +30,17 @@ final class OldDocumentRequest
             'RecipientAddress' => $addressRef,
             'Recipient' => $recipientRef,
             'ContactRecipient' => $contactRef,
-            'RecipientType' => 'PrivatePerson',
+            'RecipientType' => $draft->recipientType,
         ] + self::lifting($draft) + self::money($draft);
     }
 
-    /** An address as text: NP accepts it, but its account shows the address fields empty. */
-    public static function forAddressText(WaybillDraft $draft, SenderParty $sender): array
+    /**
+     * An address as text: NP accepts it, but its account shows the address fields empty.
+     *
+     * @param ?string $ownershipForm an organization's text address is refused without one; NP accepts any
+     *     and keeps its registry's (live check 07.11.2026)
+     */
+    public static function forAddressText(WaybillDraft $draft, SenderParty $sender, ?string $ownershipForm = null): array
     {
         return self::common($draft, $sender) + array_filter([
             'NewAddress' => '1',
@@ -47,7 +52,7 @@ final class OldDocumentRequest
             'RecipientHouse' => (string)$draft->house,
             'RecipientFlat' => (string)$draft->flat,
             'RecipientAddressNote' => (string)$draft->addressNote,
-        ], static fn(string $v): bool => $v !== '') + self::recipientByName($draft) + self::lifting($draft) + self::money($draft);
+        ], static fn(string $v): bool => $v !== '') + self::recipientByName($draft, $ownershipForm) + self::lifting($draft) + self::money($draft);
     }
 
     /** @return ?string language key of what is wrong with the request, checked before it is sent */
@@ -90,9 +95,18 @@ final class OldDocumentRequest
         ];
     }
 
-    private static function recipientByName(WaybillDraft $draft): array
+    private static function recipientByName(WaybillDraft $draft, ?string $ownershipForm = null): array
     {
-        return ['RecipientName' => $draft->recipientName, 'RecipientType' => 'PrivatePerson', 'RecipientContactName' => $draft->recipientName];
+        if ($draft->recipientType !== 'Organization') {
+            return ['RecipientName' => $draft->recipientName, 'RecipientType' => 'PrivatePerson', 'RecipientContactName' => $draft->recipientName];
+        }
+
+        return [
+            'RecipientName' => $draft->companyName ?? $draft->recipientName,
+            'RecipientType' => 'Organization',
+            'EDRPOU' => (string)$draft->edrpou,
+            'RecipientContactName' => $draft->recipientName,
+        ] + ($ownershipForm !== null ? ['OwnershipForm' => $ownershipForm] : []);
     }
 
     private static function lifting(WaybillDraft $draft): array

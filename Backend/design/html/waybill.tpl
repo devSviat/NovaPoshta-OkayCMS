@@ -132,8 +132,30 @@
             {/if}
 
             <div class="np-wb__group">{$btr->sviat__novaposhta__waybill_recipient_group|escape}</div>
+            {$org = $d->recipientType == 'Organization'}
+            <div class="row mb-h np-wb__recipient-type" role="radiogroup">
+                <div class="col-md-6">
+                    <div class="okay_type_radio_wrap">
+                        <input id="np_wb_rt_private" class="hidden_check" name="np_wb_recipient_type" type="radio" data-field="recipient_type" value="PrivatePerson" {if !$org}checked{/if}>
+                        <label for="np_wb_rt_private" class="okay_type_radio"><span>{$btr->sviat__novaposhta__waybill_recipient_private|escape}</span></label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="okay_type_radio_wrap">
+                        <input id="np_wb_rt_org" class="hidden_check" name="np_wb_recipient_type" type="radio" data-field="recipient_type" value="Organization" {if $org}checked{/if}>
+                        <label for="np_wb_rt_org" class="okay_type_radio"><span>{$btr->sviat__novaposhta__waybill_recipient_org|escape}</span></label>
+                    </div>
+                </div>
+            </div>
+            <div class="np-wb__org" {if !$org}hidden{/if}>
+                {if $d->fromInvoice}<div class="np-wb__ok">{$btr->sviat__novaposhta__waybill_from_invoice|escape}</div>{/if}
+                <div class="np-wb__grid">
+                    <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_edrpou|escape}</span><input class="form-control" inputmode="numeric" data-field="edrpou" maxlength="20" value="{$d->edrpou|escape}"><span class="np-wb__error" data-for="edrpou"></span></label>
+                    <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_company|escape}</span><input class="form-control" data-field="company_name" maxlength="100" value="{$d->companyName|escape}"><span class="np-wb__error" data-for="company_name"></span></label>
+                </div>
+            </div>
             <div class="np-wb__grid">
-                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_recipient_name|escape}</span><input class="form-control" data-field="recipient_name" maxlength="60" value="{$d->recipientName|escape}"><span class="np-wb__error" data-for="recipient_name"></span></label>
+                <label class="np-wb__field"><span class="heading_label np-wb__name-label" data-private="{$btr->sviat__novaposhta__waybill_recipient_name|escape}" data-org="{$btr->sviat__novaposhta__waybill_contact_name|escape}">{if $org}{$btr->sviat__novaposhta__waybill_contact_name|escape}{else}{$btr->sviat__novaposhta__waybill_recipient_name|escape}{/if}</span><input class="form-control" data-field="recipient_name" maxlength="60" value="{$d->recipientName|escape}"><span class="np-wb__error" data-for="recipient_name"></span></label>
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_recipient_phone|escape}</span><input class="form-control" type="tel" data-field="phone" maxlength="20" value="{$d->recipientPhone|escape}"><span class="np-wb__error" data-for="phone"></span></label>
             </div>
 

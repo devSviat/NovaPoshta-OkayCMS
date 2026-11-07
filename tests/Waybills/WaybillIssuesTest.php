@@ -91,4 +91,14 @@ class WaybillIssuesTest extends TestCase
         self::assertSame(['waybill_notice_cargo_changed'], WaybillIssues::notices(['CargoType is changed to Cargo']));
         self::assertSame([], WaybillIssues::notices(['Something we do not explain']));
     }
+
+    public function testRefusedEdrpouPointsAtTheCode(): void
+    {
+        $answer = W::fixture('old_save_org_inactive');
+        $issue = WaybillIssues::explain(NpApiException::fromNp(NpErrorKind::Rejected, $answer['errors'], $answer['errorCodes']));
+
+        self::assertSame('edrpou', $issue['field']);
+        self::assertSame('waybill_advice_edrpou', $issue['advice']);
+        self::assertStringContainsString('EDRPOU', (string)$issue['message']);
+    }
 }

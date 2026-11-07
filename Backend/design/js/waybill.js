@@ -10,7 +10,11 @@
     function fields(root) {
         var data = {};
         root.querySelectorAll('[data-field]').forEach(function (input) {
-            if (input.type === 'checkbox') {
+            if (input.type === 'radio') {
+                if (input.checked) {
+                    data[input.getAttribute('data-field')] = input.value;
+                }
+            } else if (input.type === 'checkbox') {
                 if (input.checked) {
                     data[input.getAttribute('data-field')] = '1';
                 }
@@ -44,7 +48,9 @@
         issues.forEach(function (issue) {
             var span = issue.field ? root.querySelector('.np-wb__error[data-for="' + issue.field + '"]') : null;
             if (span) {
-                span.textContent = issue.message ? issue.message + '. ' + issue.advice : issue.advice;
+                // The advice names the problem in the admin's language; NP's own text stays at hand on hover.
+                span.textContent = issue.advice;
+                span.title = [issue.message, issue.details].filter(Boolean).join(' — ');
                 var input = root.querySelector('[data-field="' + issue.field + '"]');
                 if (input) {
                     input.classList.add('np-wb__invalid');
@@ -172,5 +178,24 @@
         if (part && root.querySelector(part)) {
             root.querySelector(part).hidden = !input.checked;
         }
+    });
+
+    document.addEventListener('click', function (event) {
+        var hide = event.target.closest('.fn_np_mass_hide');
+        if (hide) {
+            hide.closest('.fn_np_mass_report').hidden = true;
+        }
+    });
+
+    document.addEventListener('change', function (event) {
+        var input = event.target;
+        if (!input.matches || !input.matches('[data-field="recipient_type"]')) {
+            return;
+        }
+        var root = rootOf(input);
+        var org = input.value === 'Organization' && input.checked;
+        root.querySelector('.np-wb__org').hidden = !org;
+        var label = root.querySelector('.np-wb__name-label');
+        label.textContent = label.getAttribute(org ? 'data-org' : 'data-private');
     });
 })();

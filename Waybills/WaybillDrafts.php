@@ -27,6 +27,7 @@ final class WaybillDrafts
         private readonly CodPayments $codPayments,
         private readonly OrderParcel $parcel,
         private readonly AmountDue $amountDue,
+        private readonly InvoicePaymentData $invoices,
     ) {
     }
 
@@ -53,12 +54,14 @@ final class WaybillDrafts
             $rate,
             new \DateTimeImmutable(),
             fn(float $totalUah): float => $this->amountDue->onPickup($order, $totalUah),
+            $this->invoices->forOrder($order),
         );
     }
 
     /**
      * @param float $uahRate hryvnias per unit of the shop's main currency (order sums are in it)
      * @param ?\Closure(float): float $amountDue what NP collects, from the order total in hryvnias
+     * @param ?array{edrpou: string, company: string} $invoice the organization the order was invoiced to
      * @return WaybillDraft|string the draft, or the language key of what the order lacks
      */
     public static function build(
@@ -72,6 +75,7 @@ final class WaybillDrafts
         float $uahRate,
         \DateTimeImmutable $now,
         ?\Closure $amountDue = null,
+        ?array $invoice = null,
     ): WaybillDraft|string {
         $mode = DeliveryMode::tryFrom((string)($snapshot->mode ?? '')) ?? DeliveryMode::Points;
         if ($mode === DeliveryMode::Points) {
@@ -129,6 +133,10 @@ final class WaybillDrafts
             $shipping->codKind,
             $waybill->codPayer,
             ShipDate::for($now, $waybill->cutoff),
+            $invoice !== null ? 'Organization' : 'PrivatePerson',
+            $invoice !== null ? preg_replace('/\D+/', '', $invoice['edrpou']) : null,
+            $invoice !== null ? mb_substr($invoice['company'], 0, 100) : null,
+            $invoice !== null,
         );
     }
 }

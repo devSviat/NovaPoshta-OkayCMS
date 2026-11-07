@@ -21,6 +21,8 @@ use Okay\Modules\Sviat\NovaPoshta\Orders\OrderPointChange;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersListFilter;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus;
 use Okay\Core\Request;
+use Okay\Core\Response;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersMassAction;
 
 class BackendExtender implements ExtensionInterface
 {
@@ -35,6 +37,7 @@ class BackendExtender implements ExtensionInterface
         private readonly WaybillStore $waybillRows,
         private readonly BackendTranslations $translations,
         private readonly Request $request,
+        private readonly OrdersMassAction $massAction,
     ) {
     }
 
@@ -93,12 +96,16 @@ class BackendExtender implements ExtensionInterface
         ];
     }
 
-    /** ChainExtension of BackendOrdersHelper::buildFilter: NP status group, and a keyword that is a waybill number. */
+    /**
+     * ChainExtension of BackendOrdersHelper::buildFilter: NP status group, a keyword that is a waybill
+     * number, and the list action «create waybills» (the core runs its own actions just before this).
+     */
     public function listFilter($filter)
     {
         if (!is_array($filter)) {
             return $filter;
         }
+        $this->handleMassAction();
         $group = $this->request->get('np_waybill');
         $group = is_string($group) && isset(WaybillStatus::FILTER_GROUPS[$group]) ? $group : null;
         $this->design->assign('np_status_groups', array_keys(WaybillStatus::FILTER_GROUPS));
@@ -117,6 +124,22 @@ class BackendExtender implements ExtensionInterface
         }
 
         return $applied;
+    }
+
+    private function handleMassAction(): void
+    {
+        if ($this->request->method('post')) {
+            if ($this->massAction->handleRequest(fn(): bool => (bool)$this->request->checkSession(), $_SESSION)) {
+                Response::redirectTo($this->request->url());
+            }
+
+            return;
+        }
+        $report = OrdersMassAction::take($_SESSION);
+        $this->design->assign('np_mass_report', $report === null ? null : OrdersMassAction::view(
+            $report,
+            fn(string $key): string => (string)$this->translations->getTranslation('sviat__novaposhta__' . $key),
+        ));
     }
 
     /** ChainExtension of BackendOrdersHelper::buildCountStatusesFilter: the status counters follow the NP filter. */

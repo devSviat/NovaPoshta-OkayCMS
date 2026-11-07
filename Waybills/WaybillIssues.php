@@ -16,6 +16,8 @@ final class WaybillIssues
     private const array RULES = [
         ['~shipment_was_deleted|already deleted|was deleted~i', null, 'deleted'],
         ['~AfterpaymentOnGoodsCost is unavailable~i', 'cod_kind', 'control_unavailable'],
+        // An unknown code also brings «counterparty person creation problem»: the code is the cause.
+        ['~EDRPOU|OwnershipForm~i', 'edrpou', 'edrpou'],
         ['~RecipientContactName|RecipientName|recipient\.name|Empty user name|counterparty person creation|contains invalid words~i', 'recipient_name', 'recipient_name'],
         ['~RecipientsPhone|RecipientPhone|recipient\.phone|Invalid phone~i', 'phone', 'phone'],
         ['~SendersPhone|SenderPhone|sender\.phone|ContactSender|\bSender not selected|sender\.name~i', null, 'sender'],
