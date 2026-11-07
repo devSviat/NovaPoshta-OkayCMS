@@ -22,6 +22,8 @@ use Okay\Entities\VariantsEntity;
 use Okay\Admin\Helpers\BackendOrdersHelper;
 use Okay\Entities\OrdersEntity;
 use Okay\Admin\Requests\BackendProductsRequest;
+use Okay\Admin\Requests\BackendPaymentsRequest;
+use Okay\Admin\Helpers\BackendPaymentsHelper;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
@@ -112,6 +114,13 @@ class Init extends AbstractInit
         self::markSchema('0.8.0');
     }
 
+    /** Cash on delivery kind per payment method: the old flag 1 becomes the kind the shop had chosen. */
+    public function update_0_10_0()
+    {
+        $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
+        CodPayments::forUpdate(ServiceLocator::getInstance()->getService(...))->migrateLegacy();
+    }
+
     /** Fields the module keeps on core tables, under its own names (§9). */
     /**
      * Columns on core tables exist only after install/update has run. Registering them earlier
@@ -159,6 +168,9 @@ class Init extends AbstractInit
                 $this->registerEntityField(OrderDeliveryEntity::class, $field->getName());
             }
             $this->addBackendBlock('product_variant', 'variant_volume.tpl');
+            $this->registerChainExtension([BackendPaymentsRequest::class, 'postPayment'], [BackendExtender::class, 'paymentPost']);
+            $this->registerQueueExtension([BackendPaymentsHelper::class, 'getPaymentMethod'], [BackendExtender::class, 'assignPaymentCod']);
+            $this->addBackendBlock('payment_switch_checkboxes', 'payment_cod.tpl');
         }
         $this->registerChainExtension(
             [BackendProductsRequest::class, 'postVariants'],
@@ -175,8 +187,9 @@ class Init extends AbstractInit
             $this->registerEntityFilter(OrdersEntity::class, 'np_without_waybill', OrdersEntityFilters::class, 'filter__np_without_waybill');
             $this->addBackendBlock('orders_list_name', 'orders_status.tpl');
         }
-        $this->addBackendBlock('order_contact', 'order_delivery.tpl');
+        // The core prints a block's templates last-registered first: the point goes above the waybill.
         $this->addBackendBlock('order_contact', 'waybill.tpl');
+        $this->addBackendBlock('order_contact', 'order_delivery.tpl');
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
         $this->registerBackendController('WaybillAdmin');

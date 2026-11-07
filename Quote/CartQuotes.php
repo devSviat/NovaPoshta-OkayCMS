@@ -98,7 +98,7 @@ final class CartQuotes
         }
 
         // The price does not depend on the chosen payment: the commission is apart from it.
-        $cod = $this->codFeeWanted($delivery, $config);
+        $cod = $this->codFeeWanted($delivery);
         $bag = $forAdmin ? [] : $this->bag();
         if (!$forAdmin) {
             QuoteSession::choose($bag, (int)$delivery->id, $targetKey, $cod, $lifting);
@@ -148,7 +148,7 @@ final class CartQuotes
                 // Nova Poshta takes the declared value in hryvnias; the cart total is in the main currency.
                 Parcel::fromMetrics(CartMetrics::fromCart($cart), $config, (float)$this->money->convert((float)($cart->total_price ?? 0), (int)$uah->id, false, false, 2)),
                 $cod,
-                $config->codKind,
+                CodKind::Money,
                 $wantPrice,
                 $wantTerm,
                 $recipient instanceof AddressTarget ? $recipient : null,
@@ -184,9 +184,9 @@ final class CartQuotes
     }
 
     /** The commission is asked whenever the method can be paid by money-transfer COD (shown under that payment). */
-    private function codFeeWanted(object $delivery, ShippingConfig $config): bool
+    private function codFeeWanted(object $delivery): bool
     {
-        return $this->codFeePayments($delivery, $config) !== [];
+        return $this->codFeePayments($delivery) !== [];
     }
 
     /**
@@ -194,14 +194,11 @@ final class CartQuotes
      * marked as its cash on delivery, and only for a money transfer (payment control is the shop's cost).
      * @return list<int>
      */
-    public function codFeePayments(object $delivery, ?ShippingConfig $config = null): array
+    public function codFeePayments(object $delivery): array
     {
-        if (($config ?? $this->shipping->read())->codKind !== CodKind::Money) {
-            return [];
-        }
         $linked = array_map('intval', (array)$this->entityFactory->get(DeliveriesEntity::class)->getDeliveryPayments((int)$delivery->id));
 
-        return CodPayments::wantsFee($linked, $codIds = $this->codPayments->codIds()) ? array_values(array_intersect($linked, $codIds)) : [];
+        return CodPayments::wantsFee($linked, $moneyIds = $this->codPayments->moneyIds()) ? array_values(array_intersect($linked, $moneyIds)) : [];
     }
 
     public function isCodPayment(int $paymentId): bool

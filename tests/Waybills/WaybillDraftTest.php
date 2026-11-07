@@ -41,7 +41,7 @@ class WaybillDraftTest extends TestCase
         return (object)['id' => 7162, 'number' => '11/1', 'name_uk' => 'Відділення №1: вул. Пирогівський шлях, 135', 'settlement_id' => 118064];
     }
 
-    private static function build(?object $order = null, ?object $snapshot = null, object|false|null $division = false, bool $cod = false, float $rate = 1.0, ?array $purchases = null, ?array $invoice = null): WaybillDraft|string
+    private static function build(?object $order = null, ?object $snapshot = null, object|false|null $division = false, ?CodKind $cod = null, float $rate = 1.0, ?array $purchases = null, ?array $invoice = null): WaybillDraft|string
     {
         return WaybillDrafts::build(
             $order ?? self::order(),
@@ -49,7 +49,7 @@ class WaybillDraftTest extends TestCase
             $snapshot ?? self::points(),
             $division === false ? self::division() : $division,
             new WaybillConfig(null, null),
-            new ShippingConfig(5524, 1.0, 0.001, CodKind::Money, false),
+            new ShippingConfig(5524, 1.0, 0.001, false),
             $cod,
             $rate,
             new \DateTimeImmutable('2026-11-07 10:00'),
@@ -81,19 +81,33 @@ class WaybillDraftTest extends TestCase
 
     public function testCodOnForCodPaymentUnlessPaid(): void
     {
-        $draft = self::build(cod: true);
+        $draft = self::build(cod: CodKind::Money);
         self::assertTrue($draft->cod);
         self::assertSame(2454.0, $draft->codAmount);
         self::assertSame(CodKind::Money, $draft->codKind);
         self::assertSame('Recipient', $draft->codPayer);
 
-        self::assertFalse(self::build(self::order(['paid' => 1]), cod: true)->cod);
+        self::assertFalse(self::build(self::order(['paid' => 1]), cod: CodKind::Money)->cod);
         self::assertFalse(self::build()->cod);
+    }
+
+    public function testKindComesFromPayment(): void
+    {
+        $draft = self::build(cod: CodKind::Control);
+        self::assertTrue($draft->cod);
+        self::assertSame(CodKind::Control, $draft->codKind);
+
+        self::assertFalse(self::build(cod: null)->cod);
+    }
+
+    public function testPaidOrderHasNoCodEvenWithKind(): void
+    {
+        self::assertFalse(self::build(self::order(['paid' => 1]), cod: CodKind::Control)->cod);
     }
 
     public function testCodAmountIsWholeHryvnias(): void
     {
-        $draft = self::build(self::order(['total_price' => 1234.56]), cod: true);
+        $draft = self::build(self::order(['total_price' => 1234.56]), cod: CodKind::Money);
 
         self::assertSame(1235.0, $draft->codAmount);
         self::assertSame(1234.0, $draft->withInput(['cod' => '1', 'cod_amount' => '1234.4'])->codAmount);
@@ -101,7 +115,7 @@ class WaybillDraftTest extends TestCase
 
     public function testAmountsInUah(): void
     {
-        $draft = self::build(self::order(['total_price' => 50.0, 'delivery_price' => 0.0]), cod: true, rate: 40.0);
+        $draft = self::build(self::order(['total_price' => 50.0, 'delivery_price' => 0.0]), cod: CodKind::Money, rate: 40.0);
 
         self::assertSame(2000.0, $draft->codAmount);
         self::assertSame(2000.0, $draft->declaredCost);
@@ -164,7 +178,7 @@ class WaybillDraftTest extends TestCase
             $draft->recipientName, $draft->recipientPhone, $draft->weightKg, $draft->volumeM3, $draft->declaredCost, $draft->description,
             $draft->cargoType, $draft->payerType, $draft->paymentMethod, $draft->cod, $draft->codAmount, $draft->codKind, $draft->codPayer,
         ]);
-        self::assertFalse(self::build(cod: true)->withInput([])->cod);
+        self::assertFalse(self::build(cod: CodKind::Money)->withInput([])->cod);
     }
 
     public function testInvoiceMakesOrganization(): void

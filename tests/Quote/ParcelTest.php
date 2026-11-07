@@ -3,7 +3,6 @@
 namespace Modules\Sviat\NovaPoshta\Quote;
 
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
-use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 use Okay\Modules\Sviat\NovaPoshta\Quote\Parcel;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
 use PHPUnit\Framework\TestCase;
@@ -12,7 +11,7 @@ class ParcelTest extends TestCase
 {
     private static function config(): ShippingConfig
     {
-        return new ShippingConfig(1, 1.5, 0.002, CodKind::Money, false);
+        return new ShippingConfig(1, 1.5, 0.002, false);
     }
 
     public function testUnitsWithoutWeightGetTheDefault(): void

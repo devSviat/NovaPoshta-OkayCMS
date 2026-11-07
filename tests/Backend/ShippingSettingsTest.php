@@ -3,7 +3,7 @@
 namespace Modules\Sviat\NovaPoshta\Backend;
 
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
-use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
+use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -52,12 +52,12 @@ class ShippingSettingsTest extends TestCase
         self::assertContains('shipping_error_weight', self::parse(['default_weight' => ['1'], 'default_volume' => '0.001'])['errors']);
     }
 
-    public function testMissingTermMeansOffAndCodKindIsNotTouched(): void
+    public function testMissingTermMeansOffAndCodKindIsNotStored(): void
     {
         $values = self::parse(['default_weight' => '1', 'default_volume' => '0.001', 'cod_kind' => 'control'])['values'];
 
         self::assertSame(0, $values[ShippingSettings::SHOW_TERM]);
-        self::assertArrayNotHasKey(ShippingSettings::COD_KIND, $values, 'the cash-on-delivery form owns it');
+        self::assertArrayNotHasKey(CodPayments::LEGACY_KIND, $values, 'the kind lives on each payment method');
     }
 
     public function testConfigFromStoredValuesWithDefaults(): void
@@ -67,15 +67,13 @@ class ShippingSettingsTest extends TestCase
         self::assertNull($config->senderDivisionId);
         self::assertSame(1.0, $config->defaultWeight);
         self::assertSame(0.001, $config->defaultVolume);
-        self::assertSame(CodKind::Money, $config->codKind);
         self::assertFalse($config->showTerm);
         self::assertFalse($config->showLifting);
 
-        $stored = [ShippingSettings::SENDER => '42', ShippingSettings::WEIGHT => '2.5', ShippingSettings::VOLUME => '0.01', ShippingSettings::COD_KIND => 'control', ShippingSettings::SHOW_TERM => '1', ShippingSettings::SHOW_LIFTING => '1'];
+        $stored = [ShippingSettings::SENDER => '42', ShippingSettings::WEIGHT => '2.5', ShippingSettings::VOLUME => '0.01', ShippingSettings::SHOW_TERM => '1', ShippingSettings::SHOW_LIFTING => '1'];
         $config = ShippingConfig::fromSettings(static fn(string $name) => $stored[$name] ?? null);
         self::assertSame(42, $config->senderDivisionId);
         self::assertSame(2.5, $config->defaultWeight);
-        self::assertSame(CodKind::Control, $config->codKind);
         self::assertTrue($config->showTerm);
         self::assertTrue($config->showLifting);
     }

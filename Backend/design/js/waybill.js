@@ -7,7 +7,40 @@
         return el.closest('.fn_np_waybill');
     }
 
+    /** The recipient is the customer in the order's own fields above, as they are now (saved or not). */
+    function syncRecipient(root) {
+        var form = root.closest('form');
+        var value = function (name) {
+            var input = form ? form.querySelector('input[name="' + name + '"]') : null;
+            return input ? input.value.trim() : null;
+        };
+        var name = value('name');
+        var lastName = value('last_name');
+        var phone = value('phone');
+        if (name === null && lastName === null && phone === null) {
+            return;
+        }
+        var full = [lastName, name].filter(Boolean).join(' ');
+        var setText = function (selector, text) {
+            var node = root.querySelector(selector);
+            if (node) {
+                node.textContent = text;
+            }
+        };
+        var setField = function (field, text) {
+            var input = root.querySelector('[data-field="' + field + '"]');
+            if (input) {
+                input.value = text;
+            }
+        };
+        setText('.fn_np_wb_who_name', full);
+        setText('.fn_np_wb_who_phone', phone || '');
+        setField('recipient_name', full);
+        setField('phone', phone || '');
+    }
+
     function fields(root) {
+        syncRecipient(root);
         var data = {};
         root.querySelectorAll('[data-field]').forEach(function (input) {
             if (input.type === 'radio') {
@@ -178,6 +211,9 @@
         if (part && root.querySelector(part)) {
             root.querySelector(part).hidden = !input.checked;
         }
+        if (input.getAttribute('data-field') === 'cod' && root.querySelector('[data-field="cod_amount"]')) {
+            root.querySelector('[data-field="cod_amount"]').disabled = !input.checked;
+        }
     });
 
     document.addEventListener('click', function (event) {
@@ -195,7 +231,19 @@
         var root = rootOf(input);
         var org = input.value === 'Organization' && input.checked;
         root.querySelector('.np-wb__org').hidden = !org;
-        var label = root.querySelector('.np-wb__name-label');
+        var label = root.querySelector('.np-wb__who-label');
         label.textContent = label.getAttribute(org ? 'data-org' : 'data-private');
+    });
+
+    document.addEventListener('input', function (event) {
+        var input = event.target;
+        if (!input.matches || !input.matches('input[name="name"], input[name="last_name"], input[name="phone"]')) {
+            return;
+        }
+        var form = input.closest('form');
+        var root = form ? form.querySelector('.fn_np_waybill') : null;
+        if (root) {
+            syncRecipient(root);
+        }
     });
 })();

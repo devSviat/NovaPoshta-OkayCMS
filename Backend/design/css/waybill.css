@@ -78,3 +78,20 @@
 .np-mass__row--skipped { color: #8a5a00; }
 .np-mass__row--failed { color: #c0392b; }
 .np-mass__note { padding: 8px 10px; border-radius: 6px; background: #eef4fb; border: 1px solid #c9dcf0; }
+
+.np-wb__title { font-size: 16px; font-weight: 600; }
+.np-wb__label { display: block; margin: 8px 0 4px; }
+.np-wb__tip { margin-left: 4px; vertical-align: middle; }
+.np-wb__radios { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 4px 10px; margin-bottom: 6px; }
+.np-wb__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; align-items: end; }
+.np-wb__who { margin: 6px 0 10px; padding: 8px 10px; border-radius: 4px; background: #f5f7f9; line-height: 1.45; }
+.np-wb__who-label { color: #6b7279; }
+.np-wb__who .np-wb__error:empty { display: none; }
+.np-wb__switch { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.np-wb__switch .switch { margin: 0; flex: none; }
+.np-wb__attach > summary.btn { display: inline-block; list-style: none; margin-top: 6px; }
+.np-wb__attach > summary.btn::-webkit-details-marker { display: none; }
+
+.np-codpay__kinds{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.np-codpay__kind{display:flex;gap:8px;align-items:flex-start;font-weight:400;cursor:pointer;line-height:1.4}
+.np-codpay__kind input{margin-top:3px;flex:none}

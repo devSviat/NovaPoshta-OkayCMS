@@ -8,6 +8,7 @@ use Okay\Entities\DeliveriesEntity;
 use Okay\Core\Modules\Extender\ExtensionInterface;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
+use Okay\Modules\Sviat\NovaPoshta\Payments\CodPaymentInput;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
@@ -39,6 +40,32 @@ class BackendExtender implements ExtensionInterface
         private readonly Request $request,
         private readonly OrdersMassAction $massAction,
     ) {
+    }
+
+    /** ChainExtension of BackendPaymentsRequest::postPayment: the core stores the field with the rest of the payment. */
+    public function paymentPost($paymentMethod)
+    {
+        if (is_object($paymentMethod)) {
+            $post = [];
+            foreach ([CodPaymentInput::MARKER, CodPaymentInput::SWITCH, CodPaymentInput::KIND] as $name) {
+                $post[$name] = $this->request->post($name);
+            }
+            $flag = CodPaymentInput::flag($post, $paymentMethod->module ?? null);
+            if ($flag !== null) {
+                $paymentMethod->{CodPayments::FIELD} = $flag;
+            }
+        }
+
+        return $paymentMethod;
+    }
+
+    /** QueueExtension of BackendPaymentsHelper::getPaymentMethod: what payment_cod.tpl shows. */
+    public function assignPaymentCod($payment, $id = null)
+    {
+        $this->design->assign('np_codpay', [
+            'kind' => is_object($payment) ? $this->codPayments->kindOfPayment($payment)?->value : null,
+            'manual' => CodPayments::isManual(is_object($payment) ? ($payment->module ?? null) : null),
+        ]);
     }
 
     /** QueueExtension of BackendOrdersHelper::findOrder: the order page shows where the parcel goes. */
