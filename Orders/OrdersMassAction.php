@@ -57,10 +57,10 @@ final class OrdersMassAction
             $line = match ($row['kind']) {
                 'created' => sprintf($text('mass_created'), self::spaced($value)),
                 'skipped' => $text('mass_skipped') . ': ' . sprintf($text((string)$row['key']), self::spaced($value)),
-                default => $text('mass_failed') . ': ' . implode(' ', array_filter([
-                    $value !== '' ? rtrim($value, '. ') . '.' : '',
-                    $row['key'] !== null ? $text($row['key']) : '',
-                ])),
+                // Our advice already says what NP refused; its own (English) text only when we have none.
+                default => $text('mass_failed') . ': ' . (self::specific($row['key']) || $value === ''
+                    ? $text((string)($row['key'] ?? 'waybill_advice_generic'))
+                    : rtrim($value, '. ') . '.'),
             };
 
             return ['orderId' => $row['orderId'], 'kind' => $row['kind'], 'text' => $line];
@@ -71,6 +71,11 @@ final class OrdersMassAction
             'rows' => $rows,
             'untouched' => $report->untouched > 0 ? sprintf($text('mass_untouched'), MassWaybills::LIMIT, $report->untouched) : null,
         ];
+    }
+
+    private static function specific(?string $key): bool
+    {
+        return $key !== null && $key !== 'waybill_advice_generic';
     }
 
     private static function spaced(string $number): string

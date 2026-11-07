@@ -126,21 +126,23 @@ class OrdersMassActionTest extends TestCase
             ['orderId' => 990063, 'kind' => 'skipped', 'key' => 'mass_has_waybill', 'value' => '20450000000003'],
             ['orderId' => 990064, 'kind' => 'skipped', 'key' => 'mass_not_np', 'value' => null],
             ['orderId' => 990065, 'kind' => 'failed', 'key' => 'waybill_advice_phone', 'value' => 'RecipientsPhone invalid format'],
+            ['orderId' => 990066, 'kind' => 'failed', 'key' => 'waybill_advice_generic', 'value' => 'Something unexpected'],
         ], 8);
         $texts = [
             'mass_title' => 'створено %1$s з %2$s', 'mass_created' => 'накладна %s', 'mass_skipped' => 'пропущено', 'mass_failed' => 'НП відмовила',
-            'mass_has_waybill' => 'накладна вже є (%s)', 'mass_not_np' => 'доставка не Новою Поштою', 'waybill_advice_phone' => 'Виправте телефон.',
+            'mass_has_waybill' => 'накладна вже є (%s)', 'mass_not_np' => 'доставка не Новою Поштою', 'waybill_advice_phone' => 'Виправте телефон.', 'waybill_advice_generic' => 'Перевірте дані.',
             'mass_untouched' => 'до %1$s; решту %2$s не чіпали',
         ];
 
         $view = OrdersMassAction::view($report, static fn(string $key): string => $texts[$key]);
 
-        self::assertSame('створено 1 з 4', $view['title']);
+        self::assertSame('створено 1 з 5', $view['title']);
         self::assertSame([
             ['orderId' => 990061, 'kind' => 'created', 'text' => 'накладна 20 4500 0000 0011'],
             ['orderId' => 990063, 'kind' => 'skipped', 'text' => 'пропущено: накладна вже є (20 4500 0000 0003)'],
             ['orderId' => 990064, 'kind' => 'skipped', 'text' => 'пропущено: доставка не Новою Поштою'],
-            ['orderId' => 990065, 'kind' => 'failed', 'text' => 'НП відмовила: RecipientsPhone invalid format. Виправте телефон.'],
+            ['orderId' => 990065, 'kind' => 'failed', 'text' => 'НП відмовила: Виправте телефон.'],
+            ['orderId' => 990066, 'kind' => 'failed', 'text' => 'НП відмовила: Something unexpected.'],
         ], $view['rows']);
         self::assertSame('до 20; решту 8 не чіпали', $view['untouched']);
         self::assertNull(OrdersMassAction::view(new MassReport([], 0), static fn(string $key): string => $texts[$key])['untouched']);

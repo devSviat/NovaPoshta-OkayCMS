@@ -48,7 +48,9 @@
         issues.forEach(function (issue) {
             var span = issue.field ? root.querySelector('.np-wb__error[data-for="' + issue.field + '"]') : null;
             if (span) {
-                span.textContent = issue.message ? issue.message + '. ' + issue.advice : issue.advice;
+                // The advice names the problem in the admin's language; NP's own text stays at hand on hover.
+                span.textContent = issue.advice;
+                span.title = [issue.message, issue.details].filter(Boolean).join(' — ');
                 var input = root.querySelector('[data-field="' + issue.field + '"]');
                 if (input) {
                     input.classList.add('np-wb__invalid');

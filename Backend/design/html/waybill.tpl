@@ -133,9 +133,19 @@
 
             <div class="np-wb__group">{$btr->sviat__novaposhta__waybill_recipient_group|escape}</div>
             {$org = $d->recipientType == 'Organization'}
-            <div class="np-wb__seg" role="radiogroup">
-                <label><input type="radio" name="np_wb_recipient_type" data-field="recipient_type" value="PrivatePerson" {if !$org}checked{/if}> <span>{$btr->sviat__novaposhta__waybill_recipient_private|escape}</span></label>
-                <label><input type="radio" name="np_wb_recipient_type" data-field="recipient_type" value="Organization" {if $org}checked{/if}> <span>{$btr->sviat__novaposhta__waybill_recipient_org|escape}</span></label>
+            <div class="row mb-h np-wb__recipient-type" role="radiogroup">
+                <div class="col-md-6">
+                    <div class="okay_type_radio_wrap">
+                        <input id="np_wb_rt_private" class="hidden_check" name="np_wb_recipient_type" type="radio" data-field="recipient_type" value="PrivatePerson" {if !$org}checked{/if}>
+                        <label for="np_wb_rt_private" class="okay_type_radio"><span>{$btr->sviat__novaposhta__waybill_recipient_private|escape}</span></label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="okay_type_radio_wrap">
+                        <input id="np_wb_rt_org" class="hidden_check" name="np_wb_recipient_type" type="radio" data-field="recipient_type" value="Organization" {if $org}checked{/if}>
+                        <label for="np_wb_rt_org" class="okay_type_radio"><span>{$btr->sviat__novaposhta__waybill_recipient_org|escape}</span></label>
+                    </div>
+                </div>
             </div>
             <div class="np-wb__org" {if !$org}hidden{/if}>
                 {if $d->fromInvoice}<div class="np-wb__ok">{$btr->sviat__novaposhta__waybill_from_invoice|escape}</div>{/if}

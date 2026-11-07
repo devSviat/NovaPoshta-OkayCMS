@@ -78,9 +78,3 @@
 .np-mass__row--skipped { color: #8a5a00; }
 .np-mass__row--failed { color: #c0392b; }
 .np-mass__note { padding: 8px 10px; border-radius: 6px; background: #eef4fb; border: 1px solid #c9dcf0; }
-.np-wb__seg { display: inline-flex; border: 1px solid #c9cfd5; border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
-.np-wb__seg label { margin: 0; cursor: pointer; }
-.np-wb__seg input { position: absolute; opacity: 0; pointer-events: none; }
-.np-wb__seg span { display: block; padding: 6px 12px; font-size: 13px; }
-.np-wb__seg input:checked + span { background: #005893; color: #fff; }
-.np-wb__seg input:focus-visible + span { outline: 2px solid #2a76c6; outline-offset: -2px; }
