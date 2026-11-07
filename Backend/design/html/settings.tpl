@@ -6,6 +6,8 @@
     </div>
 </div>
 
+{include file='legacy_migration.tpl'}
+
 <form method="post" id="np_key_form">
     <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
 
@@ -465,7 +467,7 @@
             <p class="text_grey">{$btr->sviat__novaposhta__cod_overview_note|escape}</p>
             {foreach $np_cod_payments as $payment}
                 <div class="np_payment_row np_cod_row">
-                    <span>{$payment->name}{if !$payment->enabled} <span class="text_grey">({$btr->sviat__novaposhta__cod_payment_disabled|escape})</span>{/if}</span>
+                    <span>{$payment->name|escape}{if !$payment->enabled} <span class="text_grey">({$btr->sviat__novaposhta__cod_payment_disabled|escape})</span>{/if}</span>
                     <span>{if $payment->cod_kind == 'control'}{$btr->sviat__novaposhta__waybill_cod_control_title|escape}{elseif $payment->cod_kind == 'money'}{$btr->sviat__novaposhta__cod_kind_money|escape}{else}<span class="text_grey">—</span>{/if}</span>
                     <a href="index.php?controller=PaymentMethodAdmin&amp;id={$payment->id|escape:'url'}">{$btr->sviat__novaposhta__cod_configure|escape}</a>
                 </div>
@@ -555,6 +557,17 @@
     .np_payment_row { padding: 8px 0; border-bottom: 1px solid var(--ok-line, #e4e6e9); margin: 0; }
     .np_check { display: flex; align-items: flex-start; gap: 8px; }
     .np_check input { margin-top: 4px; }
+    .np_legacy__steps { margin: 0 0 12px; padding-left: 20px; line-height: 1.7; }
+    .np_legacy__done { color: #4caf50; }
+    .np_legacy__now { font-weight: 600; }
+    .np_legacy__table { display: grid; grid-template-columns: 1fr 110px; margin-bottom: 12px; }
+    .np_legacy__table--report { grid-template-columns: 1fr 100px 100px 100px; }
+    .np_legacy__table > span { padding: 6px 8px; border-top: 1px solid var(--ok-line, #e4e6e9); }
+    .np_legacy__th { font-weight: 600; border-top: 0 !important; }
+    .np_legacy__num { text-align: right; }
+    .np_legacy__ok { color: #2e7d32; } .np_legacy__skip { color: #b26a00; } .np_legacy__fail { color: #c62828; }
+    .np_legacy__fails > div { display: grid; grid-template-columns: 140px 1fr; gap: 10px; padding: 6px 0; border-top: 1px solid var(--ok-line, #e4e6e9); }
+    @media (max-width: 600px) { .np_legacy__table--report { grid-template-columns: 1fr 60px 60px 60px; } .np_legacy__fails > div { grid-template-columns: 1fr; } }
     .np_cod_row { display: grid; grid-template-columns: 1fr 180px auto; gap: 12px; align-items: center; }
     @media (max-width: 575px) { .np_key_buttons .btn, #np_dict_form .btn { width: 100%; } }
 </style>

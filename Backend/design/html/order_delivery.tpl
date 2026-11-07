@@ -10,6 +10,9 @@
         <div class="alert alert--warning mb-h"><div class="alert__content"><p>{if $p.mode == 'address'}{$btr->sviat__novaposhta__op_needs_address|escape}{else}{$btr->sviat__novaposhta__op_needs_point|escape}{/if}</p></div></div>
     {/if}
     {if $np_order_delivery}
+    {if $np_order_delivery.legacyUnmatched}
+        <div class="alert alert--warning mb-h"><div class="alert__content"><p>{$btr->sviat__novaposhta__legacy_order_unmatched|escape}</p></div></div>
+    {/if}
     {if $np_order_delivery.priceUnconfirmed}
         <div class="alert alert--icon alert--warning mb-h">
             <div class="alert__content"><p>{$btr->sviat__novaposhta__order_price_fallback|escape}</p></div>

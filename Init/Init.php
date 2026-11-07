@@ -34,6 +34,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigration;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersEntityFilters;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
@@ -121,6 +122,13 @@ class Init extends AbstractInit
         CodPayments::forUpdate(ServiceLocator::getInstance()->getService(...))->migrateLegacy();
     }
 
+    /** Order rows carried over from the old modules are marked (stage 5). */
+    public function update_0_11_0()
+    {
+        $this->migrateEntityField(OrderDeliveryEntity::class, self::legacyField());
+        self::markSchema('0.11.0');
+    }
+
     /** Fields the module keeps on core tables, under its own names (§9). */
     /**
      * Columns on core tables exist only after install/update has run. Registering them earlier
@@ -128,11 +136,17 @@ class Init extends AbstractInit
      * orders fail — the storefront loses products and payment methods — so init() waits for this.
      */
     private const string SCHEMA_SETTING = 'sviat__novaposhta__schema';
-    private const string SCHEMA = '0.8.0';
+    private const string SCHEMA = '0.11.0';
 
     private static function markSchema(string $version): void
     {
         ServiceLocator::getInstance()->getService(Settings::class)->set(self::SCHEMA_SETTING, $version);
+    }
+
+    /** For services that must not act on a schema the "Update" button has not created yet. */
+    public static function schemaAtLeast(string $version): bool
+    {
+        return self::schemaReady($version);
     }
 
     private static function schemaReady(string $version): bool
@@ -148,6 +162,9 @@ class Init extends AbstractInit
 
     public function init()
     {
+        if (self::schemaReady('0.11.0')) {
+            $this->registerEntityField(OrderDeliveryEntity::class, self::legacyField()->getName());
+        }
         if (self::schemaReady('0.8.0')) {
             foreach (self::trackingFields() as $field) {
                 $this->registerEntityField(WaybillEntity::class, $field->getName());
@@ -235,6 +252,13 @@ class Init extends AbstractInit
                 ->timeout(3600)
         );
         $this->registerSchedule(
+            new Schedule([LegacyMigration::class, 'tick'])
+                ->name('Nova Poshta: data from the old modules')
+                ->time('*/5 * * * *')
+                ->overlap(false)
+                ->timeout(300)
+        );
+        $this->registerSchedule(
             new Schedule([WaybillTracking::class, 'tick'])
                 ->name('Nova Poshta: waybill tracking')
                 ->time('*/15 * * * *')
@@ -285,6 +309,12 @@ class Init extends AbstractInit
     }
 
     /** @return list<EntityField> columns of the order snapshot added in 0.4.0 */
+    /** Rows carried over from the old modules (stage 5): null, 'migrated' or 'unmatched'. */
+    public static function legacyField(): EntityField
+    {
+        return new EntityField('legacy')->setTypeVarchar(16);
+    }
+
     public static function pricingFields(): array
     {
         return [
@@ -363,6 +393,7 @@ class Init extends AbstractInit
                 ...self::pricingFields(),
                 ...self::addressFields(),
                 self::codFeeField(),
+                self::legacyField(),
                 new EntityField('created_at')->setTypeDatetime(false),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],
