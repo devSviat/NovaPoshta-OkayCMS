@@ -1,0 +1,23 @@
+{
+ "success": true,
+ "data": [
+  {
+   "Ref": "01a1b61a-27d7-7fcb-b32a-ab6250b27d90",
+   "CostOnSite": 803,
+   "EstimatedDeliveryDate": "08.11.2026",
+   "IntDocNumber": "20451581331576",
+   "TypeDocument": "InternetDocument"
+  }
+ ],
+ "errors": [],
+ "warnings": [
+  "CargoType is changed to Cargo"
+ ],
+ "info": [],
+ "messageCodes": [],
+ "errorCodes": [],
+ "warningCodes": [
+  "30000201470"
+ ],
+ "infoCodes": []
+}

@@ -1,0 +1,16 @@
+{
+ "Description": "Тестовий",
+ "Ref": "00000000-0000-0000-0000-000000000001",
+ "City": "00000000-0000-0000-0000-000000000000",
+ "Counterparty": "00000000-0000-0000-0000-000000000002",
+ "FirstName": "Тестовий",
+ "LastName": "",
+ "MiddleName": "",
+ "CounterpartyFullName": "",
+ "OwnershipFormRef": "",
+ "OwnershipFormDescription": "",
+ "EDRPOU": "",
+ "CounterpartyType": "PrivatePerson",
+ "TrustedCounterpartyType": "",
+ "CityDescription": ""
+}

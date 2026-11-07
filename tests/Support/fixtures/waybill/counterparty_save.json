@@ -1,0 +1,44 @@
+{
+ "success": true,
+ "data": [
+  {
+   "Ref": "ce367fd7-5bf2-11e7-8ba8-005056881c6b",
+   "Description": "Тестовий",
+   "FirstName": "Іван",
+   "MiddleName": "",
+   "LastName": "Петренко",
+   "Counterparty": "",
+   "OwnershipForm": "",
+   "OwnershipFormDescription": "",
+   "EDRPOU": "",
+   "CounterpartyType": "PrivatePerson",
+   "ContactPerson": {
+    "success": true,
+    "data": [
+     {
+      "Ref": "01a1b61a-270b-726e-a047-6204bf533a9f",
+      "Description": "Петренко Іван ",
+      "LastName": "Петренко",
+      "FirstName": "Іван",
+      "MiddleName": ""
+     }
+    ],
+    "errors": [],
+    "translatedErrors": [],
+    "warnings": [],
+    "info": [],
+    "messageCodes": [],
+    "errorCodes": [],
+    "warningCodes": [],
+    "infoCodes": []
+   }
+  }
+ ],
+ "errors": [],
+ "warnings": [],
+ "info": [],
+ "messageCodes": [],
+ "errorCodes": [],
+ "warningCodes": [],
+ "infoCodes": []
+}
