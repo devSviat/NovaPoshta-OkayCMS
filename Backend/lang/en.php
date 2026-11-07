@@ -442,3 +442,4 @@ $lang['sviat__novaposhta__mass_has_waybill'] = 'already has a waybill (%s)';
 $lang['sviat__novaposhta__mass_not_np'] = 'not delivered by Nova Poshta';
 $lang['sviat__novaposhta__mass_untouched'] = 'Up to %1$s orders are processed at a time. The other %2$s were left as they are — select them and run again.';
 $lang['sviat__novaposhta__mass_hide'] = 'Hide';
+$lang['sviat__novaposhta__mass_not_saved'] = 'waybill %s was created at Nova Poshta but not saved on the site — attach it to the order by its number';

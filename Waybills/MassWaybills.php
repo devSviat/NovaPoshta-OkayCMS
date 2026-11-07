@@ -10,8 +10,11 @@ final class MassWaybills
 {
     /** Each order is one or more Nova Poshta calls of up to 30 s; the page waits for all of them. */
     public const int LIMIT = 20;
-    /** No new order is started after this: the request must end before PHP or the proxy gives up. */
-    public const float BUDGET_SECONDS = 100.0;
+    /**
+     * No new order is started after this. nginx gives PHP 60 s by default, and the order started last
+     * still needs its own few seconds; a slower NP leaves the rest for the next run.
+     */
+    public const float BUDGET_SECONDS = 45.0;
 
     private readonly \Closure $clock;
 
@@ -38,7 +41,12 @@ final class MassWaybills
                 $untouched += count($batch) - $index;
                 break;
             }
-            $rows[] = ['orderId' => $orderId] + $this->one($orderId);
+            try {
+                $rows[] = ['orderId' => $orderId] + $this->one($orderId);
+            } catch (\Throwable) {
+                // One broken order must not cost the report of the others.
+                $rows[] = ['orderId' => $orderId, 'kind' => 'failed', 'key' => 'waybill_advice_generic', 'value' => null];
+            }
         }
 
         return new MassReport($rows, $untouched);
@@ -52,11 +60,8 @@ final class MassWaybills
             return $skip('mass_not_np');
         }
         $existing = $this->rows->forOrder($orderId);
-        if ($existing !== null && $existing->api === 'pending') {
-            if (WaybillService::isPending($existing, time())) {
-                return $skip('waybill_pending');
-            }
-        } elseif ($existing !== null) {
+        // A reservation is judged by create(): fresh is refused, a dead one is replaced with a warning.
+        if ($existing !== null && $existing->api !== 'pending') {
             return $skip('mass_has_waybill', (string)$existing->number);
         }
         $draft = $this->orders->draft($orderId);
@@ -70,9 +75,15 @@ final class MassWaybills
 
         $outcome = $this->service->create($orderId, $draft);
         if ($outcome->ok) {
-            return ['kind' => 'created', 'key' => null, 'value' => $outcome->number];
+            // The NP account may already hold a waybill from the request that died.
+            $warning = in_array('waybill_stale_attempt', $outcome->notices, true) ? 'waybill_stale_attempt' : null;
+
+            return ['kind' => 'created', 'key' => $warning, 'value' => $outcome->number];
         }
         $first = $outcome->issues[0] ?? ['advice' => 'waybill_advice_generic', 'message' => null];
+        if ($first['advice'] === 'waybill_pending') {
+            return $skip('waybill_pending');
+        }
 
         return ['kind' => 'failed', 'key' => $first['advice'], 'value' => $first['message']];
     }

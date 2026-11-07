@@ -35,6 +35,19 @@ final class OrdersMassAction
         return true;
     }
 
+    /**
+     * handle() for the current request. Stock 4.5.3 checkSession() unsets $_POST on a bad token,
+     * so the post is read before the check.
+     *
+     * @param \Closure(): bool $checkSession
+     */
+    public function handleRequest(\Closure $checkSession, array &$session): bool
+    {
+        $post = $_POST;
+
+        return $this->handle($post, (bool)$checkSession(), $session);
+    }
+
     public static function take(array &$session): ?MassReport
     {
         if (!array_key_exists(self::SESSION_KEY, $session)) {
@@ -55,17 +68,31 @@ final class OrdersMassAction
         $rows = array_map(static function (array $row) use ($text): array {
             $value = $row['value'] ?? '';
             $line = match ($row['kind']) {
-                'created' => sprintf($text('mass_created'), self::spaced($value)),
+                'created' => sprintf($text('mass_created'), self::spaced($value)) . ($row['key'] !== null ? '. ' . $text($row['key']) : ''),
                 'skipped' => $text('mass_skipped') . ': ' . sprintf($text((string)$row['key']), self::spaced($value)),
-                // Our advice already says what NP refused; its own (English) text only when we have none.
-                default => $text('mass_failed') . ': ' . (self::specific($row['key']) || $value === ''
-                    ? $text((string)($row['key'] ?? 'waybill_advice_generic'))
-                    : rtrim($value, '. ') . '.'),
+                default => $row['key'] === 'waybill_not_saved'
+                    ? sprintf($text('mass_not_saved'), self::spaced($value))
+                    : self::refusal($row, $text),
             };
 
             return ['orderId' => $row['orderId'], 'kind' => $row['kind'], 'text' => $line];
         }, $report->rows);
 
+        return self::summary($report, $rows, $text);
+    }
+
+    private static function refusal(array $row, \Closure $text): string
+    {
+        $value = (string)($row['value'] ?? '');
+
+        // Our advice already says what NP refused; its own (English) text only when we have none.
+        return $text('mass_failed') . ': ' . (self::specific($row['key']) || $value === ''
+            ? $text((string)($row['key'] ?? 'waybill_advice_generic'))
+            : rtrim($value, '. ') . '.');
+    }
+
+    private static function summary(MassReport $report, array $rows, \Closure $text): array
+    {
         return [
             'title' => sprintf($text('mass_title'), $report->created(), $report->processed()),
             'rows' => $rows,

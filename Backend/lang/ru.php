@@ -442,3 +442,4 @@ $lang['sviat__novaposhta__mass_has_waybill'] = 'накладная уже ест
 $lang['sviat__novaposhta__mass_not_np'] = 'доставка не Новой Почтой';
 $lang['sviat__novaposhta__mass_untouched'] = 'За раз обрабатываем до %1$s заказов. Остальные %2$s не трогали — выберите их и запустите ещё раз.';
 $lang['sviat__novaposhta__mass_hide'] = 'Скрыть';
+$lang['sviat__novaposhta__mass_not_saved'] = 'накладная %s создана в НП, но не сохранена на сайте — привяжите её в заказе по номеру';

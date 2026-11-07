@@ -147,4 +147,39 @@ class OrdersMassActionTest extends TestCase
         self::assertSame('до 20; решту 8 не чіпали', $view['untouched']);
         self::assertNull(OrdersMassAction::view(new MassReport([], 0), static fn(string $key): string => $texts[$key])['untouched']);
     }
+
+    public function testStockSessionCheckThatDropsPostDoesNotCrash(): void
+    {
+        $saved = $_POST;
+        $_POST = self::post();
+        $session = [];
+        try {
+            $handled = $this->action()->handleRequest(static function (): bool {
+                // Stock 4.5.3 Request::checkSession() on a bad token.
+                unset($_POST);
+
+                return false;
+            }, $session);
+        } finally {
+            $_POST = $saved;
+        }
+
+        self::assertFalse($handled);
+        self::assertSame([], $session);
+        self::assertSame([], $this->http->requests());
+    }
+
+    public function testCreatedButNotSavedKeepsTheNumber(): void
+    {
+        $report = new MassReport([
+            ['orderId' => 990061, 'kind' => 'failed', 'key' => 'waybill_not_saved', 'value' => '20450000000011'],
+            ['orderId' => 990062, 'kind' => 'created', 'key' => 'waybill_stale_attempt', 'value' => '20450000000012'],
+        ], 0);
+        $texts = ['mass_title' => '%1$s з %2$s', 'mass_created' => 'накладна %s', 'mass_not_saved' => 'накладну %s створено в НП, але не збережено', 'waybill_stale_attempt' => 'Перевірте кабінет НП.'];
+
+        $rows = OrdersMassAction::view($report, static fn(string $key): string => $texts[$key])['rows'];
+
+        self::assertSame('накладну 20 4500 0000 0011 створено в НП, але не збережено', $rows[0]['text']);
+        self::assertSame('накладна 20 4500 0000 0012. Перевірте кабінет НП.', $rows[1]['text']);
+    }
 }

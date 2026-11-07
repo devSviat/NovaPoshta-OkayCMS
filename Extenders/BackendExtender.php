@@ -129,8 +129,7 @@ class BackendExtender implements ExtensionInterface
     private function handleMassAction(): void
     {
         if ($this->request->method('post')) {
-            $sessionOk = (bool)$this->request->checkSession();
-            if ($this->massAction->handle($_POST, $sessionOk, $_SESSION)) {
+            if ($this->massAction->handleRequest(fn(): bool => (bool)$this->request->checkSession(), $_SESSION)) {
                 Response::redirectTo($this->request->url());
             }
 

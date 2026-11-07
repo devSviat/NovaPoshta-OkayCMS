@@ -45,24 +45,6 @@ class MassWaybillsTest extends TestCase
 
     private function mass(): MassWaybills
     {
-        $key = F::KEY;
-        $apiKey = F::apiKey($this, $key);
-        $noSleep = static function (): void {
-        };
-        $jwt = new JwtProvider($this->http, new InMemoryState(), $apiKey, static fn(): int => 1_900_000_000);
-        $sender = new class implements SenderSource {
-            public function party(): SenderParty
-            {
-                return W::sender();
-            }
-        };
-        $cities = new class implements RecipientCities {
-            public function cityRef(int $settlementId): ?string
-            {
-                return null;
-            }
-        };
-        $service = new WaybillService(new OldApiClient($this->http, $apiKey, $noSleep), new NewApiClient($this->http, $jwt, $noSleep), $this->rows, $sender, $cities, static fn(): string => '07.11.2026', fn(): int => $this->rows->now);
         $orders = new class ($this) implements MassOrders {
             public function __construct(private MassWaybillsTest $test)
             {
@@ -82,7 +64,29 @@ class MassWaybillsTest extends TestCase
             return count($this->ticks) > 1 ? array_shift($this->ticks) : $this->ticks[0];
         };
 
-        return new MassWaybills($service, $this->rows, $orders, $clock);
+        return new MassWaybills($this->service(), $this->rows, $orders, $clock);
+    }
+
+    private function service(): WaybillService
+    {
+        $key = F::KEY;
+        $apiKey = F::apiKey($this, $key);
+        $noSleep = static function (): void {
+        };
+        $jwt = new JwtProvider($this->http, new InMemoryState(), $apiKey, static fn(): int => 1_900_000_000);
+        $sender = new class implements SenderSource {
+            public function party(): SenderParty
+            {
+                return W::sender();
+            }
+        };
+        $cities = new class implements RecipientCities {
+            public function cityRef(int $settlementId): ?string
+            {
+                return null;
+            }
+        };
+        return new WaybillService(new OldApiClient($this->http, $apiKey, $noSleep), new NewApiClient($this->http, $jwt, $noSleep), $this->rows, $sender, $cities, static fn(): string => '07.11.2026', fn(): int => $this->rows->now);
     }
 
     public function isOurs(int $orderId): bool
@@ -184,7 +188,7 @@ class MassWaybillsTest extends TestCase
     public function testBudgetStopsStarting(): void
     {
         $this->notOurs = [1, 2, 3, 4];
-        $this->ticks = [0.0, 0.0, 50.0, 101.0];
+        $this->ticks = [0.0, 0.0, MassWaybills::BUDGET_SECONDS - 1, MassWaybills::BUDGET_SECONDS + 1];
 
         $report = $this->mass()->run([1, 2, 3, 4]);
 
@@ -210,5 +214,44 @@ class MassWaybillsTest extends TestCase
         self::assertEquals($report, MassReport::fromArray($report->toArray()));
         self::assertNull(MassReport::fromArray(['rows' => [['orderId' => 'x', 'kind' => 'evil']], 'untouched' => 1]));
         self::assertNull(MassReport::fromArray('junk'));
+    }
+
+    public function testBudgetFitsAProxyMinute(): void
+    {
+        self::assertLessThanOrEqual(45.0, MassWaybills::BUDGET_SECONDS);
+    }
+
+    public function testStaleAttemptIsReported(): void
+    {
+        $this->rows->reserve(990068);
+        $this->rows->now += 600;
+        $this->npCreates();
+
+        $row = $this->mass()->run([990068])->rows[0];
+
+        self::assertSame(['created', 'waybill_stale_attempt'], [$row['kind'], $row['key']]);
+    }
+
+    public function testUnexpectedErrorKeepsTheBatch(): void
+    {
+        $this->drafts[990069] = 'boom';
+        $orders = new class implements MassOrders {
+            public function isOurs(int $orderId): bool
+            {
+                return true;
+            }
+
+            public function draft(int $orderId): string
+            {
+                if ($orderId === 990069) {
+                    throw new \RuntimeException('database went away');
+                }
+
+                return 'waybill_no_point';
+            }
+        };
+        $report = new MassWaybills($this->service(), $this->rows, $orders)->run([990069, 990070]);
+
+        self::assertSame([['orderId' => 990069, 'kind' => 'failed', 'key' => 'waybill_advice_generic', 'value' => null], ['orderId' => 990070, 'kind' => 'skipped', 'key' => 'waybill_no_point', 'value' => null]], $report->rows);
     }
 }
