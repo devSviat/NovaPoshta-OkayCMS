@@ -92,7 +92,7 @@ final class WaybillService
             'floor' => $draft->floor,
         ]);
         $audit = WaybillAudit::compare($draft, $this->status($number, $draft->recipientPhone) ?? []);
-        $this->rows->saveAudit($orderId, $audit->status, $audit->findings);
+        $this->rows->saveAudit($orderId, $audit);
 
         return new WaybillOutcome(true, $number, [], array_values(array_unique($notices)), $audit);
     }
@@ -118,6 +118,10 @@ final class WaybillService
         }
         if (!is_array($status) || in_array((string)($status['StatusCode'] ?? ''), ['', '3'], true)) {
             return WaybillOutcome::refused('waybill_not_found');
+        }
+        // Code 2: deleted in the NP account; the number still answers but nothing will be sent.
+        if ((string)$status['StatusCode'] === '2') {
+            return WaybillOutcome::refused('waybill_deleted');
         }
         $this->rows->add($orderId, $number, null, 'attached', []);
 

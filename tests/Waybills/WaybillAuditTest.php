@@ -79,7 +79,7 @@ class WaybillAuditTest extends TestCase
         self::assertSame('verified', WaybillAudit::compare($draft, W::fixture('status_address_text'))->status);
         self::assertSame(['address'], self::kinds(WaybillAudit::compare($draft->with(['house' => '24']), W::fixture('status_address'))));
         self::assertSame(['address'], self::kinds(WaybillAudit::compare($draft->with(['street' => 'вул. Городоцька']), W::fixture('status_address'))));
-        self::assertSame(['service_type', 'point'], self::kinds(WaybillAudit::compare(W::point(), W::fixture('status_address'))));
+        self::assertSame(['service_type'], self::kinds(WaybillAudit::compare(W::point(), W::fixture('status_address'))));
     }
 
     public function testLiftingCannotBeReadBack(): void
@@ -88,6 +88,14 @@ class WaybillAuditTest extends TestCase
 
         self::assertSame('verified', $audit->status);
         self::assertSame(['lifting'], $audit->unchecked);
+    }
+
+    public function testPointNotYetKnownRightAfterTheNewApiIsUnchecked(): void
+    {
+        $audit = WaybillAudit::compare(W::point(['settlementName' => 'місто Київ']), W::fixture('status_new_documents'));
+
+        self::assertSame('verified', $audit->status);
+        self::assertSame(['point'], $audit->unchecked);
     }
 
     public function testHiddenFieldsAreUnverified(): void

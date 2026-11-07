@@ -2,6 +2,7 @@
 
 namespace Modules\Sviat\NovaPoshta\Support;
 
+use Okay\Modules\Sviat\NovaPoshta\Waybills\AuditResult;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillRows;
 
 final class InMemoryWaybillRows implements WaybillRows
@@ -30,10 +31,10 @@ final class InMemoryWaybillRows implements WaybillRows
         $this->rows[$orderId] = (object)['order_id' => $orderId, 'number' => $number, 'ref' => $ref, 'api' => $api, 'services' => json_encode($services), 'audit_status' => null, 'audit' => null];
     }
 
-    public function saveAudit(int $orderId, string $status, array $findings): void
+    public function saveAudit(int $orderId, AuditResult $audit): void
     {
-        $this->rows[$orderId]->audit_status = $status;
-        $this->rows[$orderId]->audit = json_encode($findings);
+        $this->rows[$orderId]->audit_status = $audit->status;
+        $this->rows[$orderId]->audit = json_encode($audit->toArray());
     }
 
     public function remove(int $orderId): void

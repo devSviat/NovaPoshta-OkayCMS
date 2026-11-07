@@ -45,8 +45,11 @@ final class WaybillAudit
             if ($street === '' || !str_contains($address, $street) || !preg_match('/(?<![\p{L}\d])' . $house . '(?![\p{L}\d])/u', $address)) {
                 $add('address', trim($draft->street . ', ' . $draft->house), (string)($status['RecipientAddress'] ?? ''));
             }
-        } elseif (!self::same((string)$draft->divisionName, (string)($status['WarehouseRecipient'] ?? ''))) {
-            $add('point', (string)$draft->divisionName, (string)($status['WarehouseRecipient'] ?? ''));
+        } elseif (trim((string)($status['WarehouseRecipient'] ?? '')) === '') {
+            // A new-API waybill gets its point in this answer only a while after it is made (live 07.11.2026).
+            $unchecked[] = 'point';
+        } elseif (!self::same((string)$draft->divisionName, (string)$status['WarehouseRecipient'])) {
+            $add('point', (string)$draft->divisionName, (string)$status['WarehouseRecipient']);
         }
 
         $amount = (string)(int)round($draft->codAmount);

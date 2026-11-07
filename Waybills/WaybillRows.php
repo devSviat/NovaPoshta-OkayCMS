@@ -15,8 +15,7 @@ interface WaybillRows
      */
     public function add(int $orderId, string $number, ?string $ref, string $api, array $services): void;
 
-    /** @param list<array<string, string>> $findings */
-    public function saveAudit(int $orderId, string $status, array $findings): void;
+    public function saveAudit(int $orderId, AuditResult $audit): void;
 
     public function remove(int $orderId): void;
 }

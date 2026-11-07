@@ -42,16 +42,15 @@ final class WaybillStore implements WaybillRows
         ]);
     }
 
-    /** @param list<array<string, string>> $findings */
-    public function saveAudit(int $orderId, string $status, array $findings): void
+    public function saveAudit(int $orderId, AuditResult $audit): void
     {
         $row = $this->forOrder($orderId);
         if ($row === null) {
             return;
         }
         $this->entity()->update((int)$row->id, [
-            'audit_status' => $status,
-            'audit' => json_encode($findings, JSON_UNESCAPED_UNICODE),
+            'audit_status' => $audit->status,
+            'audit' => json_encode($audit->toArray(), JSON_UNESCAPED_UNICODE),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
     }

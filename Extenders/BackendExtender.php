@@ -10,6 +10,7 @@ use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
 
 class BackendExtender implements ExtensionInterface
 {
@@ -18,6 +19,7 @@ class BackendExtender implements ExtensionInterface
         private readonly OrderDeliveryStore $orders,
         private readonly CodPayments $codPayments,
         private readonly EntityFactory $entityFactory,
+        private readonly WaybillView $waybills,
     ) {
     }
 
@@ -36,6 +38,7 @@ class BackendExtender implements ExtensionInterface
             );
         }
         $this->design->assign('np_order_delivery', $lines);
+        $this->design->assign('np_waybill', $row ? $this->waybills->forOrder((int)$order->id) : null);
     }
 
     /** ChainExtension of BackendProductsRequest::postVariants: the volume column is decimal, text must not reach it. */

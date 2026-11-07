@@ -152,6 +152,7 @@ class Init extends AbstractInit
             [BackendExtender::class, 'assignOrderDelivery']
         );
         $this->addBackendBlock('order_contact', 'order_delivery.tpl');
+        $this->addBackendBlock('order_contact', 'waybill.tpl');
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
         $this->registerBackendController('WaybillAdmin');

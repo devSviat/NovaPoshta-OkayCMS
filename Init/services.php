@@ -39,6 +39,7 @@ use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderParties;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SettlementCityRefs;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDrafts;
@@ -97,7 +98,7 @@ return [
     ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
-        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class)],
+        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class)],
     ],
     DbCityRefStore::class => [
         'class' => DbCityRefStore::class,
@@ -239,6 +240,10 @@ return [
     SettlementCityRefs::class => [
         'class' => SettlementCityRefs::class,
         'arguments' => [new SR(EntityFactory::class), new SR(AddressCityResolver::class)],
+    ],
+    WaybillView::class => [
+        'class' => WaybillView::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillStore::class), new SR(WaybillDrafts::class), new SR(CodPayments::class)],
     ],
     WaybillService::class => [
         'class' => WaybillService::class,

@@ -235,6 +235,14 @@ class WaybillServiceTest extends TestCase
         self::assertNull($this->rows->forOrder(self::ORDER)->ref);
     }
 
+    public function testDeletedWaybillIsNotAttached(): void
+    {
+        $this->http->json(200, ['success' => true, 'data' => [['StatusCode' => '2', 'Status' => 'Видалено'] + W::fixture('status_cod')], 'errors' => []]);
+
+        self::assertSame('waybill_deleted', $this->service()->attach(self::ORDER, '20451581317746', '380500000000')->issues[0]['advice']);
+        self::assertNull($this->rows->forOrder(self::ORDER));
+    }
+
     public function testRemove(): void
     {
         $this->rows->add(1, '20450000000001', '01a1b60d-0000-0000-0000-000000000001', 'new', []);

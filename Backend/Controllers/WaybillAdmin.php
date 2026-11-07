@@ -11,6 +11,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDrafts;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillInput;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillOutcome;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
 
 /**
  * The waybill block of an order page posts here (`controller=Sviat.NovaPoshta.WaybillAdmin`).
@@ -18,7 +19,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
  */
 class WaybillAdmin extends IndexAdmin
 {
-    public function fetch(WaybillService $service, WaybillDrafts $drafts, BackendTranslations $translations)
+    public function fetch(WaybillService $service, WaybillDrafts $drafts, WaybillView $view, BackendTranslations $translations)
     {
         if (!$this->request->method('post')) {
             $this->answer(405, ['ok' => false]);
@@ -51,7 +52,13 @@ class WaybillAdmin extends IndexAdmin
             return;
         }
 
-        $this->answer(200, self::view($outcome, $translations));
+        $body = self::view($outcome, $translations);
+        if ($outcome->ok) {
+            // The block is drawn again from the saved state: the card after create/attach, the form after remove.
+            $this->design->assign('np_waybill', $view->forOrder($orderId));
+            $body['html'] = $this->design->fetch('waybill.tpl');
+        }
+        $this->answer(200, $body);
     }
 
     private function create(WaybillService $service, WaybillDrafts $drafts, int $orderId): WaybillOutcome
