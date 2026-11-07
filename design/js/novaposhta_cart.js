@@ -46,10 +46,20 @@
 
     function Block(root) {
         this.root = root;
+        root.npBlock = this;
+        this.pointCheck = root.querySelector('.np-cart__point-check');
         this.texts = parse(root.getAttribute('data-texts')) || {};
         this.chip = root.getAttribute('data-chip');
         this.chipSelected = root.getAttribute('data-chip-selected');
         this.city = root.querySelector('.np-cart__city-input');
+        this.popular = root.querySelector('.np-cart__popular');
+        this.cityBox = root.querySelector('.np-cart__city');
+        this.cityLine = root.querySelector('.np-cart__city-line');
+        this.chosen = root.querySelector('.np-cart__chosen');
+        this.step = 'city';
+        this.codPayments = (root.getAttribute('data-cod-payments') || '').split(',').filter(Boolean);
+        this.priceHidden = root.getAttribute('data-price-hidden') === '1';
+        this.codFeeText = null;
         this.suggest = root.querySelector('.np-cart__suggest');
         this.points = root.querySelector('.np-cart__points');
         this.groups = root.querySelector('.np-cart__groups');
@@ -93,6 +103,7 @@
         this.searchTimer = null;
         this.bind();
         this.showUnpricedSummary();
+        this.showCodLines();
         if (this.mode === 'address') {
             this.bindAddress();
         }
@@ -102,10 +113,133 @@
             }
             this.markPopular();
             this.showChoice();
-            this.load();
+            // A choice restored from the session or the last order is shown as chosen, not as a list.
+            if (this.mode === 'points' && this.division) {
+                this.setStep('chosen');
+            } else {
+                this.setStep('points');
+                this.load();
+            }
             this.requestQuote();
+        } else {
+            this.setStep('city');
         }
     }
+
+    /**
+     * city: popular cities and the city field; points: the city in one line, groups, search, list
+     * (address mode: the address form); chosen: only the chosen point.
+     */
+    Block.prototype.setStep = function (step) {
+        this.step = step;
+        this.root.setAttribute('data-step', step);
+        if (this.popular) {
+            this.popular.hidden = step !== 'city';
+        }
+        this.cityBox.hidden = step !== 'city';
+        this.cityLine.hidden = step !== 'points';
+        if (step === 'points' && this.settlement) {
+            this.cityLine.querySelector('.np-cart__city-line-name').textContent = this.settlement.name;
+            this.cityLine.querySelector('.np-cart__city-line-area').textContent = this.settlement.area || '';
+        }
+        this.chosen.hidden = step !== 'chosen';
+        if (step === 'chosen') {
+            this.showChosen();
+        }
+        if (step !== 'points') {
+            this.points.hidden = true;
+        }
+    };
+
+    /**
+     * One line inside the label of each "cash on delivery" payment: Nova Poshta's commission is paid
+     * at the branch and is not part of the total. Inside the label, not after it: themes show the
+     * payment's description only right after its label.
+     */
+    Block.prototype.showCodLines = function () {
+        var self = this;
+        var input = this.themeInput();
+        var mine = input && input.length && input.is(':checked');
+        document.querySelectorAll('.np-cod-line[data-np-delivery="' + this.deliveryId + '"]').forEach(function (line) {
+            if (!mine) {
+                line.remove();
+            }
+        });
+        if (!mine) {
+            return;
+        }
+        var text = this.codFeeText && !this.priceHidden
+            ? format(this.texts.cart_cod_fee, { fee: this.codFeeText })
+            : this.texts.cart_cod_fee_unknown || '';
+        this.codPayments.forEach(function (id) {
+            var payment = document.getElementById('payment_' + id.replace(/[^0-9]/g, ''));
+            var label = payment ? (payment.closest('label') || document.querySelector('label[for="' + payment.id + '"]')) : null;
+            if (!label) {
+                return;
+            }
+            var host = label.querySelector('.vs-option-card__body') || label.querySelector('.delivery__name') || label;
+            // Two methods may share one COD payment: each keeps its own line.
+            var line = host.querySelector('.np-cod-line[data-np-delivery="' + self.deliveryId + '"]');
+            if (!line) {
+                line = el('span', 'np-cod-line');
+                line.setAttribute('data-np-delivery', self.deliveryId);
+                host.appendChild(line);
+            }
+            line.textContent = text;
+        });
+    };
+
+    /** Clears a message the theme's validator showed, once the field is right. */
+    Block.prototype.revalidate = function (element) {
+        var $ = window.jQuery;
+        if (element && $ && $(element).hasClass('error') && $(element.form).data('validator')) {
+            $(element).valid();
+        }
+    };
+
+    Block.prototype.showChosen = function () {
+        var city = this.settlement ? [this.settlement.name, this.settlement.area].filter(Boolean).join(', ') : '';
+        this.chosen.querySelector('.np-cart__chosen-city').textContent = city;
+        this.chosen.querySelector('.np-cart__chosen-title').textContent = this.division ? this.division.title || '' : '';
+        var place = this.chosen.querySelector('.np-cart__chosen-place');
+        place.textContent = this.division && this.division.place ? this.division.place : '';
+        place.hidden = place.textContent === '';
+        var schedule = this.chosen.querySelector('.np-cart__chosen-schedule');
+        schedule.textContent = '';
+        var hours = this.division ? this.scheduleNode(this.division.schedule) : null;
+        if (hours) {
+            var around = String(this.texts.cart_schedule || '%schedule%').split('%schedule%');
+            schedule.appendChild(document.createTextNode(around[0]));
+            schedule.appendChild(hours);
+            schedule.appendChild(document.createTextNode(around[1] || ''));
+        }
+        schedule.hidden = !hours;
+    };
+
+    /**
+     * A week from the dictionary as "Пн–Пт 08:00–21:00, Сб–Нд 08:00–19:00": groups of
+     * [first day, last day, hours] (0 = Monday, null hours = day off) or true for round the clock.
+     * Each group stays on one line.
+     */
+    Block.prototype.scheduleNode = function (schedule) {
+        if (schedule === true) {
+            return el('span', 'np-cart__day', this.texts.cart_all_day || '');
+        }
+        if (!Array.isArray(schedule) || schedule.length === 0) {
+            return null;
+        }
+        var days = String(this.texts.cart_weekdays || '').split(',');
+        var self = this;
+        var line = el('span', 'np-cart__schedule');
+        schedule.forEach(function (group, index) {
+            var span = days[group[0]] + (group[1] !== group[0] ? '–' + days[group[1]] : '');
+            if (index > 0) {
+                line.appendChild(document.createTextNode(', '));
+            }
+            line.appendChild(el('span', 'np-cart__day', span + ' ' + (group[2] || self.texts.cart_day_off || '')));
+        });
+        return line;
+    };
 
     Block.prototype.bind = function () {
         var self = this;
@@ -122,6 +256,19 @@
             self.cityTimer = setTimeout(function () { self.findCities(); }, DEBOUNCE_MS);
         });
         this.city.addEventListener('keydown', function (event) { self.cityKeys(event); });
+        this.root.querySelector('.np-cart__change-city').addEventListener('click', function () {
+            self.city.value = '';
+            syncFilled(self.city);
+            self.dropSettlement();
+            self.city.focus();
+        });
+        this.root.querySelector('.np-cart__change').addEventListener('click', function () {
+            self.setStep('points');
+            self.load();
+            if (self.search && !self.searchBox.hidden) {
+                self.search.focus();
+            }
+        });
         this.city.addEventListener('blur', function () { setTimeout(function () { self.closeSuggest(); }, 150); });
         if (!this.search) {
             return;
@@ -245,6 +392,9 @@
             this.address.hidden = false;
         }
         this.showChoice();
+        // Before the field is hidden: jQuery Validate does not hide the message of a hidden field.
+        this.revalidate(this.city);
+        this.setStep('points');
         this.load();
         if (this.mode === 'address') {
             this.requestQuote();
@@ -272,6 +422,7 @@
         this.markPopular();
         this.showChoice();
         this.clearQuote();
+        this.setStep('city');
     };
 
     Block.prototype.markPopular = function () {
@@ -323,7 +474,8 @@
             this.say(this.texts.cart_no_points);
             return;
         }
-        this.points.hidden = false;
+        // A list that arrives while the chosen point is shown stays hidden until "Змінити".
+        this.points.hidden = this.step !== 'points';
         this.groupId = data.group;
 
         this.groups.textContent = '';
@@ -391,18 +543,20 @@
             notes.push(lead !== null && prefix !== '' && prefix === lead ? text.slice(prefix.length) : text);
             lead = prefix;
         });
-        if (!unfit && point.closesToday) {
-            notes.push(point.closesToday === '24/7' ? this.texts.cart_all_day : format(this.texts.cart_closes, { time: point.closesToday }));
-        }
         if (notes.length) {
-            option.appendChild(el('span', 'np-cart__option-note', notes.join(unfit ? '; ' : ' · ')));
+            option.appendChild(el('span', 'np-cart__option-note', notes.join('; ')));
+        }
+        var hours = unfit ? null : this.scheduleNode(point.schedule);
+        if (hours) {
+            hours.classList.add('np-cart__option-schedule');
+            option.appendChild(hours);
         }
 
         option.addEventListener('click', function () {
             if (unfit) {
                 return;
             }
-            self.division = { id: point.id, title: point.title + (point.place ? ': ' + point.place : '') };
+            self.division = { id: point.id, title: point.title, place: point.place || null, schedule: point.schedule || null };
             self.divisionInput.value = point.id;
             self.list.querySelectorAll('.np-cart__option').forEach(function (other) {
                 other.classList.remove('np-cart__option--selected');
@@ -410,7 +564,8 @@
             });
             option.classList.add('np-cart__option--selected');
             option.setAttribute('aria-selected', 'true');
-            self.showChoice();
+            self.revalidate(self.pointCheck);
+            self.setStep('chosen');
             self.requestQuote();
         });
         return option;
@@ -430,12 +585,8 @@
             }
             return;
         }
-        if (this.settlement && this.division) {
-            this.choice.textContent = format(this.texts.cart_choice, { place: this.settlement.name + ', ' + this.division.title });
-            this.choice.hidden = false;
-        } else {
-            this.choice.hidden = true;
-        }
+        // Points: the chosen point's card says it all.
+        this.choice.hidden = true;
     };
 
     /** The theme's own radio for this delivery method (jQuery: themes keep prices in jQuery data). */
@@ -503,6 +654,8 @@
         }
         this.quoteBox.hidden = true;
         this.quoteBox.textContent = '';
+        this.codFeeText = null;
+        this.showCodLines();
         this.restoreTheme();
     };
 
@@ -558,9 +711,6 @@
                 input.closest('.fn_delivery_item').find('.fn_delivery_price').text(this.texts.cart_price_by_manager || '');
             }
         }
-        if (data.codFeeText) {
-            lines.push(format(this.texts.cart_cod_fee, { fee: data.codFeeText }));
-        }
         if (data.term) {
             var date = new Date(data.term + 'T12:00:00');
             var lang = document.documentElement.lang || 'uk';
@@ -573,6 +723,8 @@
         } else if (problem && !priced && data.problem !== 'no_city_ref') {
             lines.push(this.texts.cart_price_unreachable);
         }
+        this.codFeeText = data.codFeeText || null;
+        this.showCodLines();
         this.showLifting(data);
         this.quoteBox.textContent = '';
         var self = this;
@@ -718,61 +870,151 @@
         return value && value !== 'transparent' && !/rgba\([^)]*,\s*0\)$/.test(value) ? value : null;
     }
 
+    /** A colour that says "chosen": not black, white or grey, which themes use for plain text and lines. */
+    function accentColor(value) {
+        var color = visibleColor(value);
+        var rgb = color ? color.match(/\d+(\.\d+)?/g) : null;
+        if (!rgb || rgb.length < 3) {
+            return null;
+        }
+        var r = Number(rgb[0]), g = Number(rgb[1]), b = Number(rgb[2]);
+        return Math.max(r, g, b) - Math.min(r, g, b) > 24 ? color : null;
+    }
+
+    function isDark(color) {
+        var rgb = color.match(/\d+(\.\d+)?/g).map(Number);
+        return 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2] < 160;
+    }
+
     /**
-     * okay_shop-derived themes do not all expose their colours as CSS variables (broken_new
-     * compiles them away), so the colours are read from the theme's own checkout button and
-     * input on this page. vibe_shop needs nothing: the block uses its chip component.
+     * The colour the theme marks a chosen option with: the mark of the chosen delivery method (an svg
+     * tick or a styled radio), else the checkout button. Not the first .form__button: that is the
+     * coupon button, pale in broken_new (QA 07.11.2026).
+     */
+    function themeAccent() {
+        var chosen = document.querySelector('input[name="delivery_id"]:checked');
+        var label = chosen ? (chosen.closest('label') || document.querySelector('label[for="' + chosen.id + '"]')) : null;
+        var found = null;
+        if (label) {
+            label.querySelectorAll('svg, svg *').forEach(function (node) {
+                var style = getComputedStyle(node);
+                found = found || accentColor(style.stroke) || accentColor(style.fill);
+            });
+            [chosen, label].forEach(function (node) {
+                ['::before', '::after'].forEach(function (pseudo) {
+                    var style = getComputedStyle(node, pseudo);
+                    found = found || accentColor(style.backgroundColor) || accentColor(style.borderTopColor);
+                });
+            });
+            found = found || accentColor(getComputedStyle(chosen).accentColor);
+        }
+        var button = found ? null : document.querySelector('[name="checkout"].form__button, button[name="checkout"]');
+        if (button) {
+            var style = getComputedStyle(button);
+            // A gradient button (broken_new) has its brand colour in the gradient or on the border.
+            var gradient = (style.backgroundImage.match(/rgba?\([^)]*\)/g) || []);
+            found = accentColor(style.backgroundColor) || accentColor(gradient[gradient.length - 1]) || accentColor(gradient[0]) || accentColor(style.borderTopColor);
+        }
+        return found;
+    }
+
+    /**
+     * okay_shop-derived themes do not all expose their colours as CSS variables (broken_new and the
+     * built stands compile them away), so colour and corners are read from the page. vibe_shop needs
+     * nothing: the block uses its chip component.
      */
     function adoptThemeColours(root) {
         if (!root.classList.contains('np-cart--okay')) {
             return;
         }
-        var button = document.querySelector('form .form__button, .form__button');
-        var input = root.querySelector('.np-cart__city-input');
-        if (button) {
-            var style = getComputedStyle(button);
-            // A flat button has a background colour; a gradient one (broken_new) has its brand
-            // colour on the border, or as the first stop of the gradient.
-            var gradient = (style.backgroundImage.match(/rgba?\([^)]*\)/) || [])[0];
-            var border = visibleColor(style.borderTopColor);
-            var accent = visibleColor(style.backgroundColor)
-                || (border && border !== style.color ? border : null)
-                || visibleColor(gradient);
-            if (accent) {
-                root.style.setProperty('--np-accent', accent);
-                root.style.setProperty('--np-accent-text', style.color);
-            }
+        var accent = themeAccent();
+        if (accent) {
+            root.style.setProperty('--np-accent', accent);
+            root.style.setProperty('--np-accent-text', isDark(accent) ? '#fff' : '#222');
         }
+        var input = root.querySelector('.np-cart__city-input');
         if (input) {
-            var line = visibleColor(getComputedStyle(input).borderTopColor);
+            var style = getComputedStyle(input);
+            var line = visibleColor(style.borderTopColor);
             if (line) {
                 root.style.setProperty('--np-border', line);
             }
+            root.style.setProperty('--np-radius', style.borderTopLeftRadius);
         }
     }
 
+    var blocks = [];
+    var rulesAdded = false;
+
+    /**
+     * Checks of the Nova Poshta fields in the theme's own jQuery Validate (as NovaposhtaCost did), so
+     * a message stands under its field before the form is sent, all at once. Fields of other delivery
+     * methods are disabled by the theme and hidden steps are not visible, so the validator skips both.
+     * The server checks everything again.
+     */
+    function addRules() {
+        var $ = window.jQuery;
+        var form = $ ? $('.fn_validate_cart') : null;
+        if (rulesAdded || !form || !form.length || !$.validator || !form.data('validator') || blocks.length === 0) {
+            return;
+        }
+        rulesAdded = true;
+        var blockOf = function (element) {
+            var root = element.closest('.np-cart');
+            return root ? root.npBlock : null;
+        };
+        $.validator.addMethod('npCity', function (value, element) {
+            var block = blockOf(element);
+            return !block || !!block.settlement;
+        });
+        $.validator.addMethod('npPoint', function (value, element) {
+            var block = blockOf(element);
+            return !block || !!block.division;
+        });
+        blocks.forEach(function (block) {
+            var texts = block.texts;
+            $(block.city).rules('add', { npCity: true, messages: { npCity: texts.error_city } });
+            if (block.pointCheck) {
+                $(block.pointCheck).rules('add', { npPoint: true, messages: { npPoint: texts.error_point } });
+            }
+            if (block.street) {
+                $(block.street).rules('add', { required: true, minlength: 2, messages: { required: texts.error_street, minlength: texts.error_street } });
+            }
+            if (block.house) {
+                $(block.house).rules('add', { required: true, messages: { required: texts.error_house } });
+            }
+            if (block.floor) {
+                $(block.floor).rules('add', {
+                    required: function () { return !!(block.liftingInput && block.liftingInput.checked && !block.lifting.hidden); },
+                    digits: true,
+                    range: [1, 200],
+                    messages: { required: texts.error_lifting_floor, digits: texts.error_floor, range: texts.error_floor }
+                });
+            }
+        });
+    }
+
+    window.SviatNovaPoshtaCart = { addRules: addRules };
+
     function init() {
-        var blocks = [];
         document.querySelectorAll('.np-cart').forEach(function (root) {
             adoptThemeColours(root);
             blocks.push(new Block(root));
         });
+        addRules();
         // The theme re-fires `change` on the chosen delivery after the cart changes (jQuery
         // trigger, which plain listeners do not see): the weight and total may have changed.
         if (window.jQuery) {
             window.jQuery(document).on('change', 'input[name="delivery_id"]', function () {
                 blocks.forEach(function (block) {
+                    // The theme marks only the chosen method: its colour is readable now.
+                    adoptThemeColours(block.root);
                     block.showUnpricedSummary();
+                    block.showCodLines();
                     if (block.settlement) {
                         block.load();
                         block.requestQuote();
                     }
-                });
-            });
-            // Cash on delivery is a payment method (author's decision): its commission changes the price.
-            window.jQuery(document).on('change', 'input[name="payment_method_id"]', function () {
-                blocks.forEach(function (block) {
-                    block.requestQuote();
                 });
             });
         }

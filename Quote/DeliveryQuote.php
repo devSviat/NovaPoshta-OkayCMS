@@ -11,7 +11,7 @@ final readonly class DeliveryQuote
         public string $source,
         /** null | unreachable | rejected | no_city_ref | no_uah | busy | no_sender */
         public ?string $problem,
-        /** Part of the price that is Nova Poshta's commission for transferring the COD money. */
+        /** Nova Poshta's commission for transferring the COD money: not in the price, the recipient pays it at the branch. */
         public ?float $codFee = null,
         /** Extra cost of floor lifting when it is not free (address delivery). */
         public ?float $liftingFee = null,

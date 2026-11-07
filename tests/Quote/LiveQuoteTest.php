@@ -62,7 +62,8 @@ class LiveQuoteTest extends TestCase
         self::assertSame('new', $new->source);
         self::assertSame('old', $old->source, (string)$old->problem);
         self::assertGreaterThan(0, $new->price);
-        self::assertGreaterThan($new->price, $old->price, 'COD commission is on top');
+        self::assertSame($new->price, $old->price, 'the COD commission is not part of the price');
+        self::assertGreaterThan(0, $old->codFee, 'the commission comes apart');
         self::assertNotNull($new->term, (string)$new->problem);
         self::assertGreaterThan(new \DateTimeImmutable('today'), $new->term);
     }

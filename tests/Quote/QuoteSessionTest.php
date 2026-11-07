@@ -29,6 +29,14 @@ class QuoteSessionTest extends TestCase
         self::assertNotSame($key, QuoteKey::for(4, 'd:7162', false, self::cart([[1, 2], [5, 1]], 301.0)));
     }
 
+    public function testKeysFromBeforeTheCommissionWasSeparatedAreNotReused(): void
+    {
+        // 0.5.x keys had the same parts; their prices still include the COD commission.
+        $legacy = sha1(implode('|', [4, 'd:7162', 1, 0, '1:2', '300.00']));
+
+        self::assertNotSame($legacy, QuoteKey::for(4, 'd:7162', true, self::cart([[1, 2]], 300.0)));
+    }
+
     public function testCartChangeChangesKey(): void
     {
         self::assertNotSame(

@@ -17,6 +17,7 @@ use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelection;
 use Okay\Modules\Sviat\NovaPoshta\Cart\AddressFields;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelectionValidator;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
+use Okay\Modules\Sviat\NovaPoshta\Cart\DivisionList;
 use Okay\Modules\Sviat\NovaPoshta\Cart\PopularCities;
 use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
 use Okay\Modules\Sviat\NovaPoshta\Cart\ThemeClasses;
@@ -26,6 +27,7 @@ use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
 use Okay\Core\Money;
 use Okay\Entities\CurrenciesEntity;
+use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
 use Okay\Modules\Sviat\NovaPoshta\Quote\PriceDecision;
@@ -34,10 +36,11 @@ class FrontExtender implements ExtensionInterface
 {
     /** Texts the cart script needs; keys of design/lang/*.php without the prefix. */
     private const array SCRIPT_TEXTS = [
-        'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_closes', 'cart_all_day', 'cart_up_to_kg',
-        'cart_too_heavy', 'cart_too_expensive', 'cart_choice', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
-        'cart_cod_fee', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager', 'cart_none_fit',
+        'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_all_day', 'cart_up_to_kg', 'cart_weekdays', 'cart_day_off', 'cart_change', 'cart_change_city', 'cart_schedule',
+        'cart_too_heavy', 'cart_too_expensive', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
+        'cart_cod_fee', 'cart_cod_fee_unknown', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager', 'cart_none_fit',
         'cart_street_failed', 'cart_no_street', 'cart_address_choice', 'cart_flat_short', 'cart_no_address', 'cart_lifting_paid', 'cart_lifting_unknown', 'cart_note_left', 'cart_price_rejected',
+        'error_city', 'error_point', 'error_street', 'error_house', 'error_floor', 'error_lifting_floor',
     ];
 
     public function __construct(
@@ -115,6 +118,8 @@ class FrontExtender implements ExtensionInterface
             'price_source' => $decision['source'],
             'delivery_term' => $quote->term?->format('Y-m-d'),
             'cod' => $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0)) ? 1 : 0,
+            // Kept for card orders too: the customer may switch to COD on the order page.
+            'cod_fee' => $quote->codFee,
         ];
 
         return $decision['info'];
@@ -173,7 +178,17 @@ class FrontExtender implements ExtensionInterface
     public function assignOrderDelivery($result, $order)
     {
         $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
-        $this->design->assign('np_order_delivery', $row ? OrderDeliveryView::lines($row, (float)($order->delivery_price ?? 0)) : null);
+        $lines = null;
+        if ($row) {
+            $delivery = $this->entityFactory->get(DeliveriesEntity::class)->get((int)($order->delivery_id ?? 0));
+            $lines = OrderDeliveryView::lines(
+                $row,
+                (float)($order->delivery_price ?? 0),
+                $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0)),
+                empty($delivery->hide_front_delivery_price),
+            );
+        }
+        $this->design->assign('np_order_delivery', $lines);
         $this->design->assign('np_order_family', ThemeClasses::for((string)$this->settings->get('theme'))['family']);
     }
 
@@ -199,26 +214,29 @@ class FrontExtender implements ExtensionInterface
         // JSON is built here: Smarty 5 does not allow PHP functions such as json_encode as modifiers.
         $this->design->assign('np_texts_json', json_encode($texts, JSON_UNESCAPED_UNICODE));
         $this->design->assign('np_modes', array_map(static fn($d): string => DeliveryMode::fromServiceType($d->settings['service_type'] ?? null) === DeliveryMode::Address ? 'address' : 'points', $own));
-        $this->design->assign('np_prefill', $this->prefill(array_keys($own), $lang));
+        $this->design->assign('np_prefill', $this->prefill($own, is_object($cart) ? $cart : (object)[], $lang));
+        $this->design->assign('np_cod_payments', array_map(fn($d): string => implode(',', $this->quotes->codFeePayments($d)), $own));
     }
 
     /**
      * The choice the customer already made, shown again when the cart page comes back with an error.
      *
-     * @param list<int|string> $deliveryIds
+     * @param array<object> $deliveries this module's methods
      * @return array<int, array{settlement:?array, division:?array}>
      */
-    private function prefill(array $deliveryIds, string $lang): array
+    private function prefill(array $deliveries, object $cart, string $lang): array
     {
         $posted = $this->request->post('novaposhta');
         // Without a posted form, the customer's previous order offers its point again.
         $user = $this->design->getVar('user');
         $last = !is_array($posted) && is_object($user) ? $this->orders->lastForUser((int)($user->id ?? 0)) : null;
         $prefill = [];
-        foreach ($deliveryIds as $deliveryId) {
+        $metrics = CartMetrics::fromCart($cart);
+        foreach ($deliveries as $delivery) {
+            $deliveryId = (int)$delivery->id;
             $choice = is_array($posted[$deliveryId] ?? null) ? $posted[$deliveryId]
                 : ($last ? ['settlement_id' => $last->settlement_id, 'division_id' => $last->division_id] + self::lastAddress($last) : []);
-            $described = $this->describe((int)($choice['settlement_id'] ?? 0), (int)($choice['division_id'] ?? 0), $lang);
+            $described = $this->describe($delivery, $metrics, (int)($choice['settlement_id'] ?? 0), (int)($choice['division_id'] ?? 0), $lang);
             $prefill[(int)$deliveryId] = $described + [
                 'address' => self::addressPrefill($choice),
                 'settlement_json' => $described['settlement'] ? json_encode($described['settlement'], JSON_UNESCAPED_UNICODE) : '',
@@ -261,19 +279,22 @@ class FrontExtender implements ExtensionInterface
         return $out;
     }
 
-    /** @return array{settlement:?array{id:int, name:string}, division:?array{id:int, title:string}} */
-    public function describe(int $settlementId, int $divisionId, string $lang): array
+    /** @return array{settlement:?array{id:int, name:string, area:?string}, division:?array{id:int, title:string, place:?string, schedule:mixed}} */
+    public function describe(object $delivery, CartMetrics $cart, int $settlementId, int $divisionId, string $lang): array
     {
         $english = $lang === 'en';
         $settlement = $settlementId > 0 ? $this->entityFactory->get(SettlementEntity::class)->get($settlementId) : null;
         $division = $settlement && $divisionId > 0 ? $this->entityFactory->get(DivisionEntity::class)->get($divisionId) : null;
-        if ($division && (int)$division->settlement_id !== (int)$settlement->id) {
-            $division = null;
-        }
+        // A point the order would refuse now goes back to the list, where its problem is shown.
+        $division = $division ? $this->validator->restorable($delivery, $settlement, $division, $cart) : null;
 
         return [
-            'settlement' => $settlement ? ['id' => (int)$settlement->id, 'name' => (string)($english && $settlement->name_en ? $settlement->name_en : $settlement->name_uk)] : null,
-            'division' => $division ? ['id' => (int)$division->id, 'title' => (string)($english && $division->name_en ? $division->name_en : $division->name_uk)] : null,
+            'settlement' => $settlement ? [
+                'id' => (int)$settlement->id,
+                'name' => (string)($english && $settlement->name_en ? $settlement->name_en : $settlement->name_uk),
+                'area' => (string)($english && $settlement->area_en ? $settlement->area_en : $settlement->area_uk) ?: null,
+            ] : null,
+            'division' => $division ? ['id' => (int)$division->id] + DivisionList::describe($division, $english) : null,
         ];
     }
 }

@@ -52,6 +52,18 @@ final class CartSelectionValidator
         );
     }
 
+    /** The point a cart restores (last order, posted form), or null when it would be refused on checkout now. */
+    public function restorable(object $delivery, ?object $settlement, ?object $division, CartMetrics $cart): ?object
+    {
+        return self::keepRestored($delivery, (int)$this->module->getModuleIdByNamespace(__CLASS__), $settlement, $division, $this->groups->all(), $cart);
+    }
+
+    /** @param list<object> $groupRows */
+    public static function keepRestored(object $delivery, int $moduleId, ?object $settlement, ?object $division, array $groupRows, CartMetrics $cart): ?object
+    {
+        return $division !== null && self::check($delivery, $moduleId, $settlement, $division, $groupRows, $cart) instanceof CartSelection ? $division : null;
+    }
+
     /** @param list<object> $groupRows */
     public static function check(?object $delivery, int $moduleId, ?object $settlement, ?object $division, array $groupRows, CartMetrics $cart, bool $dictionaryReady = true): CartSelection|string
     {

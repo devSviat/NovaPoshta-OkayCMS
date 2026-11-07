@@ -160,3 +160,5 @@ $lang['sviat__novaposhta__order_floor'] = 'этаж';
 $lang['sviat__novaposhta__order_elevator'] = 'есть лифт';
 $lang['sviat__novaposhta__order_note'] = 'Примечание';
 $lang['sviat__novaposhta__order_title'] = 'Новая Почта';
+$lang['sviat__novaposhta__order_cod_fee'] = 'Комиссия НП за наложенный платёж (оплачивает покупатель при получении)';
+$lang['sviat__novaposhta__order_cod_fee_hidden'] = 'покупателю не показана — цена доставки скрыта';

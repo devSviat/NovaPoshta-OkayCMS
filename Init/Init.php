@@ -85,6 +85,13 @@ class Init extends AbstractInit
         self::markSchema('0.5.0');
     }
 
+    /** The COD commission is kept apart from the delivery price (stage 3g). */
+    public function update_0_6_0()
+    {
+        $this->migrateEntityField(OrderDeliveryEntity::class, self::codFeeField());
+        self::markSchema('0.6.0');
+    }
+
     /** Fields the module keeps on core tables, under its own names (§9). */
     /**
      * Columns on core tables exist only after install/update has run. Registering them earlier
@@ -92,7 +99,7 @@ class Init extends AbstractInit
      * orders fail — the storefront loses products and payment methods — so init() waits for this.
      */
     private const string SCHEMA_SETTING = 'sviat__novaposhta__schema';
-    private const string SCHEMA = '0.5.0';
+    private const string SCHEMA = '0.6.0';
 
     private static function markSchema(string $version): void
     {
@@ -112,6 +119,9 @@ class Init extends AbstractInit
 
     public function init()
     {
+        if (self::schemaReady('0.6.0')) {
+            $this->registerEntityField(OrderDeliveryEntity::class, self::codFeeField()->getName());
+        }
         if (self::schemaReady('0.5.0')) {
             foreach (self::addressFields() as $field) {
                 $this->registerEntityField(OrderDeliveryEntity::class, $field->getName());
@@ -138,6 +148,7 @@ class Init extends AbstractInit
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');
 
         $this->addFrontBlock('front_cart_delivery', 'cart_delivery.tpl');
+        $this->addFrontBlock('front_scripts_after_validate', 'cart_validation.tpl');
         $this->registerQueueExtension(
             [DeliveriesHelper::class, 'getCartDeliveriesList'],
             [FrontExtender::class, 'getCartDeliveriesList']
@@ -210,6 +221,12 @@ class Init extends AbstractInit
         ];
     }
 
+    /** Column of the order snapshot added in 0.6.0. */
+    public static function codFeeField(): EntityField
+    {
+        return new EntityField('cod_fee')->setTypeDecimal('10,2');
+    }
+
     /** @return list<EntityField> columns of the order snapshot added in 0.4.0 */
     public static function pricingFields(): array
     {
@@ -255,6 +272,7 @@ class Init extends AbstractInit
                 $name('division_address'),
                 ...self::pricingFields(),
                 ...self::addressFields(),
+                self::codFeeField(),
                 new EntityField('created_at')->setTypeDatetime(false),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],

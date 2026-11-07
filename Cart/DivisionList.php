@@ -91,7 +91,7 @@ final class DivisionList
             }
         }
         $points = array_values(array_filter(array_map(static fn(int $id): ?object => $byId[$id] ?? null, $ids)));
-        $result['divisions'] = self::page($points, $cart, $lang, strtolower(date('l')));
+        $result['divisions'] = self::page($points, $cart, $lang);
 
         return $result;
     }
@@ -166,28 +166,37 @@ final class DivisionList
     }
 
     /** @param list<object> $points rows of DivisionEntity, already in page order (pageIds) */
-    public static function page(array $points, CartMetrics $cart, string $lang, string $weekday): array
+    public static function page(array $points, CartMetrics $cart, string $lang): array
     {
         $english = $lang === 'en';
         $page = [];
         foreach ($points as $point) {
             $problems = array_map(static fn(FitProblem $p): string => $p->value, DivisionFit::problems($cart, $point));
             // Empty fields are left out: a page is sent on every keystroke of the search.
-            $name = (string)(($english && $point->name_en ? $point->name_en : $point->name_uk) ?: $point->number);
-            // NP names read "Відділення №3 (до 30 кг на одне місце): вул. Слобожанська, 13".
-            [$title, $place] = array_pad(explode(': ', $name, 2), 2, null);
-            $page[] = array_filter([
-                'id' => (int)$point->id,
-                'category' => (string)$point->category,
-                'title' => $title,
-                'place' => $place ?? (($english && $point->address_en ? $point->address_en : $point->address_uk) ?: null),
+            $page[] = array_filter(['id' => (int)$point->id, 'category' => (string)$point->category] + self::describe($point, $english) + [
                 'maxWeight' => is_numeric($point->max_weight) && (float)$point->max_weight > 0 && (float)$point->max_weight <= 100000 ? (float)$point->max_weight : null,
                 'problems' => $problems,
-                'closesToday' => self::closesToday((string)$point->schedule, $weekday),
             ], static fn($value): bool => $value !== null && $value !== []);
         }
 
         return $page;
+    }
+
+    /**
+     * What the customer reads about a point, in the list and on the chosen point's card.
+     * @return array{title:string, place:?string, schedule:list<array{0:int,1:int,2:?string}>|true|null}
+     */
+    public static function describe(object $point, bool $english): array
+    {
+        $name = (string)(($english && ($point->name_en ?? '') ? $point->name_en : ($point->name_uk ?? '')) ?: ($point->number ?? ''));
+        // NP names read "Відділення №3 (до 30 кг на одне місце): вул. Слобожанська, 13".
+        [$title, $place] = array_pad(explode(': ', $name, 2), 2, null);
+
+        return [
+            'title' => PointTitle::short($title),
+            'place' => $place ?? (($english && ($point->address_en ?? '') ? $point->address_en : ($point->address_uk ?? '')) ?: null),
+            'schedule' => self::compactSchedule(WorkSchedule::groups((string)($point->schedule ?? ''))),
+        ];
     }
 
     public static function isTestPoint(string $name): bool
@@ -233,21 +242,20 @@ final class DivisionList
         return $rows === [];
     }
 
-    private static function closesToday(string $schedule, string $weekday): ?string
+    /**
+     * The page goes out on every keystroke of the search: groups as [from, to, hours] and a round-the-clock
+     * point as true keep a page of 100 points small.
+     * @return list<array{0:int, 1:int, 2:?string}>|true|null
+     */
+    private static function compactSchedule(?array $groups): array|bool|null
     {
-        foreach (json_decode($schedule, true) ?: [] as $day) {
-            if (($day['day'] ?? null) !== $weekday) {
-                continue;
-            }
-            $from = (string)($day['from'] ?? '');
-            $to = (string)($day['to'] ?? '');
-            if (!preg_match('/^\d{2}:\d{2}$/', $to)) {
-                return null;
-            }
-
-            return $from === '00:00' && ($to === '23:59' || $to === '24:00') ? '24/7' : $to;
+        if ($groups === null) {
+            return null;
+        }
+        if (isset($groups[0]['allDay'])) {
+            return true;
         }
 
-        return null;
+        return array_map(static fn(array $g): array => [$g['from'], $g['to'], $g['hours']], $groups);
     }
 }

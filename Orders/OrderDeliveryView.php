@@ -2,15 +2,21 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Orders;
 
+use Okay\Modules\Sviat\NovaPoshta\Cart\PointTitle;
+
 /** The order's saved choice as lines of text, for the order pages (customer and admin) and both order emails. */
 final class OrderDeliveryView
 {
-    /** @return array{city:string, point:string, term:?string, priceUnconfirmed:bool, address:?array, lifting:bool} */
-    /** @param ?float $orderDeliveryPrice the order's delivery price now: a manager may have set it after checkout */
-    public static function lines(object $row, ?float $orderDeliveryPrice = null): array
+    /**
+     * @param ?float $orderDeliveryPrice the order's delivery price now: a manager may have set it after checkout
+     * @param bool $codNow the order's payment is cash on delivery now (the customer may change it on the order page)
+     * @param bool $pricePublic the delivery method shows its price to customers; the shop sees the commission anyway
+     * @return array{city:string, point:string, term:?string, priceUnconfirmed:bool, address:?array, lifting:bool, codFee:?float, codFeePublic:bool}
+     */
+    public static function lines(object $row, ?float $orderDeliveryPrice = null, bool $codNow = false, bool $pricePublic = true): array
     {
         $city = array_filter([$row->settlement_name ?? null, $row->district_name ?? null, $row->area_name ?? null], static fn($part): bool => (string)$part !== '');
-        $point = array_filter([$row->division_name ?? null, $row->division_address ?? null], static fn($part): bool => (string)$part !== '');
+        $point = array_filter([PointTitle::short((string)($row->division_name ?? '')), $row->division_address ?? null], static fn($part): bool => (string)$part !== '');
 
         $term = (string)($row->delivery_term ?? '');
 
@@ -22,6 +28,9 @@ final class OrderDeliveryView
             'priceUnconfirmed' => ($row->price_source ?? null) === 'fallback' && !($orderDeliveryPrice > 0),
             'address' => ($row->mode ?? null) === 'address' ? self::address($row) : null,
             'lifting' => !empty($row->lifting),
+            // Paid by the recipient at the branch, not part of the order total.
+            'codFee' => $codNow && (float)($row->cod_fee ?? 0) > 0 ? round((float)$row->cod_fee, 2) : null,
+            'codFeePublic' => $pricePublic,
         ];
     }
 

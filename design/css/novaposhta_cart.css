@@ -9,7 +9,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-top: 10px;
+    margin-top: 0;
     font-size: 14px;
     font-style: normal;
     color: var(--np-text);
@@ -89,7 +89,7 @@
     color: var(--np-text);
     background: var(--np-surface);
     border: 1px solid var(--np-border);
-    border-radius: 17px;
+    border-radius: var(--np-radius, 17px);
     cursor: pointer;
 }
 .np-chip:hover { border-color: var(--np-accent); }
@@ -130,3 +130,37 @@
 /* Same indent as the checkbox text (theme .checkbox / np-check: 22 px box + gap). */
 .np-cart__lifting-note { margin: 0 0 0 30px; font-size: 13px; line-height: 1.4; opacity: .8; }
 .np-cart__lifting .np-cart__elevator-check { margin-left: 30px; }
+
+/* The theme pads the block's box; a gap is needed only under a delivery description above the block. */
+* + .fn_delivery_module_html .np-cart { margin-top: 10px; }
+
+.np-cart__city-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.np-cart__city-line-label, .np-cart__city-line-area { font-size: 13px; opacity: .7; }
+.np-cart__link {
+    padding: 0;
+    font: inherit;
+    font-weight: 600;
+    color: var(--np-accent);
+    text-decoration: underline;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+.np-cart__chosen { display: flex; align-items: flex-start; gap: 12px; line-height: 1.5; }
+.np-cart__chosen-text { display: flex; flex: 1 1 auto; flex-direction: column; gap: 2px; min-width: 0; }
+.np-cart__chosen-city { font-size: 12px; opacity: .7; }
+.np-cart__chosen .np-cart__change { flex: none; }
+.np-cart__schedule, .np-cart__chosen-schedule { font-size: 11px; line-height: 1.35; opacity: .75; }
+.np-cart__chosen-schedule .np-cart__schedule { opacity: 1; }
+.np-cart__day { white-space: nowrap; }
+.np-cart__option-schedule { display: block; margin-top: 2px; }
+/* Narrower sides let "Відділення 652 | Поштомат 7389" fit one line on a 390 px phone; longer names wrap. */
+.np-cart__groups > * { padding-left: 10px; padding-right: 10px; white-space: nowrap; }
+
+/* Inside the theme's payment label (outside .np-cart): the module's colour variables are not set there. */
+.np-cod-line { display: block; margin-top: 2px; font-size: 11px; font-style: normal; font-weight: 400; line-height: 1.35; color: #a35a00; }
+
+/* Visible to jQuery Validate (it skips :hidden), not to people: the "choose a point" message hangs off it. */
+.np-cart__points { position: relative; }
+.np-cart__point-check { position: absolute; width: 1px; height: 1px; padding: 0; margin: 0; border: 0; opacity: 0; pointer-events: none; }
+

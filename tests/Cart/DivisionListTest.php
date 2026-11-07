@@ -52,7 +52,7 @@ class DivisionListTest extends TestCase
     {
         $page = DivisionList::page(
             [self::point(1, '1', 'PostBranch', ['max_weight' => '10.00']), self::point(2, '2', 'PostBranch')],
-            new CartMetrics(12.4, false, 100), 'ua', 'friday',
+            new CartMetrics(12.4, false, 100), 'ua',
         );
 
         self::assertSame([1, 2], array_column($page, 'id'), 'the order is decided by pageIds');
@@ -85,15 +85,15 @@ class DivisionListTest extends TestCase
 
     public function testNovaPoshtaNameIsSplitIntoTitleAndPlace(): void
     {
-        $point = DivisionList::page([self::point(1, '11/117', 'PostBranch')], new CartMetrics(1, false, 1), 'ua', 'friday')[0];
+        $point = DivisionList::page([self::point(1, '11/117', 'PostBranch')], new CartMetrics(1, false, 1), 'ua')[0];
 
-        self::assertSame('Відділення №11/117 (до 30 кг)', $point['title']);
+        self::assertSame('Відділення №11/117', $point['title'], 'the weight limit is shown as its own label');
         self::assertSame('вул. Тестова, 1', $point['place']);
     }
 
     public function testNameWithoutColonFallsBackToTheAddress(): void
     {
-        $point = DivisionList::page([self::point(1, '5', 'Postomat', ['name_uk' => 'Поштомат №5'])], new CartMetrics(1, false, 1), 'ua', 'friday')[0];
+        $point = DivisionList::page([self::point(1, '5', 'Postomat', ['name_uk' => 'Поштомат №5'])], new CartMetrics(1, false, 1), 'ua')[0];
 
         self::assertSame('Поштомат №5', $point['title']);
         self::assertSame('Київ, Тестова, 1', $point['place']);
@@ -101,19 +101,22 @@ class DivisionListTest extends TestCase
 
     public function testEnglishNamesForEnglishPages(): void
     {
-        self::assertSame('Testova St, 1', DivisionList::page([self::point(1, '1', 'PostBranch')], new CartMetrics(1, false, 1), 'en', 'friday')[0]['place']);
+        self::assertSame('Testova St, 1', DivisionList::page([self::point(1, '1', 'PostBranch')], new CartMetrics(1, false, 1), 'en')[0]['place']);
     }
 
-    public function testTodaysClosingTime(): void
+    public function testWeekScheduleInsteadOfToday(): void
     {
         $metrics = new CartMetrics(1, false, 1);
-        self::assertSame('20:00', DivisionList::page([self::point(1, '1', 'PostBranch')], $metrics, 'ua', 'friday')[0]['closesToday']);
+        $point = DivisionList::page([self::point(1, '1', 'PostBranch')], $metrics, 'ua')[0];
 
-        $allDay = self::point(2, '2', 'Postomat', ['schedule' => json_encode([['day' => 'friday', 'from' => '00:00', 'to' => '23:59']])]);
-        self::assertSame('24/7', DivisionList::page([$allDay], $metrics, 'ua', 'friday')[0]['closesToday']);
+        self::assertSame([[4, 4, '08:00–20:00'], [5, 6, null]], array_slice($point['schedule'], -2), 'groups go out as [from, to, hours]');
 
-        $closed = self::point(3, '3', 'PostBranch', ['schedule' => json_encode([['day' => 'friday', 'from' => '-', 'to' => '-']])]);
-        self::assertArrayNotHasKey('closesToday', DivisionList::page([$closed], $metrics, 'ua', 'friday')[0]);
+        $allDay = self::point(2, '2', 'Postomat', ['schedule' => json_encode(array_map(static fn(string $d): array => ['day' => $d, 'from' => '00:01', 'to' => '23:59'], ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']))]);
+        self::assertTrue(DivisionList::page([$allDay], $metrics, 'ua')[0]['schedule']);
+        self::assertArrayNotHasKey('closesToday', $point);
+
+        $broken = self::point(3, '3', 'PostBranch', ['schedule' => '{']);
+        self::assertArrayNotHasKey('schedule', DivisionList::page([$broken], $metrics, 'ua')[0]);
     }
 
     public function testAFullPageStaysSmall(): void
@@ -123,7 +126,7 @@ class DivisionListTest extends TestCase
             $points[] = self::point($i, (string)$i, 'Postomat', ['name_uk' => "Поштомат \"Нова Пошта\" №{$i}: вул. Довга-Предовга Назва Вулиці, {$i}, ТРЦ «Великий» (біля входу)"]);
         }
 
-        self::assertLessThan(30 * 1024, strlen(json_encode(DivisionList::page($points, new CartMetrics(1, false, 1), 'ua', 'friday'), JSON_UNESCAPED_UNICODE)));
+        self::assertLessThan(30 * 1024, strlen(json_encode(DivisionList::page($points, new CartMetrics(1, false, 1), 'ua'), JSON_UNESCAPED_UNICODE)));
     }
 
     public function testSearchTextIsMadeSafeForLike(): void
