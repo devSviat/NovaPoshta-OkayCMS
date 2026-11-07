@@ -104,7 +104,7 @@ final class QuoteService
         return round((float)array_sum($costs), 2);
     }
 
-    /** @return array{0: float, 1: ?float} price and the COD commission inside it */
+    /** @return array{0: float, 1: ?float} delivery price and, apart from it, the COD commission */
     private function oldPrice(QuoteRequest $request, bool $lifting): array
     {
         $properties = $this->cities($request) + [
@@ -129,7 +129,7 @@ final class QuoteService
 
         $fee = is_numeric($row['CostRedelivery'] ?? null) ? round((float)$row['CostRedelivery'], 2) : null;
 
-        return [round((float)$row['Cost'] + ($fee ?? 0.0), 2), $fee];
+        return [round((float)$row['Cost'], 2), $fee];
     }
 
     private function term(QuoteRequest $request): ?\DateTimeImmutable

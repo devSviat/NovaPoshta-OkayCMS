@@ -39,6 +39,23 @@ final class CodPayments
         return $method && (int)($method->{self::FIELD} ?? 0) === 1;
     }
 
+    /** @return list<int> payment methods marked as Nova Poshta's cash on delivery */
+    public function codIds(): array
+    {
+        return array_values(array_map(static fn(object $m): int => (int)$m->id, array_filter($this->all(), static fn(object $m): bool => $m->cod === 1)));
+    }
+
+    /**
+     * Whether a delivery method can be paid by cash on delivery: then the cart shows the commission
+     * under that payment before the customer picks it.
+     * @param list<int|string> $deliveryPaymentIds DeliveriesEntity::getDeliveryPayments
+     * @param list<int> $codIds
+     */
+    public static function wantsFee(array $deliveryPaymentIds, array $codIds): bool
+    {
+        return array_intersect(array_map('intval', $deliveryPaymentIds), $codIds) !== [];
+    }
+
     /** @param mixed $posted ids from the settings form */
     public function save(mixed $posted): void
     {

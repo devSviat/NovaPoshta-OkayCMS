@@ -93,13 +93,13 @@ class QuoteServiceTest extends TestCase
         self::assertSame(5, $this->http->requests()[1]->timeoutSeconds);
     }
 
-    public function testMoneyTransferCodIsPricedByTheOldApiWithItsCommission(): void
+    public function testFeeIsNotPartOfPrice(): void
     {
         $this->http->json(200, ['success' => true, 'data' => [['Cost' => 95, 'CostRedelivery' => 40]], 'errors' => []]);
 
         $quote = $this->service()->quote(self::request(cod: true));
 
-        self::assertSame(135.0, $quote->price);
+        self::assertSame(95.0, $quote->price, 'the recipient pays the commission to Nova Poshta, not to the shop');
         self::assertSame(40.0, $quote->codFee);
         self::assertSame('old', $quote->source);
         $p = $this->body(0)['methodProperties'];

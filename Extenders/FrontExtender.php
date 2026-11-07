@@ -36,7 +36,7 @@ class FrontExtender implements ExtensionInterface
     private const array SCRIPT_TEXTS = [
         'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_closes', 'cart_all_day', 'cart_up_to_kg',
         'cart_too_heavy', 'cart_too_expensive', 'cart_choice', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
-        'cart_cod_fee', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager', 'cart_none_fit',
+        'cart_cod_fee', 'cart_cod_fee_unknown', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager', 'cart_none_fit',
         'cart_street_failed', 'cart_no_street', 'cart_address_choice', 'cart_flat_short', 'cart_no_address', 'cart_lifting_paid', 'cart_lifting_unknown', 'cart_note_left', 'cart_price_rejected',
     ];
 

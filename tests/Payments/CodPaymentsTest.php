@@ -17,4 +17,16 @@ class CodPaymentsTest extends TestCase
         self::assertSame([], CodPayments::normalize(null, [1, 2]));
         self::assertSame([], CodPayments::normalize('2', [1, 2]), 'a scalar is not a list of ids');
     }
+
+    public function testDeliveryWithoutCodPaymentWantsNoFee(): void
+    {
+        self::assertFalse(CodPayments::wantsFee([6, 20], [18]));
+        self::assertFalse(CodPayments::wantsFee([], [18]));
+    }
+
+    public function testDeliveryWithCodPaymentWantsFee(): void
+    {
+        self::assertTrue(CodPayments::wantsFee([6, 18], [18]));
+        self::assertTrue(CodPayments::wantsFee(['18'], [18]), 'the core gives ids as strings');
+    }
 }

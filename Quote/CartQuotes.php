@@ -7,6 +7,7 @@ use Okay\Core\Modules\Module;
 use Okay\Core\Money;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Entities\CurrenciesEntity;
+use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
@@ -49,7 +50,7 @@ final class CartQuotes
             return null;
         }
 
-        return $this->run($delivery, 'd:' . $divisionId, $paymentId, $cart, $forOrder, false,
+        return $this->run($delivery, 'd:' . $divisionId, $cart, $forOrder, false,
             static fn(ShippingConfig $config): array => [$division, null]);
     }
 
@@ -66,7 +67,7 @@ final class CartQuotes
         }
         $lifting = $lifting && $this->shipping->read()->showLifting;
 
-        return $this->run($delivery, 'a:' . (int)$settlement->id, $paymentId, $cart, $forOrder, $lifting,
+        return $this->run($delivery, 'a:' . (int)$settlement->id, $cart, $forOrder, $lifting,
             function (ShippingConfig $config) use ($settlement, $lifting, $floor, $elevator): array {
                 try {
                     $cityRef = $this->addressCities->forSettlement($settlement);
@@ -86,7 +87,7 @@ final class CartQuotes
      *
      * @param callable(ShippingConfig): array{0: object|AddressTarget|null, 1: ?string} $target recipient, or the problem
      */
-    private function run(object $delivery, string $targetKey, int $paymentId, object $cart, bool $forOrder, bool $lifting, callable $target): DeliveryQuote
+    private function run(object $delivery, string $targetKey, object $cart, bool $forOrder, bool $lifting, callable $target): DeliveryQuote
     {
         $config = $this->shipping->read();
         $sender = $config->senderDivisionId ? $this->entityFactory->get(DivisionEntity::class)->get($config->senderDivisionId) : null;
@@ -94,7 +95,8 @@ final class CartQuotes
             return new DeliveryQuote(null, null, 'none', 'no_sender');
         }
 
-        $cod = $this->codPayments->isCod($paymentId);
+        // The price does not depend on the chosen payment: the commission is apart from it.
+        $cod = $this->codFeeWanted($delivery, $config);
         $bag = $this->bag();
         QuoteSession::choose($bag, (int)$delivery->id, $targetKey, $cod, $lifting);
         $key = QuoteKey::for((int)$delivery->id, $targetKey, $cod, $cart, $lifting);
@@ -172,6 +174,13 @@ final class CartQuotes
     public function chosen(int $deliveryId): ?array
     {
         return QuoteSession::chosen($this->bag(), $deliveryId);
+    }
+
+    /** The commission is asked whenever the method can be paid by money-transfer COD (shown under that payment). */
+    private function codFeeWanted(object $delivery, ShippingConfig $config): bool
+    {
+        return $config->codKind === CodKind::Money
+            && CodPayments::wantsFee((array)$this->entityFactory->get(DeliveriesEntity::class)->getDeliveryPayments((int)$delivery->id), $this->codPayments->codIds());
     }
 
     public function isCodPayment(int $paymentId): bool
