@@ -46,6 +46,18 @@ class CodPaymentsTest extends TestCase
         self::assertSame([], CodPayments::migratedFlags([12 => 0, 13 => 2], CodKind::Control), 'a second run changes nothing');
     }
 
+    public function testUpdateBuildsItFromCoreServicesOnly(): void
+    {
+        // A disabled module's Init/services.php is not loaded, yet "Update" still runs update_0_10_0.
+        $core = [
+            \Okay\Core\EntityFactory::class => (new \ReflectionClass(\Okay\Core\EntityFactory::class))->newInstanceWithoutConstructor(),
+            \Okay\Core\Settings::class => (new \ReflectionClass(\Okay\Core\Settings::class))->newInstanceWithoutConstructor(),
+        ];
+        $get = static fn(string $id): object => $core[$id] ?? throw new \RuntimeException("not a core service: $id");
+
+        self::assertInstanceOf(CodPayments::class, CodPayments::forUpdate($get));
+    }
+
     public function testDeliveryWithoutCodPaymentWantsNoFee(): void
     {
         self::assertFalse(CodPayments::wantsFee([6, 20], [18]));

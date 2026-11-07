@@ -24,6 +24,15 @@ final class CodPayments
     ) {
     }
 
+    /**
+     * For update_*: a disabled module's Init/services.php is not loaded, yet "Update" still runs.
+     * @param callable(string): object $core resolves core services only
+     */
+    public static function forUpdate(callable $core): self
+    {
+        return new self($core(EntityFactory::class), $core(Settings::class));
+    }
+
     /** "Manual" in the payment's type select: the core keeps it as the string 'null'. */
     public static function isManual(mixed $module): bool
     {

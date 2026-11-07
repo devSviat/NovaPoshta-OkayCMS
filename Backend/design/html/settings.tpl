@@ -465,7 +465,7 @@
             <p class="text_grey">{$btr->sviat__novaposhta__cod_overview_note|escape}</p>
             {foreach $np_cod_payments as $payment}
                 <div class="np_payment_row np_cod_row">
-                    <span>{$payment->name|escape}{if !$payment->enabled} <span class="text_grey">({$btr->sviat__novaposhta__cod_payment_disabled|escape})</span>{/if}</span>
+                    <span>{$payment->name}{if !$payment->enabled} <span class="text_grey">({$btr->sviat__novaposhta__cod_payment_disabled|escape})</span>{/if}</span>
                     <span>{if $payment->cod_kind == 'control'}{$btr->sviat__novaposhta__waybill_cod_control_title|escape}{elseif $payment->cod_kind == 'money'}{$btr->sviat__novaposhta__cod_kind_money|escape}{else}<span class="text_grey">—</span>{/if}</span>
                     <a href="index.php?controller=PaymentMethodAdmin&amp;id={$payment->id|escape:'url'}">{$btr->sviat__novaposhta__cod_configure|escape}</a>
                 </div>

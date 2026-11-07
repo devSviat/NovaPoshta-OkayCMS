@@ -118,7 +118,7 @@ class Init extends AbstractInit
     public function update_0_10_0()
     {
         $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
-        ServiceLocator::getInstance()->getService(CodPayments::class)->migrateLegacy();
+        CodPayments::forUpdate(ServiceLocator::getInstance()->getService(...))->migrateLegacy();
     }
 
     /** Fields the module keeps on core tables, under its own names (§9). */
