@@ -50,6 +50,11 @@
         this.chip = root.getAttribute('data-chip');
         this.chipSelected = root.getAttribute('data-chip-selected');
         this.city = root.querySelector('.np-cart__city-input');
+        this.popular = root.querySelector('.np-cart__popular');
+        this.cityBox = root.querySelector('.np-cart__city');
+        this.cityLine = root.querySelector('.np-cart__city-line');
+        this.chosen = root.querySelector('.np-cart__chosen');
+        this.step = 'city';
         this.suggest = root.querySelector('.np-cart__suggest');
         this.points = root.querySelector('.np-cart__points');
         this.groups = root.querySelector('.np-cart__groups');
@@ -102,10 +107,84 @@
             }
             this.markPopular();
             this.showChoice();
-            this.load();
+            // A choice restored from the session or the last order is shown as chosen, not as a list.
+            if (this.mode === 'points' && this.division) {
+                this.setStep('chosen');
+            } else {
+                this.setStep('points');
+                this.load();
+            }
             this.requestQuote();
+        } else {
+            this.setStep('city');
         }
     }
+
+    /**
+     * city: popular cities and the city field; points: the city in one line, groups, search, list
+     * (address mode: the address form); chosen: only the chosen point.
+     */
+    Block.prototype.setStep = function (step) {
+        this.step = step;
+        this.root.setAttribute('data-step', step);
+        if (this.popular) {
+            this.popular.hidden = step !== 'city';
+        }
+        this.cityBox.hidden = step !== 'city';
+        this.cityLine.hidden = step !== 'points';
+        if (step === 'points' && this.settlement) {
+            this.cityLine.querySelector('.np-cart__city-line-name').textContent = this.settlement.name;
+            this.cityLine.querySelector('.np-cart__city-line-area').textContent = this.settlement.area || '';
+        }
+        this.chosen.hidden = step !== 'chosen';
+        if (step === 'chosen') {
+            this.showChosen();
+        }
+        if (step !== 'points') {
+            this.points.hidden = true;
+        }
+    };
+
+    Block.prototype.showChosen = function () {
+        var city = this.settlement ? [this.settlement.name, this.settlement.area].filter(Boolean).join(', ') : '';
+        this.chosen.querySelector('.np-cart__chosen-city').textContent = city;
+        this.chosen.querySelector('.np-cart__chosen-title').textContent = this.division ? this.division.title || '' : '';
+        var place = this.chosen.querySelector('.np-cart__chosen-place');
+        place.textContent = this.division && this.division.place ? this.division.place : '';
+        place.hidden = place.textContent === '';
+        var schedule = this.chosen.querySelector('.np-cart__chosen-schedule');
+        schedule.textContent = '';
+        var hours = this.division ? this.scheduleNode(this.division.schedule) : null;
+        if (hours) {
+            schedule.appendChild(hours);
+        }
+        schedule.hidden = !hours;
+    };
+
+    /**
+     * A week from the dictionary as "Пн–Пт 08:00–21:00, Сб–Нд 08:00–19:00": groups of
+     * [first day, last day, hours] (0 = Monday, null hours = day off) or true for round the clock.
+     * Each group stays on one line.
+     */
+    Block.prototype.scheduleNode = function (schedule) {
+        if (schedule === true) {
+            return el('span', 'np-cart__day', this.texts.cart_all_day || '');
+        }
+        if (!Array.isArray(schedule) || schedule.length === 0) {
+            return null;
+        }
+        var days = String(this.texts.cart_weekdays || '').split(',');
+        var self = this;
+        var line = el('span', 'np-cart__schedule');
+        schedule.forEach(function (group, index) {
+            var span = days[group[0]] + (group[1] !== group[0] ? '–' + days[group[1]] : '');
+            if (index > 0) {
+                line.appendChild(document.createTextNode(', '));
+            }
+            line.appendChild(el('span', 'np-cart__day', span + ' ' + (group[2] || self.texts.cart_day_off || '')));
+        });
+        return line;
+    };
 
     Block.prototype.bind = function () {
         var self = this;
@@ -122,6 +201,19 @@
             self.cityTimer = setTimeout(function () { self.findCities(); }, DEBOUNCE_MS);
         });
         this.city.addEventListener('keydown', function (event) { self.cityKeys(event); });
+        this.root.querySelector('.np-cart__change-city').addEventListener('click', function () {
+            self.city.value = '';
+            syncFilled(self.city);
+            self.dropSettlement();
+            self.city.focus();
+        });
+        this.root.querySelector('.np-cart__change').addEventListener('click', function () {
+            self.setStep('points');
+            self.load();
+            if (self.search && !self.searchBox.hidden) {
+                self.search.focus();
+            }
+        });
         this.city.addEventListener('blur', function () { setTimeout(function () { self.closeSuggest(); }, 150); });
         if (!this.search) {
             return;
@@ -245,6 +337,7 @@
             this.address.hidden = false;
         }
         this.showChoice();
+        this.setStep('points');
         this.load();
         if (this.mode === 'address') {
             this.requestQuote();
@@ -272,6 +365,7 @@
         this.markPopular();
         this.showChoice();
         this.clearQuote();
+        this.setStep('city');
     };
 
     Block.prototype.markPopular = function () {
@@ -323,7 +417,8 @@
             this.say(this.texts.cart_no_points);
             return;
         }
-        this.points.hidden = false;
+        // A list that arrives while the chosen point is shown stays hidden until "Змінити".
+        this.points.hidden = this.step !== 'points';
         this.groupId = data.group;
 
         this.groups.textContent = '';
@@ -391,18 +486,20 @@
             notes.push(lead !== null && prefix !== '' && prefix === lead ? text.slice(prefix.length) : text);
             lead = prefix;
         });
-        if (!unfit && point.closesToday) {
-            notes.push(point.closesToday === '24/7' ? this.texts.cart_all_day : format(this.texts.cart_closes, { time: point.closesToday }));
-        }
         if (notes.length) {
-            option.appendChild(el('span', 'np-cart__option-note', notes.join(unfit ? '; ' : ' · ')));
+            option.appendChild(el('span', 'np-cart__option-note', notes.join('; ')));
+        }
+        var hours = unfit ? null : this.scheduleNode(point.schedule);
+        if (hours) {
+            hours.classList.add('np-cart__option-schedule');
+            option.appendChild(hours);
         }
 
         option.addEventListener('click', function () {
             if (unfit) {
                 return;
             }
-            self.division = { id: point.id, title: point.title + (point.place ? ': ' + point.place : '') };
+            self.division = { id: point.id, title: point.title, place: point.place || null, schedule: point.schedule || null };
             self.divisionInput.value = point.id;
             self.list.querySelectorAll('.np-cart__option').forEach(function (other) {
                 other.classList.remove('np-cart__option--selected');
@@ -410,7 +507,7 @@
             });
             option.classList.add('np-cart__option--selected');
             option.setAttribute('aria-selected', 'true');
-            self.showChoice();
+            self.setStep('chosen');
             self.requestQuote();
         });
         return option;
@@ -430,12 +527,8 @@
             }
             return;
         }
-        if (this.settlement && this.division) {
-            this.choice.textContent = format(this.texts.cart_choice, { place: this.settlement.name + ', ' + this.division.title });
-            this.choice.hidden = false;
-        } else {
-            this.choice.hidden = true;
-        }
+        // Points: the chosen point's card says it all.
+        this.choice.hidden = true;
     };
 
     /** The theme's own radio for this delivery method (jQuery: themes keep prices in jQuery data). */
@@ -557,9 +650,6 @@
             if (problem && input && input.length && !input.data('hide_front_delivery_price') && !input.data('is_free_delivery')) {
                 input.closest('.fn_delivery_item').find('.fn_delivery_price').text(this.texts.cart_price_by_manager || '');
             }
-        }
-        if (data.codFeeText) {
-            lines.push(format(this.texts.cart_cod_fee, { fee: data.codFeeText }));
         }
         if (data.term) {
             var date = new Date(data.term + 'T12:00:00');

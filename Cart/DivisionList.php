@@ -173,21 +173,30 @@ final class DivisionList
         foreach ($points as $point) {
             $problems = array_map(static fn(FitProblem $p): string => $p->value, DivisionFit::problems($cart, $point));
             // Empty fields are left out: a page is sent on every keystroke of the search.
-            $name = (string)(($english && $point->name_en ? $point->name_en : $point->name_uk) ?: $point->number);
-            // NP names read "Відділення №3 (до 30 кг на одне місце): вул. Слобожанська, 13".
-            [$title, $place] = array_pad(explode(': ', $name, 2), 2, null);
-            $page[] = array_filter([
-                'id' => (int)$point->id,
-                'category' => (string)$point->category,
-                'title' => PointTitle::short($title),
-                'place' => $place ?? (($english && $point->address_en ? $point->address_en : $point->address_uk) ?: null),
+            $page[] = array_filter(['id' => (int)$point->id, 'category' => (string)$point->category] + self::describe($point, $english) + [
                 'maxWeight' => is_numeric($point->max_weight) && (float)$point->max_weight > 0 && (float)$point->max_weight <= 100000 ? (float)$point->max_weight : null,
                 'problems' => $problems,
-                'schedule' => self::compactSchedule(WorkSchedule::groups((string)$point->schedule)),
             ], static fn($value): bool => $value !== null && $value !== []);
         }
 
         return $page;
+    }
+
+    /**
+     * What the customer reads about a point, in the list and on the chosen point's card.
+     * @return array{title:string, place:?string, schedule:list<array{0:int,1:int,2:?string}>|true|null}
+     */
+    public static function describe(object $point, bool $english): array
+    {
+        $name = (string)(($english && ($point->name_en ?? '') ? $point->name_en : ($point->name_uk ?? '')) ?: ($point->number ?? ''));
+        // NP names read "Відділення №3 (до 30 кг на одне місце): вул. Слобожанська, 13".
+        [$title, $place] = array_pad(explode(': ', $name, 2), 2, null);
+
+        return [
+            'title' => PointTitle::short($title),
+            'place' => $place ?? (($english && ($point->address_en ?? '') ? $point->address_en : ($point->address_uk ?? '')) ?: null),
+            'schedule' => self::compactSchedule(WorkSchedule::groups((string)($point->schedule ?? ''))),
+        ];
     }
 
     public static function isTestPoint(string $name): bool

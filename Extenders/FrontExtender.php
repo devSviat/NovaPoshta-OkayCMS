@@ -17,6 +17,7 @@ use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelection;
 use Okay\Modules\Sviat\NovaPoshta\Cart\AddressFields;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelectionValidator;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
+use Okay\Modules\Sviat\NovaPoshta\Cart\DivisionList;
 use Okay\Modules\Sviat\NovaPoshta\Cart\PopularCities;
 use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
 use Okay\Modules\Sviat\NovaPoshta\Cart\ThemeClasses;
@@ -35,8 +36,8 @@ class FrontExtender implements ExtensionInterface
 {
     /** Texts the cart script needs; keys of design/lang/*.php without the prefix. */
     private const array SCRIPT_TEXTS = [
-        'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_closes', 'cart_all_day', 'cart_up_to_kg',
-        'cart_too_heavy', 'cart_too_expensive', 'cart_choice', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
+        'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_all_day', 'cart_up_to_kg', 'cart_weekdays', 'cart_day_off', 'cart_change', 'cart_change_city', 'cart_schedule',
+        'cart_too_heavy', 'cart_too_expensive', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
         'cart_cod_fee', 'cart_cod_fee_unknown', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager', 'cart_none_fit',
         'cart_street_failed', 'cart_no_street', 'cart_address_choice', 'cart_flat_short', 'cart_no_address', 'cart_lifting_paid', 'cart_lifting_unknown', 'cart_note_left', 'cart_price_rejected',
     ];
@@ -273,7 +274,7 @@ class FrontExtender implements ExtensionInterface
         return $out;
     }
 
-    /** @return array{settlement:?array{id:int, name:string}, division:?array{id:int, title:string}} */
+    /** @return array{settlement:?array{id:int, name:string, area:?string}, division:?array{id:int, title:string, place:?string, schedule:mixed}} */
     public function describe(int $settlementId, int $divisionId, string $lang): array
     {
         $english = $lang === 'en';
@@ -284,8 +285,12 @@ class FrontExtender implements ExtensionInterface
         }
 
         return [
-            'settlement' => $settlement ? ['id' => (int)$settlement->id, 'name' => (string)($english && $settlement->name_en ? $settlement->name_en : $settlement->name_uk)] : null,
-            'division' => $division ? ['id' => (int)$division->id, 'title' => (string)($english && $division->name_en ? $division->name_en : $division->name_uk)] : null,
+            'settlement' => $settlement ? [
+                'id' => (int)$settlement->id,
+                'name' => (string)($english && $settlement->name_en ? $settlement->name_en : $settlement->name_uk),
+                'area' => (string)($english && $settlement->area_en ? $settlement->area_en : $settlement->area_uk) ?: null,
+            ] : null,
+            'division' => $division ? ['id' => (int)$division->id] + DivisionList::describe($division, $english) : null,
         ];
     }
 }

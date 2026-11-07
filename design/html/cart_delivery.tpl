@@ -47,6 +47,25 @@
         <ul id="np_city_list_{$delivery->id|escape}" class="np-cart__suggest" role="listbox" hidden></ul>
     </div>
 
+    {* Shown once a place is chosen, instead of the popular cities and the city field. *}
+    <div class="np-cart__city-line" hidden>
+        <span class="np-cart__city-line-label">{$lang->sviat__novaposhta__cart_city|escape}:</span>
+        <b class="np-cart__city-line-name"></b>
+        <span class="np-cart__city-line-area"></span>
+        <button type="button" class="np-cart__link np-cart__change-city">{$lang->sviat__novaposhta__cart_change_city|escape}</button>
+    </div>
+
+    {* The chosen point replaces the list: nothing on the block repeats it. *}
+    <div class="np-cart__chosen" hidden>
+        <div class="np-cart__chosen-text">
+            <span class="np-cart__chosen-city"></span>
+            <b class="np-cart__chosen-title"></b>
+            <span class="np-cart__chosen-place"></span>
+            <span class="np-cart__chosen-schedule"></span>
+        </div>
+        <button type="button" class="np-cart__link np-cart__change">{$lang->sviat__novaposhta__cart_change|escape}</button>
+    </div>
+
     <div class="np-cart__points" hidden>
         <div class="np-cart__groups {$np_theme.chips|escape}" role="group" aria-label="{$lang->sviat__novaposhta__cart_groups|escape}"></div>
         <div class="np-cart__search {$np_theme.field|escape}" hidden>
