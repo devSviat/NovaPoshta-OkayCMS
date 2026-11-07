@@ -117,4 +117,44 @@ final class OrderDeliveryStore
 
         return $rows ? reset($rows) : null;
     }
+
+    /** Column lengths of the order table: values from old modules are cut to fit, never rejected. */
+    private const array LEGACY_COLUMNS = [
+        'mode' => 16, 'settlement_id' => null, 'settlement_name' => 255, 'district_name' => 255, 'area_name' => 255,
+        'division_id' => null, 'division_number' => 32, 'division_category' => 32, 'division_name' => 255, 'division_address' => 255,
+        'delivery_price' => null, 'price_source' => 16, 'cod' => null, 'street_name' => 100, 'house' => 10, 'flat' => 10,
+        'floor' => null, 'elevator' => null, 'address_note' => 40, 'lifting' => null, 'legacy' => 16,
+    ];
+
+    /** @return array<string, mixed> only the columns a migrated row may set, strings cut to their column */
+    public static function legacyValues(array $values): array
+    {
+        $row = [];
+        foreach (self::LEGACY_COLUMNS as $column => $max) {
+            if (!array_key_exists($column, $values)) {
+                continue;
+            }
+            $value = $values[$column];
+            $row[$column] = $max !== null && is_string($value) ? mb_substr($value, 0, $max) : $value;
+        }
+
+        return $row;
+    }
+
+    /**
+     * A row carried over from NovaposhtaCost (stage 5). Never replaces what the module already has.
+     * @return bool false when the order already has a row
+     */
+    public function importLegacy(int $orderId, int $deliveryId, array $values): bool
+    {
+        $entity = $this->entityFactory->get(OrderDeliveryEntity::class);
+        if ($entity->findOne(['order_id' => $orderId])) {
+            return false;
+        }
+        $now = date('Y-m-d H:i:s');
+        $row = array_filter(self::legacyValues($values), static fn(string $column): bool => self::stored($column), ARRAY_FILTER_USE_KEY);
+        $entity->add(['order_id' => $orderId, 'delivery_id' => $deliveryId, 'created_at' => $now, 'updated_at' => $now] + $row);
+
+        return true;
+    }
 }
