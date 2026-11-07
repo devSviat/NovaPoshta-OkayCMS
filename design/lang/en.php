@@ -73,3 +73,4 @@ $lang['sviat__novaposhta__cart_all_day'] = 'Open 24/7';
 $lang['sviat__novaposhta__cart_change'] = 'Change';
 $lang['sviat__novaposhta__cart_change_city'] = 'change';
 $lang['sviat__novaposhta__cart_schedule'] = 'Hours: %schedule%';
+$lang['sviat__novaposhta__order_waybill'] = 'NP waybill';

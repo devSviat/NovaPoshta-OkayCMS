@@ -20,6 +20,7 @@ use Okay\Entities\LanguagesEntity;
 use Okay\Entities\PaymentsEntity;
 use Okay\Entities\VariantsEntity;
 use Okay\Admin\Helpers\BackendOrdersHelper;
+use Okay\Entities\OrdersEntity;
 use Okay\Admin\Requests\BackendProductsRequest;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
@@ -30,6 +31,8 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersEntityFilters;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Groups\DefaultGroups;
@@ -100,6 +103,15 @@ class Init extends AbstractInit
         self::markSchema('0.7.0');
     }
 
+    /** Waybill tracking (stage 4b). */
+    public function update_0_8_0()
+    {
+        foreach (self::trackingFields() as $field) {
+            $this->migrateEntityField(WaybillEntity::class, $field);
+        }
+        self::markSchema('0.8.0');
+    }
+
     /** Fields the module keeps on core tables, under its own names (§9). */
     /**
      * Columns on core tables exist only after install/update has run. Registering them earlier
@@ -107,7 +119,7 @@ class Init extends AbstractInit
      * orders fail — the storefront loses products and payment methods — so init() waits for this.
      */
     private const string SCHEMA_SETTING = 'sviat__novaposhta__schema';
-    private const string SCHEMA = '0.7.0';
+    private const string SCHEMA = '0.8.0';
 
     private static function markSchema(string $version): void
     {
@@ -127,6 +139,11 @@ class Init extends AbstractInit
 
     public function init()
     {
+        if (self::schemaReady('0.8.0')) {
+            foreach (self::trackingFields() as $field) {
+                $this->registerEntityField(WaybillEntity::class, $field->getName());
+            }
+        }
         if (self::schemaReady('0.6.0')) {
             $this->registerEntityField(OrderDeliveryEntity::class, self::codFeeField()->getName());
         }
@@ -151,6 +168,13 @@ class Init extends AbstractInit
             [BackendOrdersHelper::class, 'findOrder'],
             [BackendExtender::class, 'assignOrderDelivery']
         );
+        if (self::schemaReady('0.8.0')) {
+            $this->registerChainExtension([BackendOrdersHelper::class, 'buildFilter'], [BackendExtender::class, 'listFilter']);
+            $this->registerChainExtension([BackendOrdersHelper::class, 'buildCountStatusesFilter'], [BackendExtender::class, 'countFilter']);
+            $this->registerQueueExtension([BackendOrdersHelper::class, 'findOrders'], [BackendExtender::class, 'listOrders']);
+            $this->registerEntityFilter(OrdersEntity::class, 'np_without_waybill', OrdersEntityFilters::class, 'filter__np_without_waybill');
+            $this->addBackendBlock('orders_list_name', 'orders_status.tpl');
+        }
         $this->addBackendBlock('order_contact', 'order_delivery.tpl');
         $this->addBackendBlock('order_contact', 'waybill.tpl');
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
@@ -196,6 +220,13 @@ class Init extends AbstractInit
                 ->time('*/5 * * * *')
                 ->overlap(false)
                 ->timeout(3600)
+        );
+        $this->registerSchedule(
+            new Schedule([WaybillTracking::class, 'tick'])
+                ->name('Nova Poshta: waybill tracking')
+                ->time('*/15 * * * *')
+                ->overlap(false)
+                ->timeout(900)
         );
     }
 
@@ -251,6 +282,19 @@ class Init extends AbstractInit
         ];
     }
 
+    /** @return list<EntityField> columns of the waybill table added in 0.8.0 */
+    public static function trackingFields(): array
+    {
+        return [
+            new EntityField('status_code')->setTypeInt(11)->setNullable()->setIndex(),
+            new EntityField('status_text')->setTypeVarchar(255)->setNullable(),
+            new EntityField('status_at')->setTypeDatetime()->setNullable(),
+            new EntityField('scheduled_at')->setTypeDatetime()->setNullable(),
+            new EntityField('tracking')->setTypeMediumText()->setNullable(),
+            new EntityField('tracked_at')->setTypeDatetime()->setNullable(),
+        ];
+    }
+
     /** @return array<class-string, list<EntityField>> tables added in 0.7.0 */
     public static function waybillTables(): array
     {
@@ -264,6 +308,7 @@ class Init extends AbstractInit
                 new EntityField('services')->setTypeText()->setNullable(),
                 new EntityField('audit_status')->setTypeVarchar(16)->setNullable(),
                 new EntityField('audit')->setTypeText()->setNullable(),
+                ...self::trackingFields(),
                 new EntityField('created_at')->setTypeDatetime(false),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],

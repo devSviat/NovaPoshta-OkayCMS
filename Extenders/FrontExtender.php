@@ -31,6 +31,7 @@ use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
 use Okay\Modules\Sviat\NovaPoshta\Quote\PriceDecision;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
 
 class FrontExtender implements ExtensionInterface
 {
@@ -59,6 +60,7 @@ class FrontExtender implements ExtensionInterface
         private readonly CartQuotes $quotes,
         private readonly Money $money,
         private readonly UahTotal $uahTotal,
+        private readonly WaybillStore $waybills,
     ) {
     }
 
@@ -187,6 +189,7 @@ class FrontExtender implements ExtensionInterface
                 $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0)),
                 empty($delivery->hide_front_delivery_price),
             );
+            $lines['waybill'] = OrderDeliveryView::waybill($this->waybills->forOrder((int)$order->id));
         }
         $this->design->assign('np_order_delivery', $lines);
         $this->design->assign('np_order_family', ThemeClasses::for((string)$this->settings->get('theme'))['family']);

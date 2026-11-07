@@ -95,4 +95,18 @@ class OrderDeliveryViewTest extends TestCase
 
         self::assertSame('Поштомат №1001: вул. Сім\'ї Кульженків, 31а', $lines['point']);
     }
+
+    public function testWaybillLinkForTheCustomer(): void
+    {
+        $row = static fn(array $o): object => (object)($o + ['number' => '20451581331601', 'api' => 'old', 'status_code' => 7]);
+
+        self::assertSame(
+            ['number' => '20451581331601', 'numberSpaced' => '20 4515 8133 1601', 'url' => 'https://novaposhta.ua/tracking/?cargo_number=20451581331601'],
+            \Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill($row([])),
+        );
+        self::assertNull(\Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill($row(['status_code' => 2])));
+        self::assertNull(\Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill($row(['api' => 'pending', 'number' => ''])));
+        self::assertNull(\Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill(null));
+        self::assertNotNull(\Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill($row(['status_code' => null, 'api' => 'attached'])));
+    }
 }

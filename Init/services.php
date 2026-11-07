@@ -42,6 +42,7 @@ use Okay\Modules\Sviat\NovaPoshta\Orders\OrderParcel;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderPointChange;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderParties;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SettlementCityRefs;
@@ -101,7 +102,7 @@ return [
     ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
-        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class)],
+        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Request::class)],
     ],
     DbCityRefStore::class => [
         'class' => DbCityRefStore::class,
@@ -215,6 +216,7 @@ return [
             new SR(CartQuotes::class),
             new SR(Money::class),
             new SR(UahTotal::class),
+            new SR(WaybillStore::class),
         ],
     ],
     CartSelectionValidator::class => [
@@ -255,6 +257,10 @@ return [
     WaybillView::class => [
         'class' => WaybillView::class,
         'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillStore::class), new SR(WaybillDrafts::class), new SR(CodPayments::class)],
+    ],
+    WaybillTracking::class => [
+        'class' => WaybillTracking::class,
+        'arguments' => [new SR(NewApiClient::class), new SR(OldApiClient::class), new SR(WaybillStore::class), new SR(ModuleState::class)],
     ],
     WaybillService::class => [
         'class' => WaybillService::class,

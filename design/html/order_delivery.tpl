@@ -11,6 +11,10 @@
             <dt><span data-language="sviat__novaposhta__order_address">{$lang->sviat__novaposhta__order_address|escape}</span></dt>
             <dd>{$smarty.capture.np_addr}</dd>
         {/if}
+        {if $np_order_delivery.waybill}
+            <dt><span data-language="sviat__novaposhta__order_waybill">{$lang->sviat__novaposhta__order_waybill|escape}</span></dt>
+            <dd><a href="{$np_order_delivery.waybill.url|escape}" target="_blank" rel="noopener noreferrer">{$np_order_delivery.waybill.numberSpaced|escape}</a></dd>
+        {/if}
         {if $np_order_delivery.lifting}
             <dt><span data-language="sviat__novaposhta__order_lifting">{$lang->sviat__novaposhta__order_lifting|escape}</span></dt>
             <dd>{$lang->sviat__novaposhta__order_lifting_yes|escape}</dd>
@@ -42,6 +46,12 @@
             <tr>
                 <td><span data-language="sviat__novaposhta__order_address">{$lang->sviat__novaposhta__order_address|escape}</span></td>
                 <td>{$smarty.capture.np_addr}</td>
+            </tr>
+        {/if}
+        {if $np_order_delivery.waybill}
+            <tr>
+                <td><span data-language="sviat__novaposhta__order_waybill">{$lang->sviat__novaposhta__order_waybill|escape}</span></td>
+                <td><a href="{$np_order_delivery.waybill.url|escape}" target="_blank" rel="noopener noreferrer">{$np_order_delivery.waybill.numberSpaced|escape}</a></td>
             </tr>
         {/if}
         {if $np_order_delivery.lifting}

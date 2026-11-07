@@ -12,6 +12,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillInput;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillOutcome;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
 
 /**
  * The waybill block of an order page posts here (`controller=Sviat.NovaPoshta.WaybillAdmin`).
@@ -19,7 +20,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
  */
 class WaybillAdmin extends IndexAdmin
 {
-    public function fetch(WaybillService $service, WaybillDrafts $drafts, WaybillView $view, BackendTranslations $translations)
+    public function fetch(WaybillService $service, WaybillDrafts $drafts, WaybillView $view, WaybillTracking $tracking, BackendTranslations $translations)
     {
         if (!$this->request->method('post')) {
             $this->answer(405, ['ok' => false]);
@@ -45,6 +46,7 @@ class WaybillAdmin extends IndexAdmin
             'attach' => $service->attach($orderId, (string)$this->request->post('number'), NpPhone::normalize((string)($order->phone ?? ''))),
             'remove' => $service->remove($orderId),
             'unlink' => $service->unlink($orderId),
+            'refresh' => $tracking->refresh($orderId, NpPhone::normalize((string)($order->phone ?? ''))),
             default => null,
         };
         if ($outcome === null) {

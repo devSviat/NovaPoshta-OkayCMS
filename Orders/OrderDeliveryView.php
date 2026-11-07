@@ -49,4 +49,23 @@ final class OrderDeliveryView
             'note' => $text('address_note'),
         ];
     }
+
+    /**
+     * The tracking link the customer sees; none for a waybill being made or deleted at NP.
+     *
+     * @return ?array{number: string, numberSpaced: string, url: string}
+     */
+    public static function waybill(?object $row): ?array
+    {
+        if ($row === null || $row->api === 'pending' || (int)($row->status_code ?? 0) === 2 || strlen((string)$row->number) !== 14) {
+            return null;
+        }
+        $number = (string)$row->number;
+
+        return [
+            'number' => $number,
+            'numberSpaced' => substr($number, 0, 2) . ' ' . implode(' ', str_split(substr($number, 2), 4)),
+            'url' => 'https://novaposhta.ua/tracking/?cargo_number=' . rawurlencode($number),
+        ];
+    }
 }

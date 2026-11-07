@@ -1,6 +1,6 @@
 {
   "Okay": "4.5.3",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "moduleName": "Nova Poshta",
   "vendor": {
     "email": "devsviat@proton.me",
@@ -14,6 +14,21 @@
           {
             "find": "{if $delivery}",
             "append": "order_delivery.tpl"
+          }
+        ]
+      }
+    ],
+    "backend": [
+      {
+        "file": "orders.tpl",
+        "changes": [
+          {
+            "find": "{if $labels}",
+            "appendBefore": "orders_status_filter.tpl"
+          },
+          {
+            "find": "<form class=\"search\" method=\"get\">",
+            "appendAfter": "{if $np_status_group}<input type=\"hidden\" name=\"np_waybill\" value=\"{$np_status_group|escape}\">{/if}"
           }
         ]
       }
