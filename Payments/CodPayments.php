@@ -73,12 +73,6 @@ final class CodPayments
         return $this->kind($paymentId) !== null;
     }
 
-    /** @return list<int> payment methods marked as Nova Poshta's cash on delivery, any kind */
-    public function codIds(): array
-    {
-        return $this->idsOf(static fn(?string $kind): bool => $kind !== null);
-    }
-
     /** @return list<int> payment methods whose cash on delivery is a money transfer (the cart shows its commission) */
     public function moneyIds(): array
     {

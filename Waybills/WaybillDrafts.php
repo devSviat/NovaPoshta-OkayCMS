@@ -11,6 +11,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderParcel;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
+use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 use Okay\Modules\Sviat\NovaPoshta\Quote\Parcel;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
 
@@ -50,7 +51,7 @@ final class WaybillDrafts
             $division ?: null,
             $this->waybillSettings->read(),
             $this->shippingSettings->read(),
-            $this->codPayments->isCod((int)$order->payment_method_id),
+            $this->codPayments->kind((int)$order->payment_method_id),
             $rate,
             new \DateTimeImmutable(),
             fn(float $totalUah): float => $this->amountDue->onPickup($order, $totalUah),
@@ -71,7 +72,7 @@ final class WaybillDrafts
         ?object $division,
         WaybillConfig $waybill,
         ShippingConfig $shipping,
-        bool $codPayment,
+        ?CodKind $codKind,
         float $uahRate,
         \DateTimeImmutable $now,
         ?\Closure $amountDue = null,
@@ -128,9 +129,9 @@ final class WaybillDrafts
             $waybill->cargoType,
             $waybill->payerType,
             $waybill->paymentMethod,
-            $codPayment && empty($order->paid),
+            $codKind !== null && empty($order->paid),
             round($amountDue ? $amountDue($totalUah) : $totalUah),
-            $shipping->codKind,
+            $codKind ?? CodKind::Money,
             $waybill->codPayer,
             ShipDate::for($now, $waybill->cutoff),
             $invoice !== null ? 'Organization' : 'PrivatePerson',

@@ -67,7 +67,6 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
                     }
                     break;
                 case 'cod':
-                    $shippingSettings->saveCodKind($this->request->post('cod_kind'));
                     $codPayments->save($this->request->post('cod_payments'));
                     $this->design->assign('np_cod_saved', true);
                     break;
@@ -109,7 +108,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         $config = $shippingSettings->read();
         $sender = $config->senderDivisionId ? $entityFactory->get(DivisionEntity::class)->get($config->senderDivisionId) : null;
         $senderCity = $sender ? $entityFactory->get(SettlementEntity::class)->get((int)$sender->settlement_id) : null;
-        $this->design->assign('np_cod', ['kind' => $config->codKind->value, 'payments' => $codPayments->all()]);
+        $this->design->assign('np_cod', ['kind' => null, 'payments' => $codPayments->all()]);
         $this->design->assign('np_shipping', [
             'config' => $config,
             'city' => $senderCity ? ['id' => (int)$senderCity->id, 'name' => (string)($lang === 'en' && $senderCity->name_en ? $senderCity->name_en : $senderCity->name_uk)] : null,

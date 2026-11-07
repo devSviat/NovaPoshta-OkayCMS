@@ -5,7 +5,6 @@ namespace Okay\Modules\Sviat\NovaPoshta\Backend;
 use Okay\Core\EntityFactory;
 use Okay\Core\Settings;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
-use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
 
 /** The "Sender and calculation" block of the settings page. */
@@ -14,7 +13,6 @@ final class ShippingSettings
     public const string SENDER = 'sviat__novaposhta__sender_division_id';
     public const string WEIGHT = 'sviat__novaposhta__default_weight';
     public const string VOLUME = 'sviat__novaposhta__default_volume';
-    public const string COD_KIND = 'sviat__novaposhta__cod_kind';
     public const string SHOW_TERM = 'sviat__novaposhta__show_term';
     public const string SHOW_LIFTING = 'sviat__novaposhta__show_lifting';
 
@@ -30,11 +28,6 @@ final class ShippingSettings
     public function read(): ShippingConfig
     {
         return ShippingConfig::fromSettings(fn(string $name) => $this->settings->get($name));
-    }
-
-    public function saveCodKind(mixed $posted): void
-    {
-        $this->settings->set(self::COD_KIND, (CodKind::tryFrom(is_string($posted) ? $posted : '') ?? CodKind::Money)->value);
     }
 
     /** @return list<string> language keys of the errors; nothing is saved when there are any */
