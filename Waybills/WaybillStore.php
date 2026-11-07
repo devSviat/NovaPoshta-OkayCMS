@@ -5,7 +5,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 use Okay\Core\EntityFactory;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 
-final class WaybillStore
+final class WaybillStore implements WaybillRows
 {
     public function __construct(private readonly EntityFactory $entityFactory)
     {

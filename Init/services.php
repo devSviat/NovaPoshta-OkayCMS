@@ -38,6 +38,9 @@ use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderParties;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\SettlementCityRefs;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDrafts;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\AmountDue;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillSettings;
@@ -228,6 +231,18 @@ return [
     WaybillDrafts::class => [
         'class' => WaybillDrafts::class,
         'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(CodPayments::class), new SR(Money::class), new SR(AmountDue::class)],
+    ],
+    SenderParties::class => [
+        'class' => SenderParties::class,
+        'arguments' => [new SR(SenderContacts::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(EntityFactory::class)],
+    ],
+    SettlementCityRefs::class => [
+        'class' => SettlementCityRefs::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(AddressCityResolver::class)],
+    ],
+    WaybillService::class => [
+        'class' => WaybillService::class,
+        'arguments' => [new SR(OldApiClient::class), new SR(NewApiClient::class), new SR(WaybillStore::class), new SR(SenderParties::class), new SR(SettlementCityRefs::class)],
     ],
     WaybillStore::class => [
         'class' => WaybillStore::class,
