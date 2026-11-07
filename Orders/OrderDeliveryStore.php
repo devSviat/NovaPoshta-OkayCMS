@@ -85,6 +85,19 @@ final class OrderDeliveryStore
         return in_array($column, OrderDeliveryEntity::getFields(), true);
     }
 
+    /** The delivery price the manager set from the admin (stage 4a2). */
+    public function setPrice(int $orderId, float $price, string $source): void
+    {
+        if (!self::stored('delivery_price')) {
+            return;
+        }
+        $entity = $this->entityFactory->get(OrderDeliveryEntity::class);
+        $row = $entity->findOne(['order_id' => $orderId]);
+        if (is_object($row)) {
+            $entity->update((int)$row->id, ['delivery_price' => $price, 'price_source' => $source, 'updated_at' => date('Y-m-d H:i:s')]);
+        }
+    }
+
     public function forOrder(int $orderId): ?object
     {
         return $this->entityFactory->get(OrderDeliveryEntity::class)->findOne(['order_id' => $orderId]) ?: null;

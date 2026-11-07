@@ -40,7 +40,7 @@ final class CartQuotes
      * @param bool $forOrder checkout: one call per order, already a gate — no visitor limits
      * @return DeliveryQuote|null null when this module does not price this method, point or cart
      */
-    public function quote(object $delivery, int $divisionId, int $paymentId, object $cart, bool $forOrder = false): ?DeliveryQuote
+    public function quote(object $delivery, int $divisionId, int $paymentId, object $cart, bool $forOrder = false, bool $forAdmin = false): ?DeliveryQuote
     {
         if (!$this->isOwnPointsMethod($delivery) || empty($cart->purchases)) {
             return null;
@@ -50,7 +50,7 @@ final class CartQuotes
             return null;
         }
 
-        return $this->run($delivery, 'd:' . $divisionId, $cart, $forOrder, false,
+        return $this->run($delivery, 'd:' . $divisionId, $cart, $forOrder || $forAdmin, false, $forAdmin,
             static fn(ShippingConfig $config): array => [$division, null]);
     }
 
@@ -60,14 +60,14 @@ final class CartQuotes
      *
      * @return DeliveryQuote|null null when this module does not price this method or cart
      */
-    public function quoteAddress(object $delivery, object $settlement, bool $lifting, ?int $floor, bool $elevator, int $paymentId, object $cart, bool $forOrder = false): ?DeliveryQuote
+    public function quoteAddress(object $delivery, object $settlement, bool $lifting, ?int $floor, bool $elevator, int $paymentId, object $cart, bool $forOrder = false, bool $forAdmin = false): ?DeliveryQuote
     {
         if (!$this->isOwnMethod($delivery, DeliveryMode::Address) || empty($cart->purchases)) {
             return null;
         }
         $lifting = $lifting && $this->shipping->read()->showLifting;
 
-        return $this->run($delivery, 'a:' . (int)$settlement->id, $cart, $forOrder, $lifting,
+        return $this->run($delivery, 'a:' . (int)$settlement->id, $cart, $forOrder || $forAdmin, $lifting, $forAdmin,
             function (ShippingConfig $config) use ($settlement, $lifting, $floor, $elevator): array {
                 try {
                     $cityRef = $this->addressCities->forSettlement($settlement);
@@ -85,9 +85,11 @@ final class CartQuotes
     /**
      * The common part: session choice and cache, limits, currency, the call and what is kept.
      *
+     * @param bool $forAdmin a manager prices an order: the price is asked even when the storefront hides
+     *     it, and the visitor's session cache is neither read nor written
      * @param callable(ShippingConfig): array{0: object|AddressTarget|null, 1: ?string} $target recipient, or the problem
      */
-    private function run(object $delivery, string $targetKey, object $cart, bool $forOrder, bool $lifting, callable $target): DeliveryQuote
+    private function run(object $delivery, string $targetKey, object $cart, bool $forOrder, bool $lifting, bool $forAdmin, callable $target): DeliveryQuote
     {
         $config = $this->shipping->read();
         $sender = $config->senderDivisionId ? $this->entityFactory->get(DivisionEntity::class)->get($config->senderDivisionId) : null;
@@ -97,18 +99,20 @@ final class CartQuotes
 
         // The price does not depend on the chosen payment: the commission is apart from it.
         $cod = $this->codFeeWanted($delivery, $config);
-        $bag = $this->bag();
-        QuoteSession::choose($bag, (int)$delivery->id, $targetKey, $cod, $lifting);
+        $bag = $forAdmin ? [] : $this->bag();
+        if (!$forAdmin) {
+            QuoteSession::choose($bag, (int)$delivery->id, $targetKey, $cod, $lifting);
+        }
         $key = QuoteKey::for((int)$delivery->id, $targetKey, $cod, $cart, $lifting);
         $now = time();
-        $cached = QuoteSession::get($bag, $key, $now, $forOrder ? null : self::RETRY_UNREACHABLE_AFTER);
+        $cached = $forAdmin ? null : QuoteSession::get($bag, $key, $now, $forOrder ? null : self::RETRY_UNREACHABLE_AFTER);
         if ($cached !== null) {
             $this->store($bag);
 
             return $cached;
         }
 
-        $wantPrice = empty($delivery->hide_front_delivery_price) && (float)($delivery->free_from ?? 0) > (float)($cart->total_price ?? 0);
+        $wantPrice = $forAdmin || (empty($delivery->hide_front_delivery_price) && (float)($delivery->free_from ?? 0) > (float)($cart->total_price ?? 0));
         $wantTerm = $config->showTerm;
         if (!$wantPrice && !$wantTerm) {
             $this->store($bag);
@@ -116,18 +120,18 @@ final class CartQuotes
             return new DeliveryQuote(null, null, 'none', null);
         }
         if (!$forOrder && !QuoteThrottle::allow($bag, $now)) {
-            $this->store($bag);
+            $forAdmin || $this->store($bag);
 
             return new DeliveryQuote(null, null, 'fallback', 'busy');
         }
         $uah = $this->entityFactory->get(CurrenciesEntity::class)->findOne(['code' => 'UAH']);
         if (!$uah) {
-            $this->store($bag);
+            $forAdmin || $this->store($bag);
 
             return new DeliveryQuote(null, null, $wantPrice ? 'fallback' : 'none', 'no_uah');
         }
         if (!$forOrder && !$this->takeBudget($now)) {
-            $this->store($bag);
+            $forAdmin || $this->store($bag);
 
             return new DeliveryQuote(null, null, 'fallback', 'busy');
         }
@@ -150,6 +154,9 @@ final class CartQuotes
                 $recipient instanceof AddressTarget ? $recipient : null,
             ));
             $quote = $this->inMainCurrency($quote, $uah);
+        }
+        if ($forAdmin) {
+            return $quote;
         }
         // Kept even when unreachable: checkout must charge what the cart showed, not a price NP gives a minute later.
         QuoteSession::put($bag, $key, $quote, $now);

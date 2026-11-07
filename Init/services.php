@@ -10,6 +10,7 @@ use Okay\Core\FrontTranslations;
 use Okay\Core\Languages;
 use Okay\Core\Modules\Module;
 use Okay\Core\Money;
+use Okay\Core\BackendTranslations;
 use Okay\Core\Request;
 use Okay\Core\QueryFactory;
 use Okay\Core\OkayContainer\Reference\ServiceReference as SR;
@@ -37,6 +38,8 @@ use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderParcel;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderPointChange;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
@@ -98,7 +101,7 @@ return [
     ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
-        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class)],
+        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class)],
     ],
     DbCityRefStore::class => [
         'class' => DbCityRefStore::class,
@@ -226,12 +229,20 @@ return [
         'class' => SenderContacts::class,
         'arguments' => [new SR(OldApiClient::class), new SR(ModuleState::class)],
     ],
+    OrderPointChange::class => [
+        'class' => OrderPointChange::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(Module::class), new SR(GroupsStore::class), new SR(OrderDeliveryStore::class), new SR(OrderParcel::class), new SR(CartQuotes::class), new SR(ShippingSettings::class), new SR(WaybillStore::class)],
+    ],
+    OrderParcel::class => [
+        'class' => OrderParcel::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(Money::class)],
+    ],
     AmountDue::class => [
         'class' => AmountDue::class,
     ],
     WaybillDrafts::class => [
         'class' => WaybillDrafts::class,
-        'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(CodPayments::class), new SR(Money::class), new SR(AmountDue::class)],
+        'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(CodPayments::class), new SR(OrderParcel::class), new SR(AmountDue::class)],
     ],
     SenderParties::class => [
         'class' => SenderParties::class,

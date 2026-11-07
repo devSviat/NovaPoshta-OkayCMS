@@ -3,16 +3,13 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 use Okay\Core\EntityFactory;
-use Okay\Core\Money;
-use Okay\Entities\CurrenciesEntity;
 use Okay\Entities\OrdersEntity;
-use Okay\Entities\PurchasesEntity;
-use Okay\Entities\VariantsEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderParcel;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\Parcel;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
@@ -28,7 +25,7 @@ final class WaybillDrafts
         private readonly WaybillSettings $waybillSettings,
         private readonly ShippingSettings $shippingSettings,
         private readonly CodPayments $codPayments,
-        private readonly Money $money,
+        private readonly OrderParcel $parcel,
         private readonly AmountDue $amountDue,
     ) {
     }
@@ -41,15 +38,9 @@ final class WaybillDrafts
         if (!$order || !$snapshot) {
             return 'waybill_no_snapshot';
         }
-        $purchases = $this->entityFactory->get(PurchasesEntity::class)->find(['order_id' => $orderId]);
-        $variantIds = array_values(array_filter(array_map(static fn($p): int => (int)$p->variant_id, $purchases)));
-        $variants = $variantIds === [] ? [] : $this->entityFactory->get(VariantsEntity::class)->mappedBy('id')->find(['id' => $variantIds]);
-        foreach ($purchases as $purchase) {
-            $purchase->variant = $variants[(int)$purchase->variant_id] ?? null;
-        }
+        $purchases = $this->parcel->purchases($orderId);
         $division = $snapshot->division_id ? $this->entityFactory->get(DivisionEntity::class)->get((int)$snapshot->division_id) : null;
-        $uah = $this->entityFactory->get(CurrenciesEntity::class)->findOne(['code' => 'UAH']);
-        $rate = $uah ? (float)$this->money->convert(1, (int)$uah->id, false, false, 6) : 1.0;
+        $rate = $this->parcel->uahRate();
 
         return self::build(
             $order,

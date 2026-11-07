@@ -11,6 +11,13 @@ use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
+use Okay\Core\Modules\Module;
+use Okay\Core\BackendTranslations;
+use Okay\Entities\CurrenciesEntity;
+use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
+use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderPointChange;
 
 class BackendExtender implements ExtensionInterface
 {
@@ -20,6 +27,10 @@ class BackendExtender implements ExtensionInterface
         private readonly CodPayments $codPayments,
         private readonly EntityFactory $entityFactory,
         private readonly WaybillView $waybills,
+        private readonly Module $module,
+        private readonly ShippingSettings $shipping,
+        private readonly WaybillStore $waybillRows,
+        private readonly BackendTranslations $translations,
     ) {
     }
 
@@ -27,6 +38,13 @@ class BackendExtender implements ExtensionInterface
     public function assignOrderDelivery($order, $orderId = null)
     {
         $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
+        $point = is_object($order) && !empty($order->id) ? $this->pointEditor($order, $row) : null;
+        $showWaybill = $point === null ? $row !== null : $point['showWaybill'];
+        if ($point !== null && $point['needsChoice']) {
+            // The saved point is of the other mode (delivery method changed) or there is none yet.
+            $row = null;
+        }
+        $this->design->assign('np_order_point', $point);
         $lines = null;
         if ($row) {
             $delivery = $this->entityFactory->get(DeliveriesEntity::class)->get((int)($order->delivery_id ?? 0));
@@ -38,7 +56,37 @@ class BackendExtender implements ExtensionInterface
             );
         }
         $this->design->assign('np_order_delivery', $lines);
-        $this->design->assign('np_waybill', $row ? $this->waybills->forOrder((int)$order->id) : null);
+        $this->design->assign('np_waybill', $showWaybill ? $this->waybills->forOrder((int)$order->id) : null);
+    }
+
+    /** Texts the point/address editor script shows; keys of Backend/lang without the prefix. */
+    private const array EDITOR_TEXTS = [
+        'op_city', 'op_city_placeholder', 'op_point_search', 'op_point_search_placeholder', 'op_street', 'op_house', 'op_flat', 'op_entrance',
+        'op_note', 'op_lifting', 'op_floor', 'op_elevator', 'op_save', 'op_cancel', 'op_saving', 'op_no_points', 'op_shown_of', 'op_all_day',
+        'op_weekdays', 'op_day_off', 'op_unfit_too_heavy', 'op_unfit_too_big', 'op_unfit_too_expensive', 'op_choose_point', 'op_network',
+        'op_price_keep', 'op_price_same', 'op_price_free', 'op_price_show', 'op_price_auto', 'op_price_offer', 'op_price_apply', 'op_price_applied', 'op_street_typed',
+    ];
+
+    /** What the point/address editor needs; null when the order's delivery method is not this module's. */
+    private function pointEditor(object $order, ?object $snapshot): ?array
+    {
+        $delivery = $this->entityFactory->get(DeliveriesEntity::class)->get((int)($order->delivery_id ?? 0));
+        if (!$delivery || (int)$delivery->module_id !== (int)$this->module->getModuleIdByNamespace(__CLASS__)) {
+            return null;
+        }
+        $settings = is_string($delivery->settings ?? null) ? (@unserialize($delivery->settings, ['allowed_classes' => false]) ?: []) : (array)($delivery->settings ?? []);
+        $mode = DeliveryMode::fromServiceType($settings['service_type'] ?? null);
+        $state = OrderPointChange::editorState($snapshot, $mode->value, $this->waybillRows->forOrder((int)$order->id), time());
+
+        return $state + [
+            'orderId' => (int)$order->id,
+            'mode' => $mode->value,
+            'settlementId' => $snapshot && $snapshot->mode === $mode->value ? (int)$snapshot->settlement_id : null,
+            'settlementName' => $snapshot && $snapshot->mode === $mode->value ? (string)$snapshot->settlement_name : null,
+            'showLifting' => $this->shipping->read()->showLifting,
+            'currency' => (string)($this->entityFactory->get(CurrenciesEntity::class)->getMainCurrency()->sign ?? ''),
+            'textsJson' => json_encode(array_combine(self::EDITOR_TEXTS, array_map(fn(string $key): string => (string)$this->translations->getTranslation('sviat__novaposhta__' . $key), self::EDITOR_TEXTS)), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
+        ];
     }
 
     /** ChainExtension of BackendProductsRequest::postVariants: the volume column is decimal, text must not reach it. */
