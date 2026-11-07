@@ -129,4 +129,34 @@ class WaybillRequestTest extends TestCase
         self::assertSame('waybill_guard_point', OldDocumentRequest::guard($noIndex));
         self::assertSame('waybill_guard_point', OldDocumentRequest::guard(['ServiceType' => 'DoorsDoors']));
     }
+
+    private const array ORG = ['recipientType' => 'Organization', 'edrpou' => '12345678', 'companyName' => 'ТОВ «Приклад»'];
+
+    public function testOldOrganizationOnPoint(): void
+    {
+        $request = OldDocumentRequest::forDivision(W::point(self::ORG), W::sender());
+
+        self::assertSame(['Organization', '12345678', 'ТОВ «Приклад»', 'Петренко Іван'], [$request['RecipientType'], $request['EDRPOU'], $request['RecipientName'], $request['RecipientContactName']]);
+        self::assertArrayNotHasKey('Recipient', $request);
+        self::assertArrayNotHasKey('OwnershipForm', $request);
+        self::assertNull(OldDocumentRequest::guard($request));
+        self::assertSame('Петренко Іван', OldDocumentRequest::forDivision(W::point(['companyName' => null] + self::ORG), W::sender())['RecipientName']);
+    }
+
+    public function testOldOrganizationByText(): void
+    {
+        $request = OldDocumentRequest::forAddressText(W::address(self::ORG), W::sender(), 'form-ref');
+
+        self::assertSame(['Organization', '12345678', 'form-ref'], [$request['RecipientType'], $request['EDRPOU'], $request['OwnershipForm']]);
+        self::assertNull(OldDocumentRequest::guard($request));
+        self::assertArrayNotHasKey('OwnershipForm', OldDocumentRequest::forAddressText(W::address(), W::sender(), 'form-ref'));
+    }
+
+    public function testOldOrganizationByRef(): void
+    {
+        $request = OldDocumentRequest::forAddressRef(W::address(self::ORG), W::sender(), 'c', 'r', 'p', 'a');
+
+        self::assertSame('Organization', $request['RecipientType']);
+        self::assertArrayNotHasKey('EDRPOU', $request);
+    }
 }

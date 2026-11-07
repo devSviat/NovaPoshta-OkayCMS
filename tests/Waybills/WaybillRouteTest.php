@@ -35,4 +35,9 @@ class WaybillRouteTest extends TestCase
         self::assertSame('old', WaybillRoute::for(W::point(['paymentMethod' => 'NonCash']), self::TODAY));
         self::assertSame('old', WaybillRoute::for(W::point(['shipDate' => '08.11.2026']), self::TODAY));
     }
+
+    public function testOrganizationGoesToTheOldApi(): void
+    {
+        self::assertSame('old', WaybillRoute::for(W::point(['recipientType' => 'Organization', 'edrpou' => '12345678']), self::TODAY));
+    }
 }

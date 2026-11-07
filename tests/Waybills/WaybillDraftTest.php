@@ -41,7 +41,7 @@ class WaybillDraftTest extends TestCase
         return (object)['id' => 7162, 'number' => '11/1', 'name_uk' => 'Відділення №1: вул. Пирогівський шлях, 135', 'settlement_id' => 118064];
     }
 
-    private static function build(?object $order = null, ?object $snapshot = null, object|false|null $division = false, bool $cod = false, float $rate = 1.0, ?array $purchases = null): WaybillDraft|string
+    private static function build(?object $order = null, ?object $snapshot = null, object|false|null $division = false, bool $cod = false, float $rate = 1.0, ?array $purchases = null, ?array $invoice = null): WaybillDraft|string
     {
         return WaybillDrafts::build(
             $order ?? self::order(),
@@ -53,6 +53,8 @@ class WaybillDraftTest extends TestCase
             $cod,
             $rate,
             new \DateTimeImmutable('2026-11-07 10:00'),
+            null,
+            $invoice,
         );
     }
 
@@ -163,5 +165,49 @@ class WaybillDraftTest extends TestCase
             $draft->cargoType, $draft->payerType, $draft->paymentMethod, $draft->cod, $draft->codAmount, $draft->codKind, $draft->codPayer,
         ]);
         self::assertFalse(self::build(cod: true)->withInput([])->cod);
+    }
+
+    public function testInvoiceMakesOrganization(): void
+    {
+        $draft = self::build(invoice: ['edrpou' => '1234 5678', 'company' => 'ТОВ «Приклад»']);
+
+        self::assertSame(['Organization', '12345678', 'ТОВ «Приклад»', true, 'Петренко Іван'], [$draft->recipientType, $draft->edrpou, $draft->companyName, $draft->fromInvoice, $draft->recipientName]);
+        self::assertSame(['PrivatePerson', null, null, false], [self::build()->recipientType, self::build()->edrpou, self::build()->companyName, self::build()->fromInvoice]);
+    }
+
+    public function testOrganizationNeedsEdrpou(): void
+    {
+        $org = static fn(string $edrpou): WaybillDraft|array => self::build()->withInput(['recipient_type' => 'Organization', 'edrpou' => $edrpou, 'company_name' => 'ТОВ «Приклад»']);
+
+        self::assertSame([['field' => 'edrpou', 'key' => 'waybill_error_edrpou']], $org('123456'));
+        self::assertSame([['field' => 'edrpou', 'key' => 'waybill_error_edrpou']], $org('123456789'));
+        self::assertSame('12345678', $org('1234 5678')->edrpou);
+        self::assertSame('1234567890', $org('1234567890')->edrpou);
+        self::assertSame(['Organization', 'ТОВ «Приклад»'], [$org('12345678')->recipientType, $org('12345678')->companyName]);
+    }
+
+    public function testCompanyNameIsOptional(): void
+    {
+        $draft = self::build()->withInput(['recipient_type' => 'Organization', 'edrpou' => '12345678', 'company_name' => '  ']);
+
+        self::assertInstanceOf(WaybillDraft::class, $draft);
+        self::assertNull($draft->companyName);
+    }
+
+    public function testPrivatePersonDropsOrganization(): void
+    {
+        $draft = self::build(invoice: ['edrpou' => '12345678', 'company' => 'ТОВ «Приклад»'])->withInput(['recipient_type' => 'PrivatePerson', 'edrpou' => '12345678']);
+
+        self::assertSame(['PrivatePerson', null, null], [$draft->recipientType, $draft->edrpou, $draft->companyName]);
+        self::assertSame([['field' => 'recipient_type', 'key' => 'waybill_error_choice']], self::build()->withInput(['recipient_type' => 'Company']));
+    }
+
+    public function testOrganizationIssue(): void
+    {
+        $draft = self::build(invoice: ['edrpou' => '123456789', 'company' => 'ТОВ «Приклад»']);
+
+        self::assertSame('waybill_error_edrpou', $draft->organizationIssue());
+        self::assertNull(self::build(invoice: ['edrpou' => '12345678', 'company' => 'ТОВ «Приклад»'])->organizationIssue());
+        self::assertNull(self::build()->organizationIssue());
     }
 }

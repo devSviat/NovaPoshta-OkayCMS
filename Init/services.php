@@ -47,6 +47,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillView;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderParties;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SettlementCityRefs;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDrafts;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\InvoicePaymentData;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\AmountDue;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillSettings;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderContacts;
@@ -244,7 +245,11 @@ return [
     ],
     WaybillDrafts::class => [
         'class' => WaybillDrafts::class,
-        'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(CodPayments::class), new SR(OrderParcel::class), new SR(AmountDue::class)],
+        'arguments' => [new SR(EntityFactory::class), new SR(OrderDeliveryStore::class), new SR(WaybillSettings::class), new SR(ShippingSettings::class), new SR(CodPayments::class), new SR(OrderParcel::class), new SR(AmountDue::class), new SR(InvoicePaymentData::class)],
+    ],
+    InvoicePaymentData::class => [
+        'class' => InvoicePaymentData::class,
+        'arguments' => [new SR(EntityFactory::class)],
     ],
     SenderParties::class => [
         'class' => SenderParties::class,

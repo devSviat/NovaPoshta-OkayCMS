@@ -68,7 +68,13 @@ final class WaybillService
             $request = fn(): array => $this->newApi->quick(self::TIMEOUT_SECONDS)->post('/shipments', NewShipmentRequest::build($draft, $sender));
         } else {
             if ($draft->mode === DeliveryMode::Address) {
-                [$properties, $notice] = $this->addressRequest($draft, $sender);
+                try {
+                    [$properties, $notice] = $draft->recipientType === 'Organization'
+                        ? $this->organizationAddressRequest($draft, $sender)
+                        : $this->addressRequest($draft, $sender);
+                } catch (NpApiException $e) {
+                    return WaybillOutcome::failed(WaybillIssues::explain($e));
+                }
                 $notices = [...$notices, ...array_filter([$notice])];
             } else {
                 $properties = OldDocumentRequest::forDivision($draft, $sender);
@@ -231,13 +237,7 @@ final class WaybillService
                 'Phone' => (string)$draft->recipientPhone,
             ])[0] ?? [];
             $contact = $recipient['ContactPerson']['data'][0]['Ref'] ?? null;
-            $address = $api->call('AddressGeneral', 'save', array_filter([
-                'CounterpartyRef' => (string)($recipient['Ref'] ?? ''),
-                'StreetRef' => $draft->streetRef,
-                'BuildingNumber' => (string)$draft->house,
-                'Flat' => (string)$draft->flat,
-                'Note' => (string)$draft->addressNote,
-            ], static fn(string $v): bool => $v !== ''))[0]['Ref'] ?? null;
+            $address = $this->savedAddress($api, (string)($recipient['Ref'] ?? ''), $draft);
         } catch (NpApiException) {
             return $text;
         }
@@ -246,6 +246,61 @@ final class WaybillService
         }
 
         return [OldDocumentRequest::forAddressRef($draft, $sender, $cityRef, (string)$recipient['Ref'], $contact, $address), null];
+    }
+
+    /**
+     * An organization's address. Its counterparty comes by EDRPOU first: a code NP does not know
+     * stops here (thrown), and its ownership form is what NP needs for an address as text.
+     *
+     * @return array{0: array, 1: ?string} the save properties and the notice for a text address
+     * @throws NpApiException when NP does not accept the organization
+     */
+    private function organizationAddressRequest(WaybillDraft $draft, SenderParty $sender): array
+    {
+        $api = $this->oldApi->quick(self::TIMEOUT_SECONDS);
+        $organization = $api->call('Counterparty', 'save', [
+            'CounterpartyProperty' => 'Recipient',
+            'CounterpartyType' => 'Organization',
+            'EDRPOU' => (string)$draft->edrpou,
+        ])[0] ?? [];
+        $form = is_string($organization['OwnershipForm'] ?? null) && $organization['OwnershipForm'] !== '' ? $organization['OwnershipForm'] : null;
+        $text = [OldDocumentRequest::forAddressText($draft, $sender, $form), 'waybill_text_address'];
+        [$lastName, $firstName] = array_pad(explode(' ', $draft->recipientName, 2), 2, '');
+        $cityRef = $draft->streetRef !== null && $draft->settlementId !== null && $firstName !== '' && !empty($organization['Ref'])
+            ? $this->cities->cityRef($draft->settlementId)
+            : null;
+        if ($cityRef === null) {
+            return $text;
+        }
+        try {
+            $contact = $api->call('ContactPerson', 'save', [
+                'CounterpartyRef' => (string)$organization['Ref'],
+                'FirstName' => $firstName,
+                'LastName' => $lastName,
+                'Phone' => (string)$draft->recipientPhone,
+            ])[0]['Ref'] ?? null;
+            $address = is_string($contact) ? $this->savedAddress($api, (string)$organization['Ref'], $draft) : null;
+        } catch (NpApiException) {
+            return $text;
+        }
+        if (!is_string($contact) || !is_string($address)) {
+            return $text;
+        }
+
+        return [OldDocumentRequest::forAddressRef($draft, $sender, $cityRef, (string)$organization['Ref'], $contact, $address), null];
+    }
+
+    private function savedAddress(OldApiClient $api, string $counterpartyRef, WaybillDraft $draft): ?string
+    {
+        $ref = $api->call('AddressGeneral', 'save', array_filter([
+            'CounterpartyRef' => $counterpartyRef,
+            'StreetRef' => (string)$draft->streetRef,
+            'BuildingNumber' => (string)$draft->house,
+            'Flat' => (string)$draft->flat,
+            'Note' => (string)$draft->addressNote,
+        ], static fn(string $v): bool => $v !== ''))[0]['Ref'] ?? null;
+
+        return is_string($ref) ? $ref : null;
     }
 
     /** The waybill as NP shows it to its recipient; null when NP does not answer. */
