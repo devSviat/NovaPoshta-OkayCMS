@@ -10,7 +10,7 @@ interface WaybillRows
     public function orderOfNumber(string $number): ?int;
 
     /**
-     * @param 'new'|'old'|'attached' $api
+     * @param 'new'|'old'|'attached'|'pending' $api
      * @param array<string, mixed> $services
      */
     public function add(int $orderId, string $number, ?string $ref, string $api, array $services): bool;

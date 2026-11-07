@@ -27,7 +27,7 @@ final class WaybillStore implements WaybillRows
     }
 
     /**
-     * @param 'new'|'old'|'attached' $api
+     * @param 'new'|'old'|'attached'|'pending' $api
      * @param array<string, mixed> $services what was ordered, for the audit and the card
      */
     public function add(int $orderId, string $number, ?string $ref, string $api, array $services): bool
