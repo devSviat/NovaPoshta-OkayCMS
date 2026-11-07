@@ -26,6 +26,7 @@ use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
 use Okay\Core\Money;
 use Okay\Entities\CurrenciesEntity;
+use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
 use Okay\Modules\Sviat\NovaPoshta\Quote\PriceDecision;
@@ -114,7 +115,8 @@ class FrontExtender implements ExtensionInterface
             'delivery_price' => $decision['info']['delivery_price'] ?? null,
             'price_source' => $decision['source'],
             'delivery_term' => $quote->term?->format('Y-m-d'),
-            'cod' => $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0)) ? 1 : 0,
+            'cod' => ($cod = $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0))) ? 1 : 0,
+            'cod_fee' => $cod ? $quote->codFee : null,
         ];
 
         return $decision['info'];
@@ -173,7 +175,17 @@ class FrontExtender implements ExtensionInterface
     public function assignOrderDelivery($result, $order)
     {
         $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
-        $this->design->assign('np_order_delivery', $row ? OrderDeliveryView::lines($row, (float)($order->delivery_price ?? 0)) : null);
+        $lines = null;
+        if ($row) {
+            $delivery = $this->entityFactory->get(DeliveriesEntity::class)->get((int)($order->delivery_id ?? 0));
+            $lines = OrderDeliveryView::lines(
+                $row,
+                (float)($order->delivery_price ?? 0),
+                $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0)),
+                empty($delivery->hide_front_delivery_price),
+            );
+        }
+        $this->design->assign('np_order_delivery', $lines);
         $this->design->assign('np_order_family', ThemeClasses::for((string)$this->settings->get('theme'))['family']);
     }
 

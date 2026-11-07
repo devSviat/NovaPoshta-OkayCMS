@@ -69,3 +69,4 @@ $lang['sviat__novaposhta__order_elevator'] = 'є ліфт';
 $lang['sviat__novaposhta__order_note'] = 'Примітка';
 $lang['sviat__novaposhta__order_delivery_cost'] = 'Вартість доставки';
 $lang['sviat__novaposhta__cart_none_fit'] = 'Жоден пункт тут не приймає таке замовлення. Виберіть інший тип пункту або інший спосіб доставки.';
+$lang['sviat__novaposhta__order_cod_fee'] = 'Комісія Нової Пошти за післяплату (при отриманні)';

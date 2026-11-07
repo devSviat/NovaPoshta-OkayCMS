@@ -69,3 +69,4 @@ $lang['sviat__novaposhta__order_elevator'] = 'есть лифт';
 $lang['sviat__novaposhta__order_note'] = 'Примечание';
 $lang['sviat__novaposhta__order_delivery_cost'] = 'Стоимость доставки';
 $lang['sviat__novaposhta__cart_none_fit'] = 'Ни один пункт здесь не принимает такой заказ. Выберите другой тип пункта или другой способ доставки.';
+$lang['sviat__novaposhta__order_cod_fee'] = 'Комиссия Новой Почты за наложенный платёж (при получении)';

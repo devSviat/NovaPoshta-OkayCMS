@@ -69,3 +69,4 @@ $lang['sviat__novaposhta__order_elevator'] = 'lift available';
 $lang['sviat__novaposhta__order_note'] = 'Note';
 $lang['sviat__novaposhta__order_delivery_cost'] = 'Delivery cost';
 $lang['sviat__novaposhta__cart_none_fit'] = 'No point here accepts this order. Choose another kind of point or another delivery method.';
+$lang['sviat__novaposhta__order_cod_fee'] = 'Nova Poshta commission for cash on delivery (paid on receipt)';

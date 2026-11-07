@@ -17,6 +17,9 @@
     {if $np_order_delivery.lifting}
         <div class="mb-h"><span class="text_600">{$btr->sviat__novaposhta__order_lifting|escape}:</span> {$btr->sviat__novaposhta__order_lifting_yes|escape}</div>
     {/if}
+    {if $np_order_delivery.codFee}
+        <div class="mb-h"><span class="text_600">{$btr->sviat__novaposhta__order_cod_fee|escape}:</span> {$np_order_delivery.codFee|escape} {$currency->sign|escape}{if !$np_order_delivery.codFeePublic} <span class="text_grey">({$btr->sviat__novaposhta__order_cod_fee_hidden|escape})</span>{/if}</div>
+    {/if}
     {if $np_order_delivery.term}
         <div class="mb-h"><span class="text_600">{$btr->sviat__novaposhta__order_term|escape}:</span> {$np_order_delivery.term|escape}</div>
     {/if}

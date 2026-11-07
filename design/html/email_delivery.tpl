@@ -22,6 +22,12 @@
         <td class="es-p5t es-p5b"><span>{$lang->sviat__novaposhta__order_lifting_yes|escape}</span></td>
     </tr>
     {/if}
+    {if $np_order_delivery.codFee && $np_order_delivery.codFeePublic}
+    <tr valign="top">
+        <td class="es-p5t es-p5b" width="180px"><span>{$lang->sviat__novaposhta__order_cod_fee|escape}:</span></td>
+        <td class="es-p5t es-p5b"><span>{$np_order_delivery.codFee|convert:$currency->id} {$currency->sign|escape}</span></td>
+    </tr>
+    {/if}
     {if $np_order_delivery.priceUnconfirmed}
     <tr valign="top">
         <td class="es-p5t es-p5b" width="180px"><span>{$lang->sviat__novaposhta__order_delivery_cost|escape}:</span></td>

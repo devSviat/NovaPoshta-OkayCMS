@@ -19,6 +19,10 @@
             <dt><span data-language="sviat__novaposhta__order_delivery_cost">{$lang->sviat__novaposhta__order_delivery_cost|escape}</span></dt>
             <dd>{$lang->sviat__novaposhta__cart_price_by_manager|escape}</dd>
         {/if}
+        {if $np_order_delivery.codFee && $np_order_delivery.codFeePublic}
+            <dt><span data-language="sviat__novaposhta__order_cod_fee">{$lang->sviat__novaposhta__order_cod_fee|escape}</span></dt>
+            <dd>{$np_order_delivery.codFee|convert} {$currency->sign|escape}</dd>
+        {/if}
         {if $np_order_delivery.term}
             <dt><span data-language="sviat__novaposhta__order_term">{$lang->sviat__novaposhta__order_term|escape}</span></dt>
             <dd>{$np_order_delivery.term|escape}</dd>
@@ -50,6 +54,12 @@
             <tr>
                 <td><span data-language="sviat__novaposhta__order_delivery_cost">{$lang->sviat__novaposhta__order_delivery_cost|escape}</span></td>
                 <td>{$lang->sviat__novaposhta__cart_price_by_manager|escape}</td>
+            </tr>
+        {/if}
+        {if $np_order_delivery.codFee && $np_order_delivery.codFeePublic}
+            <tr>
+                <td><span data-language="sviat__novaposhta__order_cod_fee">{$lang->sviat__novaposhta__order_cod_fee|escape}</span></td>
+                <td>{$np_order_delivery.codFee|convert} {$currency->sign|escape}</td>
             </tr>
         {/if}
         {if $np_order_delivery.term}

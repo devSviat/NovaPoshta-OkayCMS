@@ -17,7 +17,7 @@ class OrderDeliveryViewTest extends TestCase
             'division_address' => 'вул. Київська, 1',
         ]);
 
-        self::assertSame(['city' => 'місто Бровари, Броварський район, Київська область', 'point' => 'Відділення №3: вул. Київська, 1', 'term' => null, 'priceUnconfirmed' => false, 'address' => null, 'lifting' => false], $lines);
+        self::assertSame(['city' => 'місто Бровари, Броварський район, Київська область', 'point' => 'Відділення №3: вул. Київська, 1', 'term' => null, 'priceUnconfirmed' => false, 'address' => null, 'lifting' => false, 'codFee' => null, 'codFeePublic' => true], $lines);
     }
 
     public function testMissingPartsAreLeftOut(): void
@@ -30,7 +30,7 @@ class OrderDeliveryViewTest extends TestCase
             'division_address' => null,
         ]);
 
-        self::assertSame(['city' => 'місто Київ', 'point' => 'Поштомат №5', 'term' => null, 'priceUnconfirmed' => false, 'address' => null, 'lifting' => false], $lines);
+        self::assertSame(['city' => 'місто Київ', 'point' => 'Поштомат №5', 'term' => null, 'priceUnconfirmed' => false, 'address' => null, 'lifting' => false, 'codFee' => null, 'codFeePublic' => true], $lines);
     }
 
     public function testTermAndUnconfirmedPrice(): void
@@ -60,5 +60,39 @@ class OrderDeliveryViewTest extends TestCase
 
         self::assertTrue(OrderDeliveryView::lines($row, 0.0)['priceUnconfirmed']);
         self::assertFalse(OrderDeliveryView::lines($row, 85.0)['priceUnconfirmed']);
+    }
+
+    public function testFeeShownWhileCod(): void
+    {
+        $lines = OrderDeliveryView::lines((object)['settlement_name' => 'місто Київ', 'division_name' => 'Відділення №13', 'cod_fee' => '55.98'], 99.0, codNow: true);
+
+        self::assertSame(55.98, $lines['codFee']);
+    }
+
+    public function testFeeHiddenOncePaymentIsNotCod(): void
+    {
+        $lines = OrderDeliveryView::lines((object)['settlement_name' => 'місто Київ', 'division_name' => 'Відділення №13', 'cod_fee' => '55.98'], 99.0, codNow: false);
+
+        self::assertNull($lines['codFee'], 'the customer switched to a card on the order page');
+    }
+
+    public function testNoFeeColumn(): void
+    {
+        self::assertNull(OrderDeliveryView::lines((object)['settlement_name' => 'місто Київ'], 99.0, codNow: true)['codFee']);
+        self::assertNull(OrderDeliveryView::lines((object)['settlement_name' => 'місто Київ', 'cod_fee' => '0.00'], 99.0, codNow: true)['codFee']);
+    }
+
+    public function testHiddenPriceKeepsFeeForTheShopOnly(): void
+    {
+        $lines = OrderDeliveryView::lines((object)['settlement_name' => 'місто Київ', 'cod_fee' => '55.98'], 99.0, codNow: true, pricePublic: false);
+
+        self::assertSame([55.98, false], [$lines['codFee'], $lines['codFeePublic']]);
+    }
+
+    public function testPointNameIsShortened(): void
+    {
+        $lines = OrderDeliveryView::lines((object)['settlement_name' => 'місто Київ', 'division_name' => 'Поштомат "Нова Пошта" №1001', 'division_address' => 'вул. Сім\'ї Кульженків, 31а']);
+
+        self::assertSame('Поштомат №1001: вул. Сім\'ї Кульженків, 31а', $lines['point']);
     }
 }
