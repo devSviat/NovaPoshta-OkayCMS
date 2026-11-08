@@ -67,10 +67,10 @@ final class CodPayments
         return $this->kind($paymentId) !== null;
     }
 
-    /** @return list<int> payment methods whose cash on delivery is a money transfer (the cart shows its commission) */
+    /** @return list<int> enabled payment methods whose cash on delivery is a money transfer (the cart shows its commission) */
     public function moneyIds(): array
     {
-        return $this->idsOf(static fn(?string $kind): bool => $kind === CodKind::Money->value);
+        return $this->idsOf(static fn(object $m): bool => !empty($m->enabled) && $m->cod_kind === CodKind::Money->value);
     }
 
     /**
@@ -85,11 +85,11 @@ final class CodPayments
     }
 
     /**
-     * @param callable(?string): bool $wanted
+     * @param callable(object): bool $wanted
      * @return list<int>
      */
     private function idsOf(callable $wanted): array
     {
-        return array_values(array_map(static fn(object $m): int => (int)$m->id, array_filter($this->all(), static fn(object $m): bool => $wanted($m->cod_kind))));
+        return array_values(array_map(static fn(object $m): int => (int)$m->id, array_filter($this->all(), $wanted)));
     }
 }
