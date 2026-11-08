@@ -8,8 +8,8 @@ use PHPUnit\Framework\TestCase;
 
 class LegacyMigrationViewTest extends TestCase
 {
-    private const array STEPS = ['orders', 'waybills', 'payments', 'volumes', 'popular', 'settings'];
-    private const array COUNTS = ['orders' => 3, 'waybills' => 2, 'payments' => 1, 'volumes' => 0, 'popular' => 0];
+    private const array STEPS = ['orders', 'waybills', 'payments', 'volumes', 'settings'];
+    private const array COUNTS = ['orders' => 3, 'waybills' => 2, 'payments' => 1, 'volumes' => 0];
 
     private static function state(?string $status, int $step = 0, ?LegacyReport $report = null): array
     {

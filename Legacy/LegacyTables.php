@@ -20,8 +20,6 @@ final class LegacyTables implements LegacyData
     private const string TRACKING_TABLE = '__sviat__novaposhta_tracking';
     private const string WAREHOUSES = '__okaycms__np_warehouses';
     private const string CITIES = '__okaycms__np_cities';
-    private const string POPULAR_TABLE = '__sviat__np_popular_cities';
-    private const string POPULAR_NAMES = '__sviat__np_settlements';
     private const array DELIVERY_COLUMNS = [
         'id', 'order_id', 'city_id', 'warehouse_id', 'redelivery', 'city_name', 'area_name', 'region_name', 'street', 'house', 'apartment',
         'control_payment', 'recipient_address_note', 'door_delivery', 'lifting_floor',
@@ -171,21 +169,6 @@ final class LegacyTables implements LegacyData
             ->limit($limit));
     }
 
-    public function popularCities(): array
-    {
-        if (!$this->has(self::POPULAR_TABLE)) {
-            return [];
-        }
-        $names = $this->has(self::POPULAR_NAMES)
-            ? '(SELECT s.city_name FROM ' . self::POPULAR_NAMES . ' AS s WHERE s.city_ref = p.city_ref LIMIT 1) AS name'
-            : 'NULL AS name';
-
-        return $this->select($this->queryFactory->newSelect()
-            ->cols(['p.city_ref', $names, 'p.position'])
-            ->from(self::POPULAR_TABLE . ' AS p')
-            ->orderBy(['p.position', 'p.id']));
-    }
-
     public function setting(string $name): ?string
     {
         $value = $this->settings->get($name);
@@ -213,7 +196,6 @@ final class LegacyTables implements LegacyData
             'waybills' => $count(self::TRACKING_TABLE),
             'payments' => count($this->codPaymentIds()),
             'volumes' => in_array('volume', $this->columnsOf('__variants'), true) ? $count('__variants', 'volume > 0') : 0,
-            'popular' => $count(self::POPULAR_TABLE),
         ];
     }
 

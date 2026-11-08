@@ -37,6 +37,14 @@ class ServicesTest extends TestCase
         }
     }
 
+    /** Popular cities are a minute to set by hand; the move carries only what cannot be. */
+    public function testTheMoveHasNoPopularCitiesStep(): void
+    {
+        $steps = array_map(static fn(ServiceReference $r): string => $r->getName(), array_slice(self::services()[\Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigration::class]['arguments'], 2));
+
+        self::assertSame(['OrdersStep', 'WaybillsStep', 'PaymentsStep', 'VolumesStep', 'SettingsStep'], array_map(static fn(string $c): string => substr(strrchr($c, '\\'), 1), $steps));
+    }
+
     public function testOrderCleanupIsAService(): void
     {
         self::assertArrayHasKey(OrderRowsCleanup::class, self::services());

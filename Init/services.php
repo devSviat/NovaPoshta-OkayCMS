@@ -75,7 +75,6 @@ use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyGate;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyReadiness;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\OrdersStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\PaymentsStep;
-use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\PopularStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\SettingsStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\VolumesStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\WaybillsStep;
@@ -343,7 +342,7 @@ return [
     ],
     LegacyTargets::class => [
         'class' => LegacyTargetsDb::class,
-        'arguments' => [new SR(EntityFactory::class), new SR(Settings::class), new SR(PopularCities::class)],
+        'arguments' => [new SR(EntityFactory::class), new SR(Settings::class)],
     ],
     LegacyData::class => [
         'class' => LegacyTables::class,
@@ -365,10 +364,6 @@ return [
         'class' => VolumesStep::class,
         'arguments' => [new SR(LegacyData::class), new SR(LegacyTargets::class)],
     ],
-    PopularStep::class => [
-        'class' => PopularStep::class,
-        'arguments' => [new SR(LegacyData::class), new SR(LegacyTargets::class), new SR(LegacyCityMatcher::class)],
-    ],
     SettingsStep::class => [
         'class' => SettingsStep::class,
         'arguments' => [new SR(LegacyData::class), new SR(LegacyTargets::class), new SR(LegacyCityMatcher::class), new SR(LegacyDivisionMatcher::class)],
@@ -380,7 +375,7 @@ return [
     LegacyMigration::class => [
         'class' => LegacyMigration::class,
         // Orders before waybills: a waybill's card reads the order's point.
-        'arguments' => [new SR(ModuleState::class), new SR(LegacyGate::class), new SR(OrdersStep::class), new SR(WaybillsStep::class), new SR(PaymentsStep::class), new SR(VolumesStep::class), new SR(PopularStep::class), new SR(SettingsStep::class)],
+        'arguments' => [new SR(ModuleState::class), new SR(LegacyGate::class), new SR(OrdersStep::class), new SR(WaybillsStep::class), new SR(PaymentsStep::class), new SR(VolumesStep::class), new SR(SettingsStep::class)],
     ],
     NpOrders::class => [
         'class' => NpOrders::class,

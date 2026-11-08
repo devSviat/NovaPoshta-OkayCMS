@@ -19,8 +19,6 @@ final class FakeLegacyData implements LegacyData
     public array $cod = [];
     /** @var list<object> */
     public array $variantVolumes = [];
-    /** @var list<object> */
-    public array $popular = [];
     /** @var array<string, string> */
     public array $settings = [];
     /** @var list<string> */
@@ -58,11 +56,6 @@ final class FakeLegacyData implements LegacyData
         return self::page($this->variantVolumes, $afterId, $limit);
     }
 
-    public function popularCities(): array
-    {
-        return $this->popular;
-    }
-
     public function setting(string $name): ?string
     {
         return $this->settings[$name] ?? null;
@@ -70,7 +63,7 @@ final class FakeLegacyData implements LegacyData
 
     public function counts(): array
     {
-        return ['orders' => count($this->delivery), 'waybills' => count($this->tracking), 'payments' => count($this->cod), 'volumes' => count($this->variantVolumes), 'popular' => count($this->popular)];
+        return ['orders' => count($this->delivery), 'waybills' => count($this->tracking), 'payments' => count($this->cod), 'volumes' => count($this->variantVolumes)];
     }
 
     public function enabledModules(): array

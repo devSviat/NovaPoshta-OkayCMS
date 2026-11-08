@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
-/** Where the small pieces of old data go: payment and variant fields, popular cities, settings. */
+/** Where the small pieces of old data go: payment and variant fields, settings. */
 interface LegacyTargets
 {
     /** @return object|null id, module, cod (our CodPayments flag) */
@@ -14,12 +14,6 @@ interface LegacyTargets
     public function variantVolume(int $id): ?float;
 
     public function setVariantVolume(int $id, float $volume): void;
-
-    /** @return list<int> */
-    public function popularIds(): array;
-
-    /** @param list<int> $ids */
-    public function savePopular(array $ids): void;
 
     public function ourSetting(string $name): ?string;
 

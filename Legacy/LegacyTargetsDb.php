@@ -6,7 +6,6 @@ use Okay\Core\EntityFactory;
 use Okay\Core\Settings;
 use Okay\Entities\PaymentsEntity;
 use Okay\Entities\VariantsEntity;
-use Okay\Modules\Sviat\NovaPoshta\Cart\PopularCities;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
 
@@ -15,7 +14,6 @@ final class LegacyTargetsDb implements LegacyTargets
     public function __construct(
         private readonly EntityFactory $entityFactory,
         private readonly Settings $settings,
-        private readonly PopularCities $popular,
     ) {
     }
 
@@ -41,16 +39,6 @@ final class LegacyTargetsDb implements LegacyTargets
     public function setVariantVolume(int $id, float $volume): void
     {
         $this->entityFactory->get(VariantsEntity::class)->update($id, [VariantVolume::FIELD => $volume]);
-    }
-
-    public function popularIds(): array
-    {
-        return array_map(static fn(array $city): int => $city['id'], $this->popular->list('ua'));
-    }
-
-    public function savePopular(array $ids): void
-    {
-        $this->popular->save($ids);
     }
 
     public function ourSetting(string $name): ?string

@@ -18,7 +18,6 @@ use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyReport;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacySettingsMap;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\PaymentsStep;
-use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\PopularStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\SettingsStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\Steps\VolumesStep;
 use PHPUnit\Framework\TestCase;
@@ -90,23 +89,6 @@ class SmallStepsTest extends TestCase
         self::assertSame(['done' => 1, 'existed' => 1, 'failed' => 0], $report->counts('volumes'));
     }
 
-    public function testPopularOnlyIntoEmptyList(): void
-    {
-        $this->old->popular = [(object)['city_ref' => 'kyiv', 'name' => 'Київ', 'position' => 1], (object)['city_ref' => 'olek', 'name' => 'Олександрія', 'position' => 2]];
-        $step = new PopularStep($this->old, $this->ours, new LegacyCityMatcher($this->places));
-        $report = new LegacyReport();
-
-        self::assertSame(LegacyStep::DONE, $step->run(0, new LegacyBudget(PHP_INT_MAX, 5), $report), 'namesakes ask NP, which knows no point there');
-        self::assertSame([1], $this->ours->popular);
-        self::assertSame('legacy_fail_namesakes_popular', $report->fails()[0]['key']);
-        self::assertSame('Олександрія', $report->fails()[0]['name']);
-
-        $again = new LegacyReport();
-        $step->run(0, $this->budget(), $again);
-        self::assertSame([1], $this->ours->popular);
-        self::assertSame(['done' => 0, 'existed' => 2, 'failed' => 0], $again->counts('popular'));
-    }
-
     public function testSettingsFillOnlyEmpty(): void
     {
         $this->old->settings = ['newpost_key' => 'old-key', 'newpost_weight' => '1,5', 'novapost_payer_type' => 'Sender', 'novapost_cargo_type' => 'Cargo', 'novapost_sender_warehouse' => 'w13', 'novapost_sender_phone' => '+38 (050) 000-00-00'];
@@ -117,11 +99,12 @@ class SmallStepsTest extends TestCase
         self::assertSame(LegacyStep::DONE, $step->run(0, $this->budget(), $report));
         self::assertSame('new-key', $this->ours->settings[ApiKey::SETTING]);
         self::assertSame('1.5', $this->ours->settings[ShippingSettings::WEIGHT]);
-        self::assertSame('Sender', $this->ours->settings['sviat__novaposhta__waybill_payer_type']);
+        // The old module had no «as in the order»: its explicit payer would switch off the safe default.
+        self::assertArrayNotHasKey('sviat__novaposhta__waybill_payer_type', $this->ours->settings);
         self::assertSame('Cargo', $this->ours->settings['sviat__novaposhta__waybill_cargo_type']);
         self::assertSame('10', $this->ours->settings[ShippingSettings::SENDER]);
         self::assertSame('380500000000', $this->ours->settings['sviat__novaposhta__waybill_sender_phone']);
-        self::assertSame(['done' => 5, 'existed' => 1, 'failed' => 0], $report->counts('settings'));
+        self::assertSame(['done' => 4, 'existed' => 1, 'failed' => 0], $report->counts('settings'));
     }
 
     public function testInvalidCutoffSkipped(): void
