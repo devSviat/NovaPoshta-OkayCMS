@@ -10,6 +10,15 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 /** Filters this module adds to the core orders entity. */
 class OrdersEntityFilters extends AbstractModuleEntityFilter
 {
+    /** @param list<int> $codes orders whose waybill has one of these NP statuses */
+    public function filter__np_status_codes($codes, $filter)
+    {
+        $codes = array_values(array_filter(array_map(intval(...), (array)$codes)));
+        $orders = OrdersEntity::getTableAlias();
+        $waybills = WaybillEntity::getTable();
+        $this->select->where("{$orders}.id IN (SELECT order_id FROM {$waybills} WHERE status_code IN (" . ($codes === [] ? '0' : implode(',', $codes)) . '))');
+    }
+
     /** Orders delivered by this module (a point or address is saved) that have no waybill yet. */
     public function filter__np_without_waybill($value, $filter)
     {

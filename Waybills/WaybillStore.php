@@ -155,23 +155,14 @@ final class WaybillStore implements WaybillRows
         $this->update($orderId, []);
     }
 
-    public function due(int $limit, int $page): array
+    public function due(int $limit, int $page, string $createdSince): array
     {
-        return array_values($this->entity()->order('due')->find(['due' => 1, 'limit' => $limit, 'page' => $page]));
+        return array_values($this->entity()->order('due')->find(['due' => 1, 'created_since' => $createdSince, 'limit' => $limit, 'page' => $page]));
     }
 
     public function forOrders(array $orderIds): array
     {
         return $orderIds === [] ? [] : $this->entity()->mappedBy('order_id')->find(['order_id' => $orderIds, 'limit' => count($orderIds)]);
-    }
-
-    public function ordersWithStatus(array $codes): array
-    {
-        if ($codes === []) {
-            return [];
-        }
-
-        return array_map('intval', array_values($this->entity()->cols(['order_id'])->noLimit()->find(['status_codes' => $codes])));
     }
 
     public function ordersOfNumber(string $number): array

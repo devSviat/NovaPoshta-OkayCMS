@@ -37,11 +37,10 @@ class WaybillEntity extends Entity
             ->where("{$alias}.number IS NOT NULL");
     }
 
-    /** @param list<int> $codes status codes */
-    protected function filter__status_codes($codes): void
+    protected function filter__created_since($since): void
     {
-        $codes = array_values(array_filter(array_map('intval', (array)$codes)));
-        $this->select->where($this->getTableAlias() . '.status_code IN (' . ($codes === [] ? '0' : implode(',', $codes)) . ')');
+        $this->select->where("{$this->getTableAlias()}.created_at >= :nps_created_since")
+            ->bindValue('nps_created_since', (string)$since);
     }
 
     /**

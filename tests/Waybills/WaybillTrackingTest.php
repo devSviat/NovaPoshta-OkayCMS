@@ -81,6 +81,21 @@ class WaybillTrackingTest extends TestCase
         self::assertStringNotContainsString('204500000020', implode(' ', $urls));
     }
 
+    /** A waybill stuck for two months (made and never sent, an endless return) no longer slows the queue. */
+    public function testOldUnfinishedWaybillsAreNoLongerAsked(): void
+    {
+        $this->waybill(7, 1, 61);
+        $this->waybill(8, 4, 59);
+        $this->http->json(200, ['jwt' => F::jwt(self::EXP)]);
+        $this->http->json(200, ['items' => []]);
+
+        $this->tracking()->tick();
+
+        $url = $this->http->requests()[1]->url;
+        self::assertStringContainsString('20450000000008', $url);
+        self::assertStringNotContainsString('20450000000007', $url);
+    }
+
     public function testStatusIsSaved(): void
     {
         $this->waybill(7);
@@ -168,7 +183,7 @@ class WaybillTrackingTest extends TestCase
         $this->tracking()->tick();
 
         self::assertNull($this->rows->rows[13]->status_code);
-        self::assertSame([13], array_map(static fn($r): int => (int)$r->order_id, $this->rows->due(10, 1)));
+        self::assertSame([13], array_map(static fn($r): int => (int)$r->order_id, $this->rows->due(10, 1, '2000-01-01 00:00:00')));
     }
 
     public function testRefreshKeepsTheRecipientPhoneWhenNovaPoshtaHidesIt(): void

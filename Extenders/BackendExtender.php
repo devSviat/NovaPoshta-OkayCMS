@@ -159,7 +159,6 @@ class BackendExtender implements ExtensionInterface
             $group,
             is_string($keyword) ? $keyword : null,
             fn(string $number): array => $this->waybillRows->ordersOfNumber($number),
-            fn(array $codes): array => $this->waybillRows->ordersWithStatus($codes),
         );
         // The core shows the search text only while it stays in the filter; a waybill number was taken out.
         if (isset($filter['keyword']) && !isset($applied['keyword'])) {
@@ -189,7 +188,7 @@ class BackendExtender implements ExtensionInterface
     public function countFilter($countFilter, $filter = [])
     {
         if (is_array($countFilter) && is_array($filter)) {
-            foreach (['id', 'np_without_waybill'] as $key) {
+            foreach (['id', 'np_without_waybill', 'np_status_codes'] as $key) {
                 if (isset($filter[$key])) {
                     $countFilter[$key] = $filter[$key];
                 }

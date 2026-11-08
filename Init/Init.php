@@ -87,6 +87,7 @@ class Init extends AbstractInit
         $this->registerChainExtension([BackendOrdersHelper::class, 'buildCountStatusesFilter'], [BackendExtender::class, 'countFilter']);
         $this->registerQueueExtension([BackendOrdersHelper::class, 'findOrders'], [BackendExtender::class, 'listOrders']);
         $this->registerEntityFilter(OrdersEntity::class, 'np_without_waybill', OrdersEntityFilters::class, 'filter__np_without_waybill');
+        $this->registerEntityFilter(OrdersEntity::class, 'np_status_codes', OrdersEntityFilters::class, 'filter__np_status_codes');
         $this->addBackendBlock('orders_list_name', 'orders_status.tpl');
         // The core prints a block's templates last-registered first: the point goes above the waybill.
         $this->addBackendBlock('order_contact', 'waybill.tpl');
