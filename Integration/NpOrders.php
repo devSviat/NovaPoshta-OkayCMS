@@ -68,7 +68,7 @@ final class NpOrders
     public static function shipment(object $waybill, ?object $delivery): ?NpShipment
     {
         $number = trim((string)($waybill->number ?? ''));
-        if ($number === '' || ($waybill->api ?? '') === 'pending') {
+        if ($number === '') {
             return null;
         }
         $code = is_numeric($waybill->status_code ?? null) ? (int)$waybill->status_code : null;

@@ -2,6 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Orders;
 
+use Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill;
 use Okay\Modules\Sviat\NovaPoshta\Cart\PointTitle;
 
 /** The order's saved choice as lines of text, for the order pages (customer and admin) and both order emails. */
@@ -23,7 +24,7 @@ final class OrderDeliveryView
         return [
             'city' => implode(', ', $city),
             'point' => implode(': ', $point),
-            'term' => preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $term, $m) ? "{$m[3]}.{$m[2]}.{$m[1]}" : null,
+            'term' => preg_match('/^(\d{4})-(\d{2})-(\d{2})(?: 00:00:00)?$/', $term, $m) ? "{$m[3]}.{$m[2]}.{$m[1]}" : null,
             // Nova Poshta gave no price at checkout: no delivery is charged, the manager states it.
             'priceUnconfirmed' => ($row->price_source ?? null) === 'fallback' && !($orderDeliveryPrice > 0),
             'legacyUnmatched' => ($row->legacy ?? null) === 'unmatched',
@@ -58,7 +59,7 @@ final class OrderDeliveryView
      */
     public static function waybill(?object $row): ?array
     {
-        if ($row === null || $row->api === 'pending' || (int)($row->status_code ?? 0) === 2 || strlen((string)$row->number) !== 14) {
+        if ($row === null || PendingWaybill::is($row) || (int)($row->status_code ?? 0) === 2 || strlen((string)$row->number) !== 14) {
             return null;
         }
         $number = (string)$row->number;

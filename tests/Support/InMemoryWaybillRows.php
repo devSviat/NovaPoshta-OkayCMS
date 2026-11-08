@@ -13,6 +13,8 @@ final class InMemoryWaybillRows implements WaybillRows
     public bool $failReserve = false;
     /** The database refused the write after Nova Poshta made the waybill. */
     public bool $failComplete = false;
+    /** Runs just before add(): another request writing between the service's checks and its insert. */
+    public ?\Closure $beforeAdd = null;
     public int $now = 1_900_000_000;
 
     public function forOrder(int $orderId): ?object
@@ -31,9 +33,15 @@ final class InMemoryWaybillRows implements WaybillRows
         return null;
     }
 
-    public function add(int $orderId, string $number, ?string $ref, string $api, array $services): bool
+    public function add(int $orderId, ?string $number, ?string $ref, ?string $api, array $services): bool
     {
-        if (isset($this->rows[$orderId])) {
+        if ($this->beforeAdd !== null) {
+            $race = $this->beforeAdd;
+            $this->beforeAdd = null;
+            $race($this);
+        }
+        // Both are unique in the table; NULL numbers (waybills being made) repeat freely.
+        if (isset($this->rows[$orderId]) || ($number !== null && $this->orderOfNumber($number) !== null)) {
             return false;
         }
         $this->rows[$orderId] = (object)['order_id' => $orderId, 'number' => $number, 'ref' => $ref, 'api' => $api, 'services' => json_encode($services), 'audit_status' => null, 'audit' => null, 'created_at' => date('Y-m-d H:i:s', $this->now)];
@@ -43,12 +51,13 @@ final class InMemoryWaybillRows implements WaybillRows
 
     public function reserve(int $orderId): bool
     {
-        return !$this->failReserve && $this->add($orderId, '', null, 'pending', []);
+        return !$this->failReserve && $this->add($orderId, null, null, null, []);
     }
 
     public function complete(int $orderId, string $number, ?string $ref, string $api, array $services): bool
     {
-        if ($this->failComplete || ($this->rows[$orderId]->api ?? null) !== 'pending') {
+        $owner = $this->orderOfNumber($number);
+        if ($this->failComplete || ($owner !== null && $owner !== $orderId) || !\Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill::is($this->rows[$orderId] ?? null)) {
             return false;
         }
         $this->rows[$orderId] = (object)(['number' => $number, 'ref' => $ref, 'api' => $api, 'services' => json_encode($services)] + (array)$this->rows[$orderId]);
@@ -58,7 +67,7 @@ final class InMemoryWaybillRows implements WaybillRows
 
     public function release(int $orderId): void
     {
-        if (($this->rows[$orderId]->api ?? null) === 'pending') {
+        if (\Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill::is($this->rows[$orderId] ?? null)) {
             unset($this->rows[$orderId]);
         }
     }
@@ -90,7 +99,7 @@ final class InMemoryWaybillRows implements WaybillRows
     public function due(int $limit, int $page): array
     {
         $closed = [...\Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus::FINAL, 3];
-        $due = array_values(array_filter($this->rows, static fn(object $r): bool => $r->api !== 'pending' && !in_array($r->status_code ?? null, $closed, true)));
+        $due = array_values(array_filter($this->rows, static fn(object $r): bool => !\Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill::is($r) && !in_array($r->status_code ?? null, $closed, true)));
         usort($due, static fn(object $a, object $b): int => [($a->tracked_at ?? ''), $a->order_id] <=> [($b->tracked_at ?? ''), $b->order_id]);
 
         return array_slice($due, ($page - 1) * $limit, $limit);

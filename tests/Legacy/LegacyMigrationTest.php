@@ -71,7 +71,7 @@ class LegacyMigrationTest extends TestCase
     {
         $seen = [];
         $state = new InMemoryState();
-        $migration = new LegacyMigration($state, self::ready('legacy_needs_update'), self::step('orders', 2, $seen));
+        $migration = new LegacyMigration($state, self::ready('legacy_needs_dictionaries'), self::step('orders', 2, $seen));
 
         self::assertFalse($migration->request());
         $state->set(LegacyMigration::STATE, json_encode(['status' => 'queued']));

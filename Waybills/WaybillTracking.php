@@ -98,7 +98,7 @@ final class WaybillTracking
     public function refresh(int $orderId, ?string $phone): WaybillOutcome
     {
         $row = $this->rows->forOrder($orderId);
-        if ($row === null || $row->api === 'pending') {
+        if ($row === null || PendingWaybill::is($row)) {
             return WaybillOutcome::refused('waybill_none');
         }
         $known = json_decode((string)($row->tracking ?? ''), true);

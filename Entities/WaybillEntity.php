@@ -16,6 +16,12 @@ class WaybillEntity extends Entity
         'services',
         'audit_status',
         'audit',
+        'status_code',
+        'status_text',
+        'status_at',
+        'scheduled_at',
+        'tracking',
+        'tracked_at',
         'created_at',
         'updated_at',
     ];
@@ -28,10 +34,10 @@ class WaybillEntity extends Entity
         $alias = $this->getTableAlias();
         $closed = implode(',', [...\Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus::FINAL, \Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus::NOT_FOUND]);
         $this->select->where("({$alias}.status_code IS NULL OR {$alias}.status_code NOT IN ({$closed}))")
-            ->where("{$alias}.api <> 'pending'");
+            ->where("{$alias}.number IS NOT NULL");
     }
 
-    /** @param list<int> $codes status codes; the column is registered late, so the generic field filter does not see it */
+    /** @param list<int> $codes status codes */
     protected function filter__status_codes($codes): void
     {
         $codes = array_values(array_filter(array_map('intval', (array)$codes)));
@@ -46,7 +52,7 @@ class WaybillEntity extends Entity
     {
         $alias = $this->getTableAlias();
         $this->select->where("{$alias}.status_code = 9")
-            ->where("{$alias}.number <> ''")
+            ->where("{$alias}.number IS NOT NULL")
             ->where("COALESCE({$alias}.status_at, {$alias}.tracked_at) >= :nps_received_since")
             ->bindValue('nps_received_since', (string)$since);
     }
@@ -60,6 +66,6 @@ class WaybillEntity extends Entity
 
         return parent::customOrder($order, $orderFields, $additionalData);
     }
-    protected static $table = 'sviat__novaposhta_waybill';
+    protected static $table = 'sviat__novaposhta__waybill';
     protected static $tableAlias = 'nps_w';
 }

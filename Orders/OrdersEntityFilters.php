@@ -21,6 +21,6 @@ class OrdersEntityFilters extends AbstractModuleEntityFilter
         $waybills = WaybillEntity::getTable();
         // Plain IN subqueries: Aura quotes alias.column pairs inside EXISTS (…) into broken SQL.
         $this->select->where("{$orders}.id IN (SELECT order_id FROM {$snapshots})")
-            ->where("{$orders}.id NOT IN (SELECT order_id FROM {$waybills} WHERE api <> 'pending')");
+            ->where("{$orders}.id NOT IN (SELECT order_id FROM {$waybills} WHERE number IS NOT NULL)");
     }
 }

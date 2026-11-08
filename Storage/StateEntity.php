@@ -13,7 +13,7 @@ class StateEntity extends Entity
         'updated_at',
     ];
 
-    protected static $table = 'sviat__novaposhta_state';
+    protected static $table = 'sviat__novaposhta__state';
     protected static $tableAlias = 'nps';
     protected static $alternativeIdField = 'name';
 }

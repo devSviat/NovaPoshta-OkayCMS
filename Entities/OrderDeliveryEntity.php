@@ -21,11 +21,26 @@ class OrderDeliveryEntity extends Entity
         'division_category',
         'division_name',
         'division_address',
+        'street_name',
+        'street_ref',
+        'house',
+        'flat',
+        'entrance',
+        'floor',
+        'elevator',
+        'address_note',
+        'lifting',
+        'delivery_price',
+        'price_source',
+        'delivery_term',
+        'cod',
+        'cod_fee',
+        'legacy',
         'created_at',
         'updated_at',
     ];
 
     protected static $defaultOrderFields = ['id DESC'];
-    protected static $table = 'sviat__novaposhta_order_delivery';
+    protected static $table = 'sviat__novaposhta__order_delivery';
     protected static $tableAlias = 'nps_o';
 }

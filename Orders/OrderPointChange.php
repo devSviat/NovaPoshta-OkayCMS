@@ -2,6 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Orders;
 
+use Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill;
 use Okay\Core\EntityFactory;
 use Okay\Core\Modules\Module;
 use Okay\Entities\DeliveriesEntity;
@@ -137,7 +138,7 @@ final class OrderPointChange
      */
     public static function locks(?object $waybill, int $now): bool
     {
-        return $waybill !== null && ($waybill->api !== 'pending' || WaybillService::isPending($waybill, $now));
+        return $waybill !== null && (!PendingWaybill::is($waybill) || WaybillService::isPending($waybill, $now));
     }
 
     /**
@@ -155,7 +156,7 @@ final class OrderPointChange
             'needsChoice' => $needsChoice,
             'locked' => $locked,
             'open' => $needsChoice && !$locked,
-            'showWaybill' => $snapshot !== null && (!$needsChoice || ($waybill !== null && $waybill->api !== 'pending')),
+            'showWaybill' => $snapshot !== null && (!$needsChoice || ($waybill !== null && !PendingWaybill::is($waybill))),
         ];
     }
 

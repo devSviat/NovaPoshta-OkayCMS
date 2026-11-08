@@ -3,7 +3,6 @@
 namespace Modules\Sviat\NovaPoshta\Backend;
 
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
-use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
 use PHPUnit\Framework\TestCase;
 
@@ -57,7 +56,7 @@ class ShippingSettingsTest extends TestCase
         $values = self::parse(['default_weight' => '1', 'default_volume' => '0.001', 'cod_kind' => 'control'])['values'];
 
         self::assertSame(0, $values[ShippingSettings::SHOW_TERM]);
-        self::assertArrayNotHasKey(CodPayments::LEGACY_KIND, $values, 'the kind lives on each payment method');
+        self::assertArrayNotHasKey('sviat__novaposhta__cod_kind', $values, 'the kind lives on each payment method');
     }
 
     public function testConfigFromStoredValuesWithDefaults(): void

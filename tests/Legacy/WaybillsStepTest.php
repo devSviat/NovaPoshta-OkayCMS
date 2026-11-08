@@ -86,6 +86,19 @@ class WaybillsStepTest extends TestCase
         self::assertSame('2026-11-01 10:00:00', $this->orders->waybills[201]['status_at']);
     }
 
+    /** One waybill, one order: a number the old module kept on two orders goes to the first only, with a reason. */
+    public function testNumberOfAnotherOrderIsFailed(): void
+    {
+        $this->old->tracking = [self::row(1, 201), self::row(2, 202)];
+        $report = new LegacyReport();
+        $this->migrate($report);
+
+        self::assertArrayHasKey(201, $this->orders->waybills);
+        self::assertArrayNotHasKey(202, $this->orders->waybills);
+        self::assertSame(['done' => 1, 'existed' => 0, 'failed' => 1], $report->counts('waybills'));
+        self::assertSame(['step' => 'waybills', 'order' => 202, 'key' => 'legacy_fail_number_taken', 'name' => '20450000000045'], $report->fails()[0] ?? null);
+    }
+
     public function testBrokenJsonKeepsNumber(): void
     {
         $this->old->tracking = [self::row(1, 202, ['ref_id' => '', 'tracking_response' => '{oops'])];

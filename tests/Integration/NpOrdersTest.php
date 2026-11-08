@@ -17,7 +17,7 @@ class NpOrdersTest extends TestCase
     public function testShipmentSkipsRowsWithoutNumber(): void
     {
         self::assertNull(NpOrders::shipment(self::waybill(['number' => '']), null));
-        self::assertNull(NpOrders::shipment(self::waybill(['api' => 'pending']), null), 'a waybill being created at NP has no number yet');
+        self::assertNull(NpOrders::shipment(self::waybill(['api' => null, 'number' => null]), null), 'a waybill being created at NP has no number yet');
         self::assertInstanceOf(NpShipment::class, NpOrders::shipment(self::waybill(), null));
     }
 

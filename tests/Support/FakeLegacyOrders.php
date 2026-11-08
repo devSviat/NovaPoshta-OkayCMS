@@ -38,6 +38,17 @@ final class FakeLegacyOrders implements LegacyOrders
         return isset($this->waybills[$orderId]);
     }
 
+    public function waybillOwner(string $number): ?int
+    {
+        foreach ($this->waybills as $orderId => $values) {
+            if (($values['number'] ?? null) === $number) {
+                return $orderId;
+            }
+        }
+
+        return null;
+    }
+
     public function importWaybill(int $orderId, array $values): bool
     {
         if (isset($this->waybills[$orderId])) {

@@ -15,7 +15,6 @@ use Okay\Core\Modules\EntityField;
 use Okay\Core\QueryFactory;
 use Okay\Core\Scheduler\Schedule;
 use Okay\Core\ServiceLocator;
-use Okay\Core\Settings;
 use Okay\Entities\LanguagesEntity;
 use Okay\Entities\PaymentsEntity;
 use Okay\Entities\VariantsEntity;
@@ -51,109 +50,13 @@ class Init extends AbstractInit
         $this->createMissingTables(self::tables());
         $this->addDefaultGroups();
         $this->addCoreFields();
-        self::markSchema(self::SCHEMA);
     }
 
     /**
-     * Only an upgrade from 0.1.0 gets here: on a clean install the core runs update_*
-     * for versions above 1.0.0 only, and install() has already created everything.
+     * Fields the module keeps on core tables, under its own names (§9). init() registers them with no
+     * check: install() creates them. A later version adding one must not register it before its update
+     * has run — every SELECT of that core table would fail and the storefront would lose its products.
      */
-    public function update_0_2_0()
-    {
-        $this->createMissingTables(self::dictionaryTables());
-        $this->addDefaultGroups();
-    }
-
-    /** The cart picks pickup points from 0.3.0 on: the module becomes a delivery module. */
-    public function update_0_3_0()
-    {
-        $this->setModuleType(MODULE_TYPE_DELIVERY);
-        $this->createMissingTables(self::orderTables());
-        $this->migrateEntityField(SettlementEntity::class, self::hasPickupField());
-    }
-
-    /** Price and term in the cart: cash-on-delivery flag on payment methods, item volume. */
-    public function update_0_4_0()
-    {
-        $this->createMissingTables(self::quoteTables());
-        $this->addCoreFields();
-        foreach (self::pricingFields() as $field) {
-            $this->migrateEntityField(OrderDeliveryEntity::class, $field);
-        }
-        self::markSchema('0.4.0');
-    }
-
-    /** Address delivery: the address goes into the order snapshot. */
-    public function update_0_5_0()
-    {
-        foreach (self::addressFields() as $field) {
-            $this->migrateEntityField(OrderDeliveryEntity::class, $field);
-        }
-        self::markSchema('0.5.0');
-    }
-
-    /** The COD commission is kept apart from the delivery price (stage 3g). */
-    public function update_0_6_0()
-    {
-        $this->migrateEntityField(OrderDeliveryEntity::class, self::codFeeField());
-        self::markSchema('0.6.0');
-    }
-
-    /** Waybills of orders (stage 4a). */
-    public function update_0_7_0()
-    {
-        $this->createMissingTables(self::waybillTables());
-        self::markSchema('0.7.0');
-    }
-
-    /** Waybill tracking (stage 4b). */
-    public function update_0_8_0()
-    {
-        foreach (self::trackingFields() as $field) {
-            $this->migrateEntityField(WaybillEntity::class, $field);
-        }
-        self::markSchema('0.8.0');
-    }
-
-    /** Cash on delivery kind per payment method: the old flag 1 becomes the kind the shop had chosen. */
-    public function update_0_10_0()
-    {
-        $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
-        CodPayments::forUpdate(ServiceLocator::getInstance()->getService(...))->migrateLegacy();
-    }
-
-    /** Order rows carried over from the old modules are marked (stage 5). */
-    public function update_0_11_0()
-    {
-        $this->migrateEntityField(OrderDeliveryEntity::class, self::legacyField());
-        self::markSchema('0.11.0');
-    }
-
-    /** Fields the module keeps on core tables, under its own names (§9). */
-    /**
-     * Columns on core tables exist only after install/update has run. Registering them earlier
-     * (new files deployed, "Update" not pressed yet) makes every SELECT of payments, variants and
-     * orders fail — the storefront loses products and payment methods — so init() waits for this.
-     */
-    private const string SCHEMA_SETTING = 'sviat__novaposhta__schema';
-    private const string SCHEMA = '0.11.0';
-
-    private static function markSchema(string $version): void
-    {
-        ServiceLocator::getInstance()->getService(Settings::class)->set(self::SCHEMA_SETTING, $version);
-    }
-
-    /** For services that must not act on a schema the "Update" button has not created yet. */
-    public static function schemaAtLeast(string $version): bool
-    {
-        return self::schemaReady($version);
-    }
-
-    private static function schemaReady(string $version): bool
-    {
-        return version_compare((string)ServiceLocator::getInstance()->getService(Settings::class)->get(self::SCHEMA_SETTING), $version, '>=');
-    }
-
     private function addCoreFields(): void
     {
         $this->migrateEntityField(PaymentsEntity::class, new EntityField(CodPayments::FIELD)->setTypeTinyInt(1, false)->setDefault(0));
@@ -162,33 +65,12 @@ class Init extends AbstractInit
 
     public function init()
     {
-        if (self::schemaReady('0.11.0')) {
-            $this->registerEntityField(OrderDeliveryEntity::class, self::legacyField()->getName());
-        }
-        if (self::schemaReady('0.8.0')) {
-            foreach (self::trackingFields() as $field) {
-                $this->registerEntityField(WaybillEntity::class, $field->getName());
-            }
-        }
-        if (self::schemaReady('0.6.0')) {
-            $this->registerEntityField(OrderDeliveryEntity::class, self::codFeeField()->getName());
-        }
-        if (self::schemaReady('0.5.0')) {
-            foreach (self::addressFields() as $field) {
-                $this->registerEntityField(OrderDeliveryEntity::class, $field->getName());
-            }
-        }
-        if (self::schemaReady('0.4.0')) {
-            $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
-            $this->registerEntityField(VariantsEntity::class, VariantVolume::FIELD);
-            foreach (self::pricingFields() as $field) {
-                $this->registerEntityField(OrderDeliveryEntity::class, $field->getName());
-            }
-            $this->addBackendBlock('product_variant', 'variant_volume.tpl');
-            $this->registerChainExtension([BackendPaymentsRequest::class, 'postPayment'], [BackendExtender::class, 'paymentPost']);
-            $this->registerQueueExtension([BackendPaymentsHelper::class, 'getPaymentMethod'], [BackendExtender::class, 'assignPaymentCod']);
-            $this->addBackendBlock('payment_switch_checkboxes', 'payment_cod.tpl');
-        }
+        $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
+        $this->registerEntityField(VariantsEntity::class, VariantVolume::FIELD);
+        $this->addBackendBlock('product_variant', 'variant_volume.tpl');
+        $this->registerChainExtension([BackendPaymentsRequest::class, 'postPayment'], [BackendExtender::class, 'paymentPost']);
+        $this->registerQueueExtension([BackendPaymentsHelper::class, 'getPaymentMethod'], [BackendExtender::class, 'assignPaymentCod']);
+        $this->addBackendBlock('payment_switch_checkboxes', 'payment_cod.tpl');
         $this->registerChainExtension(
             [BackendProductsRequest::class, 'postVariants'],
             [BackendExtender::class, 'cleanVariantVolumes']
@@ -197,13 +79,12 @@ class Init extends AbstractInit
             [BackendOrdersHelper::class, 'findOrder'],
             [BackendExtender::class, 'assignOrderDelivery']
         );
-        if (self::schemaReady('0.8.0')) {
-            $this->registerChainExtension([BackendOrdersHelper::class, 'buildFilter'], [BackendExtender::class, 'listFilter']);
-            $this->registerChainExtension([BackendOrdersHelper::class, 'buildCountStatusesFilter'], [BackendExtender::class, 'countFilter']);
-            $this->registerQueueExtension([BackendOrdersHelper::class, 'findOrders'], [BackendExtender::class, 'listOrders']);
-            $this->registerEntityFilter(OrdersEntity::class, 'np_without_waybill', OrdersEntityFilters::class, 'filter__np_without_waybill');
-            $this->addBackendBlock('orders_list_name', 'orders_status.tpl');
-        }
+        $this->registerQueueExtension([BackendOrdersHelper::class, 'delete'], [BackendExtender::class, 'deleteOrders']);
+        $this->registerChainExtension([BackendOrdersHelper::class, 'buildFilter'], [BackendExtender::class, 'listFilter']);
+        $this->registerChainExtension([BackendOrdersHelper::class, 'buildCountStatusesFilter'], [BackendExtender::class, 'countFilter']);
+        $this->registerQueueExtension([BackendOrdersHelper::class, 'findOrders'], [BackendExtender::class, 'listOrders']);
+        $this->registerEntityFilter(OrdersEntity::class, 'np_without_waybill', OrdersEntityFilters::class, 'filter__np_without_waybill');
+        $this->addBackendBlock('orders_list_name', 'orders_status.tpl');
         // The core prints a block's templates last-registered first: the point goes above the waybill.
         $this->addBackendBlock('order_contact', 'waybill.tpl');
         $this->addBackendBlock('order_contact', 'order_delivery.tpl');
@@ -280,97 +161,44 @@ class Init extends AbstractInit
         ] + self::dictionaryTables() + self::orderTables() + self::quoteTables() + self::waybillTables();
     }
 
-    /** Precomputed by the dictionary run: city search over ~9.7k such settlements instead of 27.5k. */
-    private static function hasPickupField(): EntityField
-    {
-        return new EntityField('has_pickup')->setTypeTinyInt(1, false)->setDefault(0)->setIndex();
-    }
-
-    /** @return list<EntityField> columns of the order snapshot added in 0.5.0 (address delivery) */
-    public static function addressFields(): array
-    {
-        return [
-            new EntityField('street_name')->setTypeVarchar(100),
-            new EntityField('street_ref')->setTypeVarchar(36),
-            new EntityField('house')->setTypeVarchar(10),
-            new EntityField('flat')->setTypeVarchar(10),
-            new EntityField('entrance')->setTypeVarchar(5),
-            new EntityField('floor')->setTypeInt(11),
-            new EntityField('elevator')->setTypeTinyInt(1, false)->setDefault(0),
-            new EntityField('address_note')->setTypeVarchar(40),
-            new EntityField('lifting')->setTypeTinyInt(1, false)->setDefault(0),
-        ];
-    }
-
-    /** Column of the order snapshot added in 0.6.0. */
-    public static function codFeeField(): EntityField
-    {
-        return new EntityField('cod_fee')->setTypeDecimal('10,2');
-    }
-
-    /** @return list<EntityField> columns of the order snapshot added in 0.4.0 */
-    /** Rows carried over from the old modules (stage 5): null, 'migrated' or 'unmatched'. */
-    public static function legacyField(): EntityField
-    {
-        return new EntityField('legacy')->setTypeVarchar(16);
-    }
-
-    public static function pricingFields(): array
-    {
-        return [
-            new EntityField('delivery_price')->setTypeDecimal('10,2'),
-            new EntityField('price_source')->setTypeVarchar(16),
-            new EntityField('delivery_term')->setTypeVarchar(10),
-            new EntityField('cod')->setTypeTinyInt(1, false)->setDefault(0),
-        ];
-    }
-
-    /** @return list<EntityField> columns of the waybill table added in 0.8.0 */
-    public static function trackingFields(): array
-    {
-        return [
-            new EntityField('status_code')->setTypeInt(11)->setNullable()->setIndex(),
-            new EntityField('status_text')->setTypeVarchar(255)->setNullable(),
-            new EntityField('status_at')->setTypeDatetime()->setNullable(),
-            new EntityField('scheduled_at')->setTypeDatetime()->setNullable(),
-            new EntityField('tracking')->setTypeMediumText()->setNullable(),
-            new EntityField('tracked_at')->setTypeDatetime()->setNullable(),
-        ];
-    }
-
-    /** @return array<class-string, list<EntityField>> tables added in 0.7.0 */
+    /** @return array<class-string, list<EntityField>> the waybill of an order and its tracking */
     public static function waybillTables(): array
     {
         return [
             WaybillEntity::class => [
                 new EntityField('id')->setIndexPrimaryKey()->setTypeInt(11, false)->setAutoIncrement(),
                 new EntityField('order_id')->setTypeInt(11, false)->setIndexUnique(),
-                new EntityField('number')->setTypeVarchar(14, false)->setIndex(),
+                new EntityField('number')->setTypeVarchar(14)->setNullable()->setIndexUnique(),
                 new EntityField('ref')->setTypeVarchar(36)->setNullable(),
-                new EntityField('api')->setTypeVarchar(8, false),
+                new EntityField('api')->setTypeVarchar(8)->setNullable(),
                 new EntityField('services')->setTypeText()->setNullable(),
                 new EntityField('audit_status')->setTypeVarchar(16)->setNullable(),
                 new EntityField('audit')->setTypeText()->setNullable(),
-                ...self::trackingFields(),
+                new EntityField('status_code')->setTypeInt(11)->setNullable()->setIndex(),
+                new EntityField('status_text')->setTypeVarchar(255)->setNullable(),
+                new EntityField('status_at')->setTypeDatetime()->setNullable(),
+                new EntityField('scheduled_at')->setTypeDatetime()->setNullable(),
+                new EntityField('tracking')->setTypeMediumText()->setNullable(),
+                new EntityField('tracked_at')->setTypeDatetime()->setNullable(),
                 new EntityField('created_at')->setTypeDatetime(false),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],
         ];
     }
 
-    /** @return array<class-string, list<EntityField>> tables added in 0.4.0 */
+    /** @return array<class-string, list<EntityField>> old-API city Refs of settlements, for pricing */
     public static function quoteTables(): array
     {
         return [
             CityRefEntity::class => [
                 new EntityField('settlement_id')->setIndexPrimaryKey()->setTypeInt(11, false),
                 new EntityField('city_ref')->setTypeVarchar(36),
-                new EntityField('checked_at')->setTypeInt(11, false),
+                new EntityField('checked_at')->setTypeDatetime(false),
             ],
         ];
     }
 
-    /** @return array<class-string, list<EntityField>> tables added in 0.3.0 */
+    /** @return array<class-string, list<EntityField>> what the customer chose for an order, names copied */
     public static function orderTables(): array
     {
         $name = static fn(string $field): EntityField => new EntityField($field)->setTypeVarchar(255);
@@ -390,17 +218,29 @@ class Init extends AbstractInit
                 new EntityField('division_category')->setTypeVarchar(32),
                 $name('division_name'),
                 $name('division_address'),
-                ...self::pricingFields(),
-                ...self::addressFields(),
-                self::codFeeField(),
-                self::legacyField(),
+                new EntityField('street_name')->setTypeVarchar(100),
+                new EntityField('street_ref')->setTypeVarchar(36),
+                new EntityField('house')->setTypeVarchar(10),
+                new EntityField('flat')->setTypeVarchar(10),
+                new EntityField('entrance')->setTypeVarchar(5),
+                new EntityField('floor')->setTypeInt(11),
+                new EntityField('elevator')->setTypeTinyInt(1, false)->setDefault(0),
+                new EntityField('address_note')->setTypeVarchar(40),
+                new EntityField('lifting')->setTypeTinyInt(1, false)->setDefault(0),
+                new EntityField('delivery_price')->setTypeDecimal('10,2'),
+                new EntityField('price_source')->setTypeVarchar(16),
+                new EntityField('delivery_term')->setTypeDatetime(),
+                new EntityField('cod')->setTypeTinyInt(1, false)->setDefault(0),
+                new EntityField('cod_fee')->setTypeDecimal('10,2'),
+                // Carried over from the old modules: null, 'migrated' or 'unmatched'.
+                new EntityField('legacy')->setTypeVarchar(16),
                 new EntityField('created_at')->setTypeDatetime(false),
                 new EntityField('updated_at')->setTypeDatetime(false),
             ],
         ];
     }
 
-    /** @return array<class-string, list<EntityField>> tables added in 0.2.0 */
+    /** @return array<class-string, list<EntityField>> Nova Poshta dictionaries and the cart's point groups */
     public static function dictionaryTables(): array
     {
         $loaded = static fn(): array => [
@@ -422,7 +262,8 @@ class Init extends AbstractInit
                 new EntityField('search_text')->setTypeText(),
                 new EntityField('boost')->setTypeInt(11, false)->setDefault(0)->setIndex(),
                 new EntityField('prohibited_issuance')->setTypeTinyInt(1, false)->setDefault(0),
-                self::hasPickupField(),
+                // Precomputed by the dictionary run: city search over ~9.7k such settlements instead of 27.5k.
+                new EntityField('has_pickup')->setTypeTinyInt(1, false)->setDefault(0)->setIndex(),
                 ...$loaded(),
             ],
             DivisionEntity::class => [

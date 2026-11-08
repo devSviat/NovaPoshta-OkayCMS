@@ -26,17 +26,6 @@ class SchemaTest extends TestCase
             }
 
             $entityFields = (new \ReflectionProperty($entityClass, 'fields'))->getValue();
-            // Registered by Init::init() once the 0.4.0 / 0.5.0 updates have created them (upgrade window).
-            if ($entityClass === \Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class) {
-                $late = array_map(static fn(EntityField $f): string => $f->getName(), [...Init::pricingFields(), ...Init::addressFields(), Init::codFeeField(), Init::legacyField()]);
-                self::assertSame([], array_values(array_intersect($late, $entityFields)), 'registered late, not static');
-                $plain = array_values(array_diff($plain, $late));
-            }
-            if ($entityClass === \Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class) {
-                $late = array_map(static fn(EntityField $f): string => $f->getName(), Init::trackingFields());
-                self::assertSame([], array_values(array_intersect($late, $entityFields)), 'registered late, not static');
-                $plain = array_values(array_diff($plain, $late));
-            }
             self::assertSame($plain, $entityFields, $entityClass);
             $entityLang = (new \ReflectionProperty($entityClass, 'langFields'))->getValue() ?? [];
             self::assertSame($lang, $entityLang, $entityClass);
@@ -67,6 +56,10 @@ class SchemaTest extends TestCase
             array_map(static fn(EntityField $f): string => $f->getName(), $fields),
         );
         self::assertArrayHasKey(EntityField::INDEX_UNIQUE, $fields[1]->getIndexes());
+        // One waybill belongs to one order; while it is being made it has no number (NULL repeats freely).
+        self::assertArrayHasKey(EntityField::INDEX_UNIQUE, $fields[2]->getIndexes(), 'number');
+        self::assertTrue($fields[2]->isNullable(), 'number');
+        self::assertTrue($fields[4]->isNullable(), 'api: how it was made, unknown while it is being made');
     }
 
     public function testDictionaryIdsAreNovaPoshtaIdsNotAutoIncrement(): void
@@ -87,5 +80,30 @@ class SchemaTest extends TestCase
                 self::assertDoesNotMatchRegularExpression('/responsible|phone|person|photo/i', $field->getName());
             }
         }
+    }
+
+    /** 1.0.0 is the first release: install() creates the whole schema, there is nothing to upgrade from. */
+    public function testNoUpgradeSteps(): void
+    {
+        $updates = array_filter(get_class_methods(Init::class), static fn(string $m): bool => str_starts_with($m, 'update_'));
+
+        self::assertSame([], array_values($updates));
+    }
+
+    /** Dates are dates in the database, not strings or Unix seconds (the core's EntityField has no DATE). */
+    public function testDatesAreDatetimeColumns(): void
+    {
+        $type = static function (string $entity, string $name): string {
+            foreach (Init::tables()[$entity] as $field) {
+                if ($field->getName() === $name) {
+                    return strtolower((string)$field->getType());
+                }
+            }
+
+            return '';
+        };
+
+        self::assertSame('datetime', $type(\Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class, 'delivery_term'));
+        self::assertSame('datetime', $type(\Okay\Modules\Sviat\NovaPoshta\Entities\CityRefEntity::class, 'checked_at'));
     }
 }

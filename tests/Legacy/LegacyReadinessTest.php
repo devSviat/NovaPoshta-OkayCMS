@@ -7,11 +7,10 @@ use PHPUnit\Framework\TestCase;
 
 class LegacyReadinessTest extends TestCase
 {
-    public function testUpdateFirstThenDictionaries(): void
+    public function testDictionariesFirst(): void
     {
-        self::assertSame('legacy_needs_update', LegacyReadiness::problemOf(false, 0, 0));
-        self::assertSame('legacy_needs_dictionaries', LegacyReadiness::problemOf(true, 0, 27000));
-        self::assertSame('legacy_needs_dictionaries', LegacyReadiness::problemOf(true, 50000, 0));
-        self::assertNull(LegacyReadiness::problemOf(true, 50000, 27000));
+        self::assertSame('legacy_needs_dictionaries', LegacyReadiness::problemOf(0, 27000));
+        self::assertSame('legacy_needs_dictionaries', LegacyReadiness::problemOf(50000, 0));
+        self::assertNull(LegacyReadiness::problemOf(50000, 27000));
     }
 }

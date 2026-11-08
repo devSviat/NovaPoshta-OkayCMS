@@ -41,7 +41,7 @@ final class WaybillService
     /** A reservation of a request still running; a stale one is not. */
     public static function isPending(?object $row, int $now): bool
     {
-        return $row !== null && $row->api === 'pending' && $now - (int)strtotime((string)($row->created_at ?? '')) < self::PENDING_STALE_SECONDS;
+        return PendingWaybill::is($row) && $now - (int)strtotime((string)($row->created_at ?? '')) < self::PENDING_STALE_SECONDS;
     }
 
     public function create(int $orderId, WaybillDraft $draft): WaybillOutcome
@@ -51,7 +51,7 @@ final class WaybillService
         if (self::isPending($existing, ($this->now)())) {
             return WaybillOutcome::refused('waybill_pending');
         }
-        if ($existing !== null && $existing->api === 'pending') {
+        if (PendingWaybill::is($existing)) {
             // That request died midway: its waybill may exist at NP, the manager is told to check.
             $this->rows->release($orderId);
             $notices[] = 'waybill_stale_attempt';
@@ -147,7 +147,7 @@ final class WaybillService
         if (self::isPending($existing, ($this->now)())) {
             return WaybillOutcome::refused('waybill_pending');
         }
-        if ($existing !== null && $existing->api === 'pending') {
+        if (PendingWaybill::is($existing)) {
             $this->rows->release($orderId);
         } elseif ($existing !== null) {
             return WaybillOutcome::refused('waybill_already', (string)$existing->number);
@@ -169,7 +169,12 @@ final class WaybillService
             return WaybillOutcome::refused('waybill_deleted');
         }
         if (!$this->rows->add($orderId, $number, null, 'attached', [])) {
-            return WaybillOutcome::refused('waybill_pending');
+            // The number is unique: another request may have attached it to another order meanwhile.
+            $owner = $this->rows->orderOfNumber($number);
+
+            return $owner !== null && $owner !== $orderId
+                ? WaybillOutcome::refused('waybill_attached_elsewhere', (string)$owner)
+                : WaybillOutcome::refused('waybill_pending');
         }
 
         return new WaybillOutcome(true, $number);
@@ -178,7 +183,7 @@ final class WaybillService
     public function remove(int $orderId): WaybillOutcome
     {
         $row = $this->rows->forOrder($orderId);
-        if ($row === null || $row->api === 'pending') {
+        if ($row === null || PendingWaybill::is($row)) {
             return WaybillOutcome::refused('waybill_none');
         }
         $ref = (string)($row->ref ?? '');
@@ -206,7 +211,7 @@ final class WaybillService
     public function unlink(int $orderId): WaybillOutcome
     {
         $row = $this->rows->forOrder($orderId);
-        if ($row === null || $row->api === 'pending') {
+        if ($row === null || PendingWaybill::is($row)) {
             return WaybillOutcome::refused('waybill_none');
         }
         $this->rows->remove($orderId);

@@ -2,11 +2,13 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Extenders;
 
+use Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill;
 use Okay\Core\Design;
 use Okay\Core\EntityFactory;
 use Okay\Entities\DeliveriesEntity;
 use Okay\Core\Modules\Extender\ExtensionInterface;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPaymentInput;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
@@ -66,6 +68,12 @@ class BackendExtender implements ExtensionInterface
             'kind' => is_object($payment) ? $this->codPayments->kindOfPayment($payment)?->value : null,
             'manual' => CodPayments::isManual(is_object($payment) ? ($payment->module ?? null) : null),
         ]);
+    }
+
+    /** Queue extender of BackendOrdersHelper::delete (runs before the core deletes the orders). */
+    public function deleteOrders($result, $ids): void
+    {
+        new OrderRowsCleanup($this->entityFactory)->forOrders((array)$ids);
     }
 
     /** QueueExtension of BackendOrdersHelper::findOrder: the order page shows where the parcel goes. */
@@ -195,7 +203,7 @@ class BackendExtender implements ExtensionInterface
         $rows = $this->waybillRows->forOrders(array_map(static fn($o): int => (int)$o->id, array_values($orders)));
         foreach ($orders as $order) {
             $row = $rows[(int)$order->id] ?? null;
-            if ($row === null || $row->api === 'pending') {
+            if ($row === null || PendingWaybill::is($row)) {
                 continue;
             }
             $code = isset($row->status_code) ? (int)$row->status_code : null;

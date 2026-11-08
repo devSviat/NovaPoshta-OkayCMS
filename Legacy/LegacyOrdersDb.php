@@ -38,6 +38,11 @@ final class LegacyOrdersDb implements LegacyOrders
         return $this->deliveries->importLegacy($orderId, $deliveryId, $values);
     }
 
+    public function waybillOwner(string $number): ?int
+    {
+        return $this->waybills->orderOfNumber($number);
+    }
+
     public function hasWaybill(int $orderId): bool
     {
         return $this->waybills->forOrder($orderId) !== null;
