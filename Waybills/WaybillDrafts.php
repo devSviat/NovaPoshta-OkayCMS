@@ -8,6 +8,7 @@ use Okay\Entities\OrdersEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
+use Okay\Modules\Sviat\NovaPoshta\Groups\DivisionCategory;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderParcel;
@@ -160,6 +161,7 @@ final class WaybillDrafts
             $invoice !== null ? mb_substr($invoice['company'], 0, 100) : null,
             $invoice !== null,
             round($deliveryInTotal * $uahRate, 2),
+            !$address && ($division->category ?? null) === DivisionCategory::Postomat->value,
         );
     }
 }

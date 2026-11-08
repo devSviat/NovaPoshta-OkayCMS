@@ -85,6 +85,8 @@
 .np-wb__tip { margin-left: 4px; vertical-align: middle; }
 .np-wb__radios { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 4px 10px; margin-bottom: 6px; }
 .np-wb__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; align-items: end; }
+.np-wb__triple { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 8px; align-items: end; }
+.np-wb__locker { background: #f3f7fc; border-radius: 6px; padding: 8px 10px; margin-bottom: 10px; }
 .np-wb__who { margin: 6px 0 10px; padding: 8px 10px; border-radius: 4px; background: #f5f7f9; line-height: 1.45; }
 .np-wb__who-label { color: #6b7279; }
 .np-wb__who .np-wb__error:empty { display: none; }

@@ -156,6 +156,28 @@ class WaybillDraftTest extends TestCase
         self::assertSame('waybill_no_address', self::build(snapshot: (object)['mode' => 'address', 'settlement_name' => 'місто Київ', 'street_name' => '', 'house' => ''], division: null));
     }
 
+    public function testLockerSeatStartsAsACubeOfTheVolume(): void
+    {
+        $locker = self::build(division: (object)(['category' => 'Postomat'] + (array)self::division()));
+
+        self::assertTrue($locker->locker);
+        self::assertSame([10, 10, 10], $locker->seat(), '0.001 m³, as the old module started it');
+        self::assertSame([30, 20, 10], $locker->with(['seatCm' => [30, 20, 10]])->seat());
+        self::assertFalse(self::build()->locker);
+    }
+
+    /** Parcel-locker cell limits the old module checked: 60 × 40 × 30 cm and 20 kg. */
+    public function testLockerSeatInput(): void
+    {
+        $locker = self::build(division: (object)(['category' => 'Postomat'] + (array)self::division()));
+
+        self::assertSame([55, 35, 25], $locker->withInput(['seat_length' => '55', 'seat_width' => '35', 'seat_height' => '25'])->seatCm);
+        $errors = $locker->withInput(['seat_length' => '61', 'seat_width' => '0', 'weight' => '21']);
+        self::assertIsArray($errors);
+        self::assertSame([['field' => 'weight', 'key' => 'waybill_error_locker_weight'], ['field' => 'seat_length', 'key' => 'waybill_error_locker_seat'], ['field' => 'seat_width', 'key' => 'waybill_error_locker_seat']], $errors);
+        self::assertInstanceOf(WaybillDraft::class, self::build()->withInput(['seat_length' => '99', 'weight' => '21']), 'a branch has no seat fields');
+    }
+
     public function testInputValidation(): void
     {
         $errors = self::build()->withInput(['weight' => '0', 'phone' => '12', 'cod' => '1', 'cod_amount' => '-1', 'recipient_name' => ' ']);

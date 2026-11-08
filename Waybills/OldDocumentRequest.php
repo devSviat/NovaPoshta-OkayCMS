@@ -18,7 +18,7 @@ final class OldDocumentRequest
             'NewAddress' => '1',
             'ServiceType' => 'WarehouseWarehouse',
             'RecipientWarehouseIndex' => (string)$draft->divisionNumber,
-        ] + self::recipientByName($draft) + self::money($draft);
+        ] + self::lockerSeat($draft) + self::recipientByName($draft) + self::money($draft);
     }
 
     /** An address by refs: the NP account shows every address field (design §2). */
@@ -107,6 +107,23 @@ final class OldDocumentRequest
             'EDRPOU' => (string)$draft->edrpou,
             'RecipientContactName' => $draft->recipientName,
         ] + ($ownershipForm !== null ? ['OwnershipForm' => $ownershipForm] : []);
+    }
+
+    /** A parcel locker is refused without the seat («OptionsSeat is empty»); a branch takes the general weight and volume. */
+    private static function lockerSeat(WaybillDraft $draft): array
+    {
+        if (!$draft->locker) {
+            return [];
+        }
+        [$length, $width, $height] = $draft->seat();
+
+        return ['OptionsSeat' => [[
+            'volumetricVolume' => self::number($draft->volumeM3),
+            'volumetricLength' => (string)$length,
+            'volumetricWidth' => (string)$width,
+            'volumetricHeight' => (string)$height,
+            'weight' => self::number($draft->weightKg),
+        ]]];
     }
 
     private static function lifting(WaybillDraft $draft): array

@@ -181,6 +181,18 @@
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_weight|escape}</span><input class="form-control" inputmode="decimal" data-field="weight" value="{$d->weightKg|escape}"><span class="np-wb__error" data-for="weight"></span></label>
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_volume|escape}</span><input class="form-control" inputmode="decimal" data-field="volume" value="{$d->volumeM3|escape}"><span class="np-wb__error" data-for="volume"></span></label>
             </div>
+            {if $d->locker}
+                {$seat = $d->seat()}
+                <div class="np-wb__locker">
+                    <span class="heading_label">{$btr->sviat__novaposhta__waybill_locker_seat|escape}</span>
+                    <div class="np-wb__triple">
+                        <label class="np-wb__field"><span class="text_grey">{$btr->sviat__novaposhta__waybill_seat_length|escape}</span><input class="form-control" inputmode="numeric" data-field="seat_length" value="{$seat[0]|escape}"><span class="np-wb__error" data-for="seat_length"></span></label>
+                        <label class="np-wb__field"><span class="text_grey">{$btr->sviat__novaposhta__waybill_seat_width|escape}</span><input class="form-control" inputmode="numeric" data-field="seat_width" value="{$seat[1]|escape}"><span class="np-wb__error" data-for="seat_width"></span></label>
+                        <label class="np-wb__field"><span class="text_grey">{$btr->sviat__novaposhta__waybill_seat_height|escape}</span><input class="form-control" inputmode="numeric" data-field="seat_height" value="{$seat[2]|escape}"><span class="np-wb__error" data-for="seat_height"></span></label>
+                    </div>
+                    <span class="text_grey">{$btr->sviat__novaposhta__waybill_locker_hint|escape}</span>
+                </div>
+            {/if}
             {* The block name NovaPoshtaTracking had: Checkbox warns here that part of the order is prepaid. *}
             {get_design_block block="novaposhta_document_payment"}
             <div class="np-wb__pair">

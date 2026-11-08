@@ -15,6 +15,9 @@ final readonly class WaybillDraft
     private const int NOTE_MAX = 50;
     private const int FLOOR_MAX = 200;
     private const int COMPANY_MAX = 100;
+    /** Parcel-locker cell limits, as the old NovaPoshtaTracking checked them: length, width, height in cm; weight in kg. */
+    private const array LOCKER_MAX_CM = ['seat_length' => 60, 'seat_width' => 40, 'seat_height' => 30];
+    private const float LOCKER_MAX_KG = 20.0;
 
     /**
      * @param 'Recipient'|'Sender' $payerType
@@ -67,7 +70,24 @@ final readonly class WaybillDraft
         public bool $fromInvoice = false,
         /** Hryvnias of delivery the order total (and so the COD amount) already holds; 0 when paid apart. */
         public float $deliveryInTotal = 0.0,
+        /** The point is a parcel locker: the old API needs the seat's size for it. */
+        public bool $locker = false,
+        /** @var ?array{int, int, int} length, width, height in cm the manager set */
+        public ?array $seatCm = null,
     ) {
+    }
+
+    /**
+     * The seat for a parcel locker in cm: what the manager set, else a cube of the volume
+     * (0.001 m³ gives 10 × 10 × 10, what the old module started with).
+     *
+     * @return array{int, int, int}
+     */
+    public function seat(): array
+    {
+        $side = max(1, (int)round(($this->volumeM3 ** (1 / 3)) * 100));
+
+        return $this->seatCm ?? [$side, $side, $side];
     }
 
     /** @param array<string, mixed> $values property name => new value */
@@ -160,6 +180,20 @@ final readonly class WaybillDraft
         if ($lifting && ($floor === null || $floor < 1 || $floor > self::FLOOR_MAX || $floor != (int)$floor)) {
             $errors[] = ['field' => 'floor', 'key' => 'waybill_error_floor'];
         }
+        $seat = null;
+        if ($this->locker) {
+            if ($weight !== null && $weight > self::LOCKER_MAX_KG) {
+                $errors[] = ['field' => 'weight', 'key' => 'waybill_error_locker_weight'];
+            }
+            $seat = [];
+            foreach (array_combine(array_keys(self::LOCKER_MAX_CM), $this->seat()) as $field => $current) {
+                $side = $number($field, (float)$current);
+                if ($side === null || $side < 1 || $side > self::LOCKER_MAX_CM[$field]) {
+                    $errors[] = ['field' => $field, 'key' => 'waybill_error_locker_seat'];
+                }
+                $seat[] = (int)round((float)$side);
+            }
+        }
         $note = $this->mode === DeliveryMode::Address ? mb_substr($text('address_note', (string)$this->addressNote), 0, self::NOTE_MAX) : null;
 
         $recipientType = $choice('recipient_type', $this->recipientType, ['PrivatePerson', 'Organization']);
@@ -188,6 +222,7 @@ final readonly class WaybillDraft
             'floor' => $lifting ? (int)$floor : $this->floor,
             'elevator' => $this->mode === DeliveryMode::Address && (array_key_exists('elevator', $form) ? !empty($form['elevator']) : $this->elevator),
             'addressNote' => $note === '' ? null : $note,
+            'seatCm' => $seat ?? $this->seatCm,
         ];
 
         if ($errors === []) {

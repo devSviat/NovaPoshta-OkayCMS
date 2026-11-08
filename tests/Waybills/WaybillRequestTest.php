@@ -63,6 +63,15 @@ class WaybillRequestTest extends TestCase
         ], OldDocumentRequest::forDivision(W::point(['cod' => true]), W::sender()));
     }
 
+    /** NP refuses a parcel-locker waybill of the old API without the seat («OptionsSeat is empty», live 08.11.2026). */
+    public function testOldLockerSendsTheSeat(): void
+    {
+        $request = OldDocumentRequest::forDivision(W::point(['cod' => true, 'locker' => true, 'seatCm' => [30, 20, 10], 'weightKg' => 2.5, 'volumeM3' => 0.006]), W::sender());
+
+        self::assertSame([['volumetricVolume' => '0.006', 'volumetricLength' => '30', 'volumetricWidth' => '20', 'volumetricHeight' => '10', 'weight' => '2.5']], $request['OptionsSeat']);
+        self::assertArrayNotHasKey('OptionsSeat', OldDocumentRequest::forDivision(W::point(['cod' => true]), W::sender()), 'a branch takes the general weight and volume');
+    }
+
     public function testOldControl(): void
     {
         $request = OldDocumentRequest::forDivision(W::point(['cod' => true, 'codKind' => CodKind::Control]), W::sender());
