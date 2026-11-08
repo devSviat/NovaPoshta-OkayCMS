@@ -125,7 +125,7 @@ final class WaybillStore implements WaybillRows
             'scheduled_at' => $values['scheduled_at'],
             'tracking' => $values['tracking'] !== null ? json_encode($values['tracking'], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) : null,
             'tracked_at' => $values['tracked_at'],
-        ]);
+        ] + (($values['created_at'] ?? null) !== null ? ['created_at' => $values['created_at']] : []));
 
         return true;
     }

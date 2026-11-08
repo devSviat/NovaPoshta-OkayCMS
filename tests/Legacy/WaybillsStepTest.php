@@ -99,6 +99,26 @@ class WaybillsStepTest extends TestCase
         self::assertSame(['step' => 'waybills', 'order' => 202, 'key' => 'legacy_fail_number_taken', 'name' => '20450000000045', 'record' => null], $report->fails()[0] ?? null);
     }
 
+    /** Tracking counts its 60 days and the 30-day «not found» from it: the move is not the waybill's birthday. */
+    public function testCreatedDateIsTheOldOne(): void
+    {
+        $this->old->tracking = [self::row(1, 201, ['created_at' => '2025-03-01 10:00:00']), self::row(2, 202, ['int_doc_number' => '20450000000046', 'created_at' => null])];
+        $this->migrate(new LegacyReport());
+
+        self::assertSame('2025-03-01 10:00:00', $this->orders->waybills[201]['created_at']);
+        self::assertNull($this->orders->waybills[202]['created_at'], 'unknown: the store puts the time of the move');
+    }
+
+    /** The old tracker kept the code in its own column; the response may be gone. */
+    public function testStatusFromTheOldRowWithoutDocument(): void
+    {
+        $this->old->tracking = [self::row(1, 201, ['status_code' => '9', 'tracking_response' => null])];
+        $this->migrate(new LegacyReport());
+
+        self::assertSame(9, $this->orders->waybills[201]['status_code']);
+        self::assertSame('2026-11-01 10:00:00', $this->orders->waybills[201]['status_at']);
+    }
+
     public function testBrokenJsonKeepsNumber(): void
     {
         $this->old->tracking = [self::row(1, 202, ['ref_id' => '', 'tracking_response' => '{oops'])];

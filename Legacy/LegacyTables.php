@@ -94,7 +94,7 @@ final class LegacyTables implements LegacyData
         }
 
         return $this->select($this->queryFactory->newSelect()
-            ->cols(['t.id', 't.order_id', 't.int_doc_number', 't.ref_id', 't.status_code', 't.tracking_update_at', 't.tracking_response'])
+            ->cols(['t.id', 't.order_id', 't.int_doc_number', 't.ref_id', 't.status_code', 't.tracking_update_at', 't.tracking_response', 't.created_at'])
             ->from(self::TRACKING_TABLE . ' AS t')
             ->where('t.id > :after')
             ->bindValue('after', $afterId)
