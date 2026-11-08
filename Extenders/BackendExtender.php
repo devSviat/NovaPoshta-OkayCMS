@@ -8,6 +8,7 @@ use Okay\Core\EntityFactory;
 use Okay\Entities\DeliveriesEntity;
 use Okay\Core\Modules\Extender\ExtensionInterface;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPaymentInput;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
@@ -70,6 +71,12 @@ class BackendExtender implements ExtensionInterface
     }
 
     /** QueueExtension of BackendOrdersHelper::findOrder: the order page shows where the parcel goes. */
+    /** Queue extender of BackendOrdersHelper::delete (runs before the core deletes the orders). */
+    public function deleteOrders($result, $ids): void
+    {
+        new OrderRowsCleanup($this->entityFactory)->forOrders((array)$ids);
+    }
+
     public function assignOrderDelivery($order, $orderId = null)
     {
         $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
