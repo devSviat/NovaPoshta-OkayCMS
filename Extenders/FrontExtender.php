@@ -255,11 +255,7 @@ class FrontExtender implements ExtensionInterface
         $metrics = CartMetrics::fromCart($cart);
         foreach ($deliveries as $delivery) {
             $deliveryId = (int)$delivery->id;
-            // The form posted back, else what this visitor last priced (survives a reload), else the previous order.
-            $choice = is_array($posted[$deliveryId] ?? null) ? $posted[$deliveryId] : $this->sessionChoice($deliveryId);
-            if ($choice === [] && $last) {
-                $choice = ['settlement_id' => $last->settlement_id, 'division_id' => $last->division_id] + self::lastAddress($last);
-            }
+            $choice = self::prefillChoice(is_array($posted[$deliveryId] ?? null) ? $posted[$deliveryId] : null, $this->sessionChoice($deliveryId), $last ?: null);
             $described = $this->describe($delivery, $metrics, (int)($choice['settlement_id'] ?? 0), (int)($choice['division_id'] ?? 0), $lang);
             $prefill[(int)$deliveryId] = $described + [
                 'address' => self::addressPrefill($choice),
@@ -269,6 +265,24 @@ class FrontExtender implements ExtensionInterface
         }
 
         return $prefill;
+    }
+
+    /**
+     * The posted form, else the choice priced in this session, else the last order. The session keeps
+     * only the city for an address, so in the last order's city its street and house come back too.
+     */
+    public static function prefillChoice(?array $posted, array $session, ?object $last): array
+    {
+        if ($posted !== null) {
+            return $posted;
+        }
+        if ($session !== []) {
+            $sameCity = $last !== null && !isset($session['division_id']) && (int)($session['settlement_id'] ?? 0) === (int)($last->settlement_id ?? 0);
+
+            return $sameCity ? $session + self::lastAddress($last) : $session;
+        }
+
+        return $last ? ['settlement_id' => $last->settlement_id, 'division_id' => $last->division_id] + self::lastAddress($last) : [];
     }
 
     /** @return array{settlement_id?: int, division_id?: int} */
