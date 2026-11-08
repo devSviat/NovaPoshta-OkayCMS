@@ -98,12 +98,13 @@ class NpOrdersTest extends TestCase
     /** Messaging polls unfinished parcels on every cron run: the tracking JSON and audit are not read. */
     public function testShipmentsReadOnlyTheColumnsTheyUse(): void
     {
-        $asked = [];
-        $entity = function (string $class) use (&$asked) {
+        /** @var \ArrayObject<string, array<mixed>> $asked */
+        $asked = new \ArrayObject();
+        $entity = function (string $class) use ($asked) {
             $entity = $this->createStub($class);
             // mappedBy() is final in the core entity: it runs for real and returns the stub.
             $entity->method('noLimit')->willReturnSelf();
-            $entity->method('cols')->willReturnCallback(function (array $cols) use ($entity, $class, &$asked) {
+            $entity->method('cols')->willReturnCallback(function (array $cols) use ($entity, $class, $asked) {
                 $asked[$class] = $cols;
 
                 return $entity;
@@ -119,7 +120,7 @@ class NpOrdersTest extends TestCase
         $orders = new NpOrders($factory);
 
         foreach (['unfinished' => [], 'shipments' => [[990101]]] as $method => $args) {
-            $asked = [];
+            $asked->exchangeArray([]);
             self::assertArrayHasKey(990101, $orders->$method(...$args), $method);
             self::assertSame(['order_id', 'number', 'status_code', 'status_at', 'services'], $asked[\Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class] ?? null, $method);
             self::assertSame(['order_id', 'cod'], $asked[\Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class] ?? null, $method);
