@@ -31,6 +31,7 @@ use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
 use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteSession;
+use Okay\Modules\Sviat\NovaPoshta\Quote\FreeDelivery;
 use Okay\Modules\Sviat\NovaPoshta\Quote\PriceDecision;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
 
@@ -118,7 +119,7 @@ class FrontExtender implements ExtensionInterface
         } else {
             return $info;
         }
-        $freeByCore = !((float)($delivery->free_from ?? 0) > (float)($order->total_price ?? 0));
+        $freeByCore = FreeDelivery::applies($delivery, (float)($order->total_price ?? 0));
         $decision = PriceDecision::forOrder($quote, $info, $freeByCore, $freeByCore ? 0.0 : (float)$delivery->price);
         $this->pricing = $quote === null ? null : [
             'delivery_price' => $decision['info']['delivery_price'] ?? null,

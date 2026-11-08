@@ -19,6 +19,7 @@ use Okay\Entities\LanguagesEntity;
 use Okay\Entities\PaymentsEntity;
 use Okay\Entities\VariantsEntity;
 use Okay\Admin\Helpers\BackendOrdersHelper;
+use Okay\Admin\Helpers\BackendDeliveriesHelper;
 use Okay\Entities\OrdersEntity;
 use Okay\Admin\Requests\BackendProductsRequest;
 use Okay\Admin\Requests\BackendPaymentsRequest;
@@ -80,6 +81,8 @@ class Init extends AbstractInit
             [BackendExtender::class, 'assignOrderDelivery']
         );
         $this->registerQueueExtension([BackendOrdersHelper::class, 'delete'], [BackendExtender::class, 'deleteOrders']);
+        $this->registerQueueExtension([BackendDeliveriesHelper::class, 'getDelivery'], [BackendExtender::class, 'deliveryWarning']);
+        $this->addBackendBlock('delivery_price_block', 'delivery_free_warning.tpl');
         $this->registerChainExtension([BackendOrdersHelper::class, 'buildFilter'], [BackendExtender::class, 'listFilter']);
         $this->registerChainExtension([BackendOrdersHelper::class, 'buildCountStatusesFilter'], [BackendExtender::class, 'countFilter']);
         $this->registerQueueExtension([BackendOrdersHelper::class, 'findOrders'], [BackendExtender::class, 'listOrders']);

@@ -112,7 +112,7 @@ final class CartQuotes
             return $cached;
         }
 
-        $wantPrice = $forAdmin || (empty($delivery->hide_front_delivery_price) && (float)($delivery->free_from ?? 0) > (float)($cart->total_price ?? 0));
+        $wantPrice = $forAdmin || (empty($delivery->hide_front_delivery_price) && !FreeDelivery::applies($delivery, (float)($cart->total_price ?? 0)));
         $wantTerm = $config->showTerm;
         if (!$wantPrice && !$wantTerm) {
             $this->store($bag);

@@ -14,13 +14,20 @@ class OrderPriceRuleTest extends TestCase
 
     private static function delivery(array $override = []): object
     {
-        return (object)($override + ['free_from' => 0]);
+        return (object)($override + ['free_from' => 999999]);
     }
 
     public function testUnpricedKeeps(): void
     {
         self::assertSame(['action' => 'keep', 'price' => null], OrderPriceRule::decide(self::order(), self::delivery(), null, true));
         self::assertSame('keep', OrderPriceRule::decide(self::order(), self::delivery(), null, false)['action']);
+    }
+
+    /** The core's rule: 0 is free for every order, and the threshold itself is free. */
+    public function testFreeLikeTheCore(): void
+    {
+        self::assertSame('free', OrderPriceRule::decide(self::order(), self::delivery(['free_from' => 0]), 105.0, false)['action']);
+        self::assertSame('free', OrderPriceRule::decide(self::order(), self::delivery(['free_from' => 2359]), 105.0, false)['action'], 'goods 2359 = free_from');
     }
 
     public function testFreeByThreshold(): void

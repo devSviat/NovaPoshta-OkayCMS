@@ -2,6 +2,9 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Backend\Controllers;
 
+use Okay\Modules\Sviat\NovaPoshta\Backend\DeliveryWarnings;
+use Okay\Entities\DeliveriesEntity;
+use Okay\Core\Modules\Module;
 use Okay\Admin\Controllers\IndexAdmin;
 use Okay\Core\Languages;
 use Okay\Modules\Sviat\NovaPoshta\Api\ApiKey;
@@ -48,6 +51,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         WaybillSettings $waybillSettings,
         SenderContacts $senderContacts,
         LegacyMigration $legacyMigration,
+        Module $module,
         LegacyData $legacyData,
     ) {
         $submission = null;
@@ -126,6 +130,10 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         $sender = $config->senderDivisionId ? $entityFactory->get(DivisionEntity::class)->get($config->senderDivisionId) : null;
         $senderCity = $sender ? $entityFactory->get(SettlementEntity::class)->get((int)$sender->settlement_id) : null;
         $this->design->assign('np_cod_payments', $codPayments->all());
+        $this->design->assign('np_free_for_all', DeliveryWarnings::freeForAll(
+            $entityFactory->get(DeliveriesEntity::class)->noLimit()->find(),
+            (int)$module->getModuleIdByNamespace(__CLASS__),
+        ));
         $this->design->assign('np_shipping', [
             'config' => $config,
             'city' => $senderCity ? ['id' => (int)$senderCity->id, 'name' => (string)($lang === 'en' && $senderCity->name_en ? $senderCity->name_en : $senderCity->name_uk)] : null,

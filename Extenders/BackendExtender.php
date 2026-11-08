@@ -2,6 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Extenders;
 
+use Okay\Modules\Sviat\NovaPoshta\Backend\DeliveryWarnings;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill;
 use Okay\Core\Design;
 use Okay\Core\EntityFactory;
@@ -68,6 +69,13 @@ class BackendExtender implements ExtensionInterface
             'kind' => is_object($payment) ? $this->codPayments->kindOfPayment($payment)?->value : null,
             'manual' => CodPayments::isManual(is_object($payment) ? ($payment->module ?? null) : null),
         ]);
+    }
+
+    /** Queue extender of BackendDeliveriesHelper::getDelivery: the method page warns when the core makes it free for every cart. */
+    public function deliveryWarning($delivery, $id = null): void
+    {
+        $ours = is_object($delivery) && DeliveryWarnings::freeForAll([$delivery], (int)$this->module->getModuleIdByNamespace(__CLASS__)) !== [];
+        $this->design->assign('np_delivery_free_for_all', $ours);
     }
 
     /** Queue extender of BackendOrdersHelper::delete (runs before the core deletes the orders). */

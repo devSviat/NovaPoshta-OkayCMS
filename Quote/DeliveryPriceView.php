@@ -11,8 +11,7 @@ final class DeliveryPriceView
     /** @param callable(float): string $convert Money::convert into the visitor's currency */
     public static function apply(object $delivery, float $price, float $cartTotal, callable $convert, string $sign, string $separateText, string $freeText): void
     {
-        // The order gets 0 once the cart reaches free_from (DeliveriesHelper::prepareDeliveryPriceInfo).
-        $free = !((float)($delivery->free_from ?? 0) > $cartTotal);
+        $free = FreeDelivery::applies($delivery, $cartTotal);
         $delivery->is_free_delivery = $free;
         $delivery->price = $free ? 0.0 : $price;
         if ($free) {

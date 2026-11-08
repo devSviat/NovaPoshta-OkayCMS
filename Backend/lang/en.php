@@ -507,3 +507,6 @@ $lang['sviat__novaposhta__legacy_fail_sender'] = 'the sender\'s point was not fo
 $lang['sviat__novaposhta__legacy_order_unmatched'] = 'Carried over from the old module without a dictionary match: choose the settlement and the point again («Change»).';
 $lang['sviat__novaposhta__legacy_needs_dictionaries'] = 'First load NP\'s dictionaries (the «Dictionaries» block below): orders cannot be matched without them.';
 $lang['sviat__novaposhta__legacy_stalled'] = 'The run has not moved for a long time (NP does not answer or the key does not work). Check the key and run again — what is carried over is skipped.';
+$lang['sviat__novaposhta__free_for_all_title'] = 'Delivery is free for every cart';
+$lang['sviat__novaposhta__free_for_all_settings'] = 'These delivery methods have "Free from 0". OkayCMS reads zero as "always free", so customers never see the Nova Poshta price. Enter the amount from which delivery is free, or choose "Free" if that is what you want.';
+$lang['sviat__novaposhta__free_for_all_delivery'] = 'Nova Poshta calculates the price, but with "Free from 0" OkayCMS makes delivery free for every cart. Enter a threshold or choose "Free". The module uses the "Price" field only when Nova Poshta did not answer.';

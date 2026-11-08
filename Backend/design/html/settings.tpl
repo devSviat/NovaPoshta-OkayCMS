@@ -8,6 +8,20 @@
 
 {include file='legacy_migration.tpl'}
 
+{if $np_free_for_all}
+    <div class="alert alert--icon alert--error">
+        <div class="alert__content">
+            <div class="alert__title">{$btr->sviat__novaposhta__free_for_all_title|escape}</div>
+            <p>{$btr->sviat__novaposhta__free_for_all_settings|escape}</p>
+            <ul class="mb-0">
+                {foreach $np_free_for_all as $d}
+                    <li><a href="{url controller=DeliveryAdmin id=$d->id return=$smarty.server.REQUEST_URI}">{$d->name|escape}</a></li>
+                {/foreach}
+            </ul>
+        </div>
+    </div>
+{/if}
+
 <form method="post" id="np_key_form">
     <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
 
