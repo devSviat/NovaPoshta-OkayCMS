@@ -63,11 +63,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
                     $dictionaryRunner->requestRun();
                     break;
                 case 'legacy_migrate':
-                    if ($this->request->post('legacy_backup') === '1') {
-                        $legacyMigration->request();
-                    } else {
-                        $this->design->assign('np_legacy_backup_missing', true);
-                    }
+                    $legacyMigration->request();
                     break;
                 case 'popular':
                     $ids = $this->request->post('popular');

@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
-/** What the "move from the old modules" block shows (settings page, mockup Migration.dc.html). */
+/** What the "move from the old modules" block shows (settings page; mockup «НП: простий перехід», 08.11.2026). */
 final class LegacyMigrationView
 {
     /**
@@ -17,15 +17,12 @@ final class LegacyMigrationView
     public static function vars(array $state, array $counts, array $enabled, array $deliveries, array $steps, ?string $problem = null, bool $stalled = false): ?array
     {
         $status = $state['status'];
-        if ($status === null && $enabled === []) {
+        // A one-time move: once done and the old modules are gone, the card goes too.
+        if ($enabled === [] && ($status === null || $status === 'done')) {
             return null;
         }
         $report = LegacyReport::fromArray($state['report']);
-        $rows = [];
-        foreach ($steps as $step) {
-            $rows[$step] = $report->counts($step);
-        }
-
+        $moved = static fn(string $step): int => $report->counts($step)['done'] + $report->counts($step)['existed'];
         $running = in_array($status, ['queued', 'running'], true);
 
         return [
@@ -37,20 +34,15 @@ final class LegacyMigrationView
                 'done' => 'done',
                 default => 'before',
             },
-            'enabled' => $enabled,
             'preview' => $counts,
             'currentStep' => $steps[$state['step']] ?? null,
             'stepNumber' => min($state['step'] + 1, count($steps)),
             'stepCount' => count($steps),
-            'rows' => $rows,
-            'fails' => $report->fails(),
-            'moreFails' => $report->moreFails(),
+            'orders' => $moved('orders'),
+            'waybills' => $moved('waybills'),
+            'failed' => array_sum(array_map(static fn(string $step): int => $report->counts($step)['failed'], $steps)),
             'finishedAt' => ($at = strtotime((string)($state['finished_at'] ?? ''))) ? date('d.m.Y H:i', $at) : null,
-            'switch' => $status === 'done' ? array_map(static fn(object $d): array => [
-                'id' => (int)$d->id,
-                'name' => (string)$d->name,
-                'mode' => LegacyTables::modeOf($d->service_type)?->value,
-            ], $deliveries) : [],
+            'switch' => $status === 'done' ? array_map(static fn(object $d): array => ['id' => (int)$d->id, 'name' => (string)$d->name], $deliveries) : [],
         ];
     }
 }

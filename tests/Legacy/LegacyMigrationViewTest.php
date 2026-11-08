@@ -21,14 +21,20 @@ class LegacyMigrationViewTest extends TestCase
         self::assertNull(LegacyMigrationView::vars(self::state(null), self::COUNTS, [], [], self::STEPS));
     }
 
+    public function testHiddenOnceDoneAndTheOldModulesAreGone(): void
+    {
+        self::assertNull(LegacyMigrationView::vars(self::state('done', 6), self::COUNTS, [], [], self::STEPS), 'a one-time move leaves no card behind');
+        self::assertNotNull(LegacyMigrationView::vars(self::state('done', 6), self::COUNTS, ['OkayCMS/NovaposhtaCost'], [], self::STEPS));
+    }
+
     public function testBeforeRunShowsPreview(): void
     {
         $vars = LegacyMigrationView::vars(self::state(null), self::COUNTS, ['OkayCMS/NovaposhtaCost'], [], self::STEPS);
 
         self::assertSame('before', $vars['phase']);
-        self::assertSame(['OkayCMS/NovaposhtaCost'], $vars['enabled']);
         self::assertSame(3, $vars['preview']['orders']);
-        self::assertSame([], $vars['switch'], 'step 3 hint only after a run');
+        self::assertSame(2, $vars['preview']['waybills']);
+        self::assertSame([], $vars['switch'], 'what to switch only after a run');
     }
 
     public function testRunningShowsStep(): void
@@ -37,20 +43,27 @@ class LegacyMigrationViewTest extends TestCase
 
         self::assertSame('running', $vars['phase']);
         self::assertSame('waybills', $vars['currentStep']);
+        self::assertSame(2, $vars['stepNumber']);
     }
 
-    public function testDoneShowsReportAndSwitchHints(): void
+    public function testDoneShowsTotalsAndDeliveriesToSwitch(): void
     {
         $report = new LegacyReport();
         $report->add('orders', 'done');
+        $report->add('orders', 'done');
+        $report->add('orders', 'existed');
+        $report->add('waybills', 'done');
         $report->fail('orders', 101, 'legacy_fail_no_point', 'Відділення №5');
-        $deliveries = [(object)['id' => 3, 'name' => 'Нова Пошта', 'service_type' => 'WarehouseWarehouse'], (object)['id' => 1, 'name' => 'Кур\'єр', 'service_type' => 'WarehouseDoors'], (object)['id' => 7, 'name' => 'Дивний', 'service_type' => null]];
-        $vars = LegacyMigrationView::vars(self::state('done', 6, $report), self::COUNTS, [], $deliveries, self::STEPS);
+        $report->fail('waybills', 102, 'legacy_fail_deleted', '20450000000001');
+        $deliveries = [(object)['id' => 3, 'name' => 'Нова Пошта', 'service_type' => 'WarehouseWarehouse'], (object)['id' => 1, 'name' => 'Кур\'єр', 'service_type' => 'WarehouseDoors']];
+        $vars = LegacyMigrationView::vars(self::state('done', 6, $report), self::COUNTS, ['OkayCMS/NovaposhtaCost'], $deliveries, self::STEPS);
 
         self::assertSame('done', $vars['phase']);
-        self::assertSame(['done' => 1, 'existed' => 0, 'failed' => 1], $vars['rows']['orders']);
-        self::assertSame(101, $vars['fails'][0]['order']);
-        self::assertSame([['id' => 3, 'name' => 'Нова Пошта', 'mode' => 'points'], ['id' => 1, 'name' => 'Кур\'єр', 'mode' => 'address'], ['id' => 7, 'name' => 'Дивний', 'mode' => null]], $vars['switch']);
+        self::assertSame(3, $vars['orders'], 'moved now or by an earlier run');
+        self::assertSame(1, $vars['waybills']);
+        self::assertSame(2, $vars['failed']);
+        self::assertSame([['id' => 3, 'name' => 'Нова Пошта'], ['id' => 1, 'name' => 'Кур\'єр']], $vars['switch']);
+        self::assertArrayNotHasKey('fails', $vars, 'the report is counts only');
     }
 
     public function testBlockedUntilReadyAndStalledMayRestart(): void
@@ -64,7 +77,7 @@ class LegacyMigrationViewTest extends TestCase
         self::assertTrue($stalled['stalled']);
 
         self::assertFalse(LegacyMigrationView::vars(self::state('running', 0), self::COUNTS, [], [], self::STEPS)['canStart']);
-        self::assertTrue(LegacyMigrationView::vars(self::state('done', 6), self::COUNTS, [], [], self::STEPS)['canStart']);
+        self::assertTrue(LegacyMigrationView::vars(self::state('done', 6), self::COUNTS, ['OkayCMS/NovaposhtaCost'], [], self::STEPS)['canStart']);
     }
 
     public function testFinishedAtReadsLikeTheRestOfTheAdmin(): void
