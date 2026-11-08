@@ -89,4 +89,21 @@ class SchemaTest extends TestCase
 
         self::assertSame([], array_values($updates));
     }
+
+    /** Dates are dates in the database, not strings or Unix seconds (the core's EntityField has no DATE). */
+    public function testDatesAreDatetimeColumns(): void
+    {
+        $type = static function (string $entity, string $name): string {
+            foreach (Init::tables()[$entity] as $field) {
+                if ($field->getName() === $name) {
+                    return strtolower((string)$field->getType());
+                }
+            }
+
+            return '';
+        };
+
+        self::assertSame('datetime', $type(\Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class, 'delivery_term'));
+        self::assertSame('datetime', $type(\Okay\Modules\Sviat\NovaPoshta\Entities\CityRefEntity::class, 'checked_at'));
+    }
 }

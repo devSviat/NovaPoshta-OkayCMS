@@ -39,7 +39,8 @@ class OrderDeliveryViewTest extends TestCase
 
         self::assertSame('18.03.2030', $lines['term']);
         self::assertTrue($lines['priceUnconfirmed']);
-        self::assertNull(OrderDeliveryView::lines((object)['settlement_name' => 'x', 'delivery_term' => 'garbage'])['term']);
+        self::assertNull(OrderDeliveryView::lines((object)['settlement_name' => 'x', 'delivery_term' => 'garbage'])['term']);        // The column is DATETIME: the database gives the date back at midnight.
+        self::assertSame('18.03.2030', OrderDeliveryView::lines((object)['settlement_name' => 'x', 'delivery_term' => '2030-03-18 00:00:00'])['term']);
     }
 
     public function testAddressParts(): void

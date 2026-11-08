@@ -25,13 +25,13 @@ final class DbCityRefStore implements CityRefStore
         }
         $row = $this->db->result();
 
-        return $row ? ['ref' => $row->city_ref !== null ? (string)$row->city_ref : null, 'checkedAt' => (int)$row->checked_at] : null;
+        return $row ? ['ref' => $row->city_ref !== null ? (string)$row->city_ref : null, 'checkedAt' => (int)strtotime((string)$row->checked_at)] : null;
     }
 
     public function remember(int $settlementId, ?string $ref, int $now): void
     {
         $insert = $this->queryFactory->newInsert()->into(CityRefEntity::getTable())
-            ->cols(['settlement_id' => $settlementId, 'city_ref' => $ref, 'checked_at' => $now])
+            ->cols(['settlement_id' => $settlementId, 'city_ref' => $ref, 'checked_at' => date('Y-m-d H:i:s', $now)])
             ->onDuplicateKeyUpdate('city_ref', 'VALUES(city_ref)')
             ->onDuplicateKeyUpdate('checked_at', 'VALUES(checked_at)');
         $this->db->query($insert);

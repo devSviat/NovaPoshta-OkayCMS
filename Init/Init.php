@@ -188,7 +188,7 @@ class Init extends AbstractInit
             CityRefEntity::class => [
                 new EntityField('settlement_id')->setIndexPrimaryKey()->setTypeInt(11, false),
                 new EntityField('city_ref')->setTypeVarchar(36),
-                new EntityField('checked_at')->setTypeInt(11, false),
+                new EntityField('checked_at')->setTypeDatetime(false),
             ],
         ];
     }
@@ -224,7 +224,7 @@ class Init extends AbstractInit
                 new EntityField('lifting')->setTypeTinyInt(1, false)->setDefault(0),
                 new EntityField('delivery_price')->setTypeDecimal('10,2'),
                 new EntityField('price_source')->setTypeVarchar(16),
-                new EntityField('delivery_term')->setTypeVarchar(10),
+                new EntityField('delivery_term')->setTypeDatetime(),
                 new EntityField('cod')->setTypeTinyInt(1, false)->setDefault(0),
                 new EntityField('cod_fee')->setTypeDecimal('10,2'),
                 // Carried over from the old modules: null, 'migrated' or 'unmatched'.

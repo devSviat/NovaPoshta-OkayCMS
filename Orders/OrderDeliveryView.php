@@ -24,7 +24,7 @@ final class OrderDeliveryView
         return [
             'city' => implode(', ', $city),
             'point' => implode(': ', $point),
-            'term' => preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $term, $m) ? "{$m[3]}.{$m[2]}.{$m[1]}" : null,
+            'term' => preg_match('/^(\d{4})-(\d{2})-(\d{2})(?: 00:00:00)?$/', $term, $m) ? "{$m[3]}.{$m[2]}.{$m[1]}" : null,
             // Nova Poshta gave no price at checkout: no delivery is charged, the manager states it.
             'priceUnconfirmed' => ($row->price_source ?? null) === 'fallback' && !($orderDeliveryPrice > 0),
             'legacyUnmatched' => ($row->legacy ?? null) === 'unmatched',
