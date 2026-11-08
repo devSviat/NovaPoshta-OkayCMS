@@ -59,6 +59,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderContacts;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyAddressMatcher;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyCityMatcher;
@@ -128,7 +129,11 @@ return [
     ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
-        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Request::class), new SR(OrdersMassAction::class)],
+        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Request::class), new SR(OrdersMassAction::class), new SR(OrderRowsCleanup::class)],
+    ],
+    OrderRowsCleanup::class => [
+        'class' => OrderRowsCleanup::class,
+        'arguments' => [new SR(EntityFactory::class)],
     ],
     DbCityRefStore::class => [
         'class' => DbCityRefStore::class,

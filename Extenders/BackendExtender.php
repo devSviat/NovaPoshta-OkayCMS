@@ -42,6 +42,7 @@ class BackendExtender implements ExtensionInterface
         private readonly BackendTranslations $translations,
         private readonly Request $request,
         private readonly OrdersMassAction $massAction,
+        private readonly OrderRowsCleanup $orderRows,
     ) {
     }
 
@@ -81,7 +82,7 @@ class BackendExtender implements ExtensionInterface
     /** Queue extender of BackendOrdersHelper::delete (runs before the core deletes the orders). */
     public function deleteOrders($result, $ids): void
     {
-        new OrderRowsCleanup($this->entityFactory)->forOrders((array)$ids);
+        $this->orderRows->forOrders((array)$ids);
     }
 
     /** QueueExtension of BackendOrdersHelper::findOrder: the order page shows where the parcel goes. */
