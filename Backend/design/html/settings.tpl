@@ -1,8 +1,13 @@
 {$meta_title = $btr->sviat__novaposhta__title scope=global}
 
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="heading_page">{$btr->sviat__novaposhta__title|escape}</div>
+<div class="main_header">
+    <div class="main_header__item">
+        <div class="main_header__inner">
+            <div class="box_heading heading_page">{$btr->sviat__novaposhta__title|escape}</div>
+            <div class="box_btn_heading">
+                <a class="btn btn_small btn-outline-info" href="https://github.com/devSviat/NovaPoshta-OkayCMS#readme" target="_blank" rel="noopener">{$btr->sviat__novaposhta__readme|escape}</a>
+            </div>
+        </div>
     </div>
 </div>
 

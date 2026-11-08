@@ -1,6 +1,7 @@
 <?php
 
 $lang['sviat__novaposhta__title'] = 'Nova Poshta — settings';
+$lang['sviat__novaposhta__readme'] = 'Instructions';
 $lang['sviat__novaposhta__key_box'] = 'Nova Poshta API key';
 $lang['sviat__novaposhta__key_intro'] = 'The module needs the key to load branches and parcel lockers, calculate delivery and create waybills. Create it in the Nova Poshta business account: Settings → Security → API keys.';
 $lang['sviat__novaposhta__key_label'] = 'API key';

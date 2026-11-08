@@ -192,7 +192,7 @@ jobs:
           set -euo pipefail
           mkdir -p dist "build/$VENDOR/$MODULE"
           rsync -a --exclude=.git --exclude=.github --exclude=.gitignore \
-            --exclude=README.md --exclude=tests --exclude=dist --exclude=build \
+            --exclude=tests --exclude=dist --exclude=build \
             ./ "build/$VENDOR/$MODULE/"
           (cd build && zip -rq "../dist/$MODULE-${{ steps.ver.outputs.tag }}.zip" "$VENDOR")
 
@@ -379,7 +379,7 @@ jobs:
           set -euo pipefail
           mkdir -p dist "build/$VENDOR/$MODULE"
           rsync -a --exclude=.git --exclude=.github --exclude=.gitignore \
-            --exclude=README.md --exclude=tests --exclude=dist --exclude=build \
+            --exclude=tests --exclude=dist --exclude=build \
             ./ "build/$VENDOR/$MODULE/"
           (cd build && zip -rq "../dist/$MODULE-${{ needs.release.outputs.tag }}-fork.zip" "$VENDOR")
 

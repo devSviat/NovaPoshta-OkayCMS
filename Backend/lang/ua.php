@@ -1,6 +1,7 @@
 <?php
 
 $lang['sviat__novaposhta__title'] = 'Нова Пошта — налаштування';
+$lang['sviat__novaposhta__readme'] = 'Інструкція';
 $lang['sviat__novaposhta__key_box'] = 'Ключ API Нової Пошти';
 $lang['sviat__novaposhta__key_intro'] = 'Ключ потрібен, щоб модуль отримував відділення й поштомати, рахував доставку та створював ТТН. Його створюють у бізнес-кабінеті Нової Пошти: Налаштування → Безпека → API-ключі.';
 $lang['sviat__novaposhta__key_label'] = 'Ключ API';
