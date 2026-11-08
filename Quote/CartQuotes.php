@@ -142,7 +142,7 @@ final class CartQuotes
         } else {
             $settings = self::settings($delivery);
             $quote = $this->service->quote(new QuoteRequest(
-                (string)($settings['service_type'] ?? 'WarehouseWarehouse'),
+                DeliveryMode::fromServiceType($settings['service_type'] ?? null)->serviceType(),
                 $sender,
                 $recipient instanceof AddressTarget ? null : $recipient,
                 // Nova Poshta takes the declared value in hryvnias; the cart total is in the main currency.

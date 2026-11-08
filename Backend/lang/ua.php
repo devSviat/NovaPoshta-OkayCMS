@@ -104,10 +104,8 @@ $lang['sviat__novaposhta__dict_stale_title'] = 'Довідники давно н
 $lang['sviat__novaposhta__dict_stale_text'] = 'Останнє оновлення — понад 3 дні тому, хоча вони оновлюються щодня. Швидше за все, планувальник OkayCMS перестав запускатися.';
 
 $lang['sviat__novaposhta__service_type'] = 'Що вибирає покупець';
-$lang['sviat__novaposhta__service_ww'] = 'Відділення чи поштомат — посилки здаєте у відділенні';
-$lang['sviat__novaposhta__service_wd'] = 'Адреса — посилки здаєте у відділенні';
-$lang['sviat__novaposhta__service_dw'] = 'Відділення чи поштомат — кур’єр забирає посилки у вас';
-$lang['sviat__novaposhta__service_dd'] = 'Адреса — кур’єр забирає посилки у вас';
+$lang['sviat__novaposhta__service_ww'] = 'Відділення чи поштомат';
+$lang['sviat__novaposhta__service_wd'] = 'Адреса — кур\'єр Нової Пошти до дверей';
 
 $lang['sviat__novaposhta__popular_box'] = 'Кнопки популярних міст у кошику';
 $lang['sviat__novaposhta__popular_intro'] = 'Кнопки над полем «Населений пункт»: клік підставляє місто. Порядок тут — порядок у кошику. Порожній список — кнопок немає. Підказки під час введення від цього не залежать: вони самі ставлять вище популярніші міста.';
@@ -442,7 +440,7 @@ $lang['sviat__novaposhta__waybill_who_org'] = 'Контактна особа:';
 $lang['sviat__novaposhta__waybill_who_source'] = 'з даних покупця вище';
 $lang['sviat__novaposhta__waybill_company_tip'] = 'Необов\'язково: Нова Пошта бере назву з реєстру за ЄДРПОУ.';
 $lang['sviat__novaposhta__waybill_declared_tip'] = 'Сума, на яку застраховано посилку. За замовчуванням — товари без доставки.';
-$lang['sviat__novaposhta__waybill_cod_amount_tip'] = 'Скільки Нова Пошта візьме з отримувача при отриманні. Аванс і сплачене вже віднято.';
+$lang['sviat__novaposhta__waybill_cod_amount_tip'] = 'Скільки Нова Пошта візьме з отримувача при отриманні, у цілих гривнях (копійки НП округлює). Аванс і сплачене вже віднято.';
 $lang['sviat__novaposhta__waybill_cod_control_title'] = 'Контроль оплати';
 $lang['sviat__novaposhta__waybill_cod_control_tip'] = 'Гроші від отримувача НП зараховує на рахунок магазину за договором. Не поєднується з грошовим переказом.';
 $lang['sviat__novaposhta__waybill_cod_money_title'] = 'Грошовий переказ';

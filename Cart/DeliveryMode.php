@@ -16,4 +16,10 @@ enum DeliveryMode: string
     {
         return str_ends_with((string)$serviceType, 'Doors') ? self::Address : self::Points;
     }
+
+    /** The service type priced and shipped: always from a branch — the module orders no courier pickup. */
+    public function serviceType(): string
+    {
+        return $this === self::Address ? 'WarehouseDoors' : 'WarehouseWarehouse';
+    }
 }

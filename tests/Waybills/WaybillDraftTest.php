@@ -165,6 +165,16 @@ class WaybillDraftTest extends TestCase
         self::assertSame(['cod_amount', 'phone', 'recipient_name', 'weight'], $fields);
     }
 
+    /** NP takes the money transfer in whole hryvnias (1234.50 → 1235, checked 08.11.2026): 0.4 would be 0. */
+    public function testCodAmountRoundingToNothingIsRefused(): void
+    {
+        $errors = self::build(cod: CodKind::Money)->withInput(['cod' => '1', 'cod_amount' => '0.4']);
+
+        self::assertIsArray($errors);
+        self::assertSame(['cod_amount'], array_column($errors, 'field'));
+        self::assertSame(1235.0, self::build(cod: CodKind::Money)->withInput(['cod' => '1', 'cod_amount' => '1234.5'])->codAmount);
+    }
+
     public function testInputOverridesTheDraft(): void
     {
         $draft = self::build()->withInput([

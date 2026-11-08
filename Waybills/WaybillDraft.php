@@ -141,7 +141,8 @@ final readonly class WaybillDraft
         }
         $cod = !empty($form['cod']);
         $codAmount = $number('cod_amount', $this->codAmount);
-        if ($cod && ($codAmount === null || $codAmount <= 0)) {
+        // NP keeps the money transfer in whole hryvnias, rounding to the nearest: what rounds to 0 is no amount.
+        if ($cod && ($codAmount === null || round($codAmount) <= 0)) {
             $errors[] = ['field' => 'cod_amount', 'key' => 'waybill_error_cod_amount'];
         }
         $codKind = is_string($form['cod_kind'] ?? null) ? CodKind::tryFrom($form['cod_kind']) : $this->codKind;

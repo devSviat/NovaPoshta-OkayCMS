@@ -104,10 +104,8 @@ $lang['sviat__novaposhta__dict_stale_title'] = 'The dictionaries have not been u
 $lang['sviat__novaposhta__dict_stale_text'] = 'The last update was more than 3 days ago, though they update daily. Most likely the OkayCMS scheduler stopped running.';
 
 $lang['sviat__novaposhta__service_type'] = 'What the customer chooses';
-$lang['sviat__novaposhta__service_ww'] = 'Branch or parcel locker — you hand parcels in at a branch';
-$lang['sviat__novaposhta__service_wd'] = 'Address — you hand parcels in at a branch';
-$lang['sviat__novaposhta__service_dw'] = 'Branch or parcel locker — a courier collects parcels from you';
-$lang['sviat__novaposhta__service_dd'] = 'Address — a courier collects parcels from you';
+$lang['sviat__novaposhta__service_ww'] = 'Branch or parcel locker';
+$lang['sviat__novaposhta__service_wd'] = 'Address — Nova Poshta courier to the door';
 
 $lang['sviat__novaposhta__popular_box'] = 'Popular city buttons in the cart';
 $lang['sviat__novaposhta__popular_intro'] = 'Buttons above the “Settlement” field: a click fills in the city. The order here is the order in the cart. An empty list means no buttons. Suggestions while typing do not depend on this list: they already put popular cities first.';
@@ -442,7 +440,7 @@ $lang['sviat__novaposhta__waybill_who_org'] = 'Contact person:';
 $lang['sviat__novaposhta__waybill_who_source'] = 'from the customer details above';
 $lang['sviat__novaposhta__waybill_company_tip'] = 'Optional: Nova Poshta takes the name from its registry by EDRPOU.';
 $lang['sviat__novaposhta__waybill_declared_tip'] = 'The amount the parcel is insured for. By default: goods without delivery.';
-$lang['sviat__novaposhta__waybill_cod_amount_tip'] = 'How much Nova Poshta collects from the recipient. Advance and paid amounts are already deducted.';
+$lang['sviat__novaposhta__waybill_cod_amount_tip'] = 'How much Nova Poshta collects from the recipient at pickup, in whole hryvnias (NP rounds kopecks). Advances and payments are already deducted.';
 $lang['sviat__novaposhta__waybill_cod_control_title'] = 'Payment control';
 $lang['sviat__novaposhta__waybill_cod_control_tip'] = 'Nova Poshta credits the recipient\'s money to the shop\'s account under a contract. Cannot be combined with a money transfer.';
 $lang['sviat__novaposhta__waybill_cod_money_title'] = 'Money transfer';

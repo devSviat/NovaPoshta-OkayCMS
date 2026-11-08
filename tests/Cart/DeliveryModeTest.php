@@ -27,7 +27,16 @@ class DeliveryModeTest extends TestCase
         self::assertSame($mode, DeliveryMode::fromServiceType($serviceType));
     }
 
-    public function testSettingsFileOffersTheSameValuesAsNovaposhtaCost(): void
+    /** The module never orders a courier pickup: a stored Doors* (NovaposhtaCost) is priced from the branch. */
+    public function testPricedServiceTypeIsFromTheBranch(): void
+    {
+        self::assertSame('WarehouseWarehouse', DeliveryMode::fromServiceType('DoorsWarehouse')->serviceType());
+        self::assertSame('WarehouseDoors', DeliveryMode::fromServiceType('DoorsDoors')->serviceType());
+        self::assertSame('WarehouseDoors', DeliveryMode::Address->serviceType());
+    }
+
+    /** Two modes the module ships: courier pickup from the shop (Doors*) is not ordered on its waybills. */
+    public function testSettingsFileOffersTheTwoModes(): void
     {
         $xml = simplexml_load_file(dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/settings.xml');
 
@@ -36,6 +45,6 @@ class DeliveryModeTest extends TestCase
         foreach ($xml->settings->options as $option) {
             $values[] = (string)$option->value;
         }
-        self::assertSame(['WarehouseWarehouse', 'WarehouseDoors', 'DoorsWarehouse', 'DoorsDoors'], $values);
+        self::assertSame(['WarehouseWarehouse', 'WarehouseDoors'], $values);
     }
 }

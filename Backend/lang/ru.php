@@ -104,10 +104,8 @@ $lang['sviat__novaposhta__dict_stale_title'] = 'Справочники давн�
 $lang['sviat__novaposhta__dict_stale_text'] = 'Последнее обновление — больше 3 дней назад, хотя они обновляются ежедневно. Скорее всего, планировщик OkayCMS перестал запускаться.';
 
 $lang['sviat__novaposhta__service_type'] = 'Что выбирает покупатель';
-$lang['sviat__novaposhta__service_ww'] = 'Отделение или почтомат — посылки сдаёте в отделении';
-$lang['sviat__novaposhta__service_wd'] = 'Адрес — посылки сдаёте в отделении';
-$lang['sviat__novaposhta__service_dw'] = 'Отделение или почтомат — курьер забирает посылки у вас';
-$lang['sviat__novaposhta__service_dd'] = 'Адрес — курьер забирает посылки у вас';
+$lang['sviat__novaposhta__service_ww'] = 'Отделение или почтомат';
+$lang['sviat__novaposhta__service_wd'] = 'Адрес — курьер Новой Почты до двери';
 
 $lang['sviat__novaposhta__popular_box'] = 'Кнопки популярных городов в корзине';
 $lang['sviat__novaposhta__popular_intro'] = 'Кнопки над полем «Населённый пункт»: клик подставляет город. Порядок здесь — порядок в корзине. Пустой список — кнопок нет. Подсказки при вводе от этого не зависят: они сами ставят выше популярные города.';
@@ -442,7 +440,7 @@ $lang['sviat__novaposhta__waybill_who_org'] = 'Контактное лицо:';
 $lang['sviat__novaposhta__waybill_who_source'] = 'из данных покупателя выше';
 $lang['sviat__novaposhta__waybill_company_tip'] = 'Необязательно: Новая Почта берёт название из реестра по ЕГРПОУ.';
 $lang['sviat__novaposhta__waybill_declared_tip'] = 'Сумма, на которую застрахована посылка. По умолчанию — товары без доставки.';
-$lang['sviat__novaposhta__waybill_cod_amount_tip'] = 'Сколько Новая Почта возьмёт с получателя при получении. Аванс и оплаченное уже вычтены.';
+$lang['sviat__novaposhta__waybill_cod_amount_tip'] = 'Сколько Новая Почта возьмёт с получателя при получении, в целых гривнах (копейки НП округляет). Аванс и оплаченное уже вычтены.';
 $lang['sviat__novaposhta__waybill_cod_control_title'] = 'Контроль оплаты';
 $lang['sviat__novaposhta__waybill_cod_control_tip'] = 'Деньги получателя НП зачисляет на счёт магазина по договору. Не сочетается с денежным переводом.';
 $lang['sviat__novaposhta__waybill_cod_money_title'] = 'Денежный перевод';
