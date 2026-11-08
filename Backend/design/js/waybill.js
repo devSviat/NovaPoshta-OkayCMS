@@ -176,7 +176,7 @@
     }
 
     document.addEventListener('click', function (event) {
-        var button = event.target.closest('.fn_np_wb_create, .fn_np_wb_attach, .fn_np_wb_remove, .fn_np_wb_unlink, .fn_np_wb_refresh');
+        var button = event.target.closest('.fn_np_wb_create, .fn_np_wb_attach, .fn_np_wb_remove, .fn_np_wb_unlink, .fn_np_wb_refresh, .fn_np_wb_lookup');
         var root = button ? rootOf(button) : null;
         if (!root) {
             return;
@@ -189,6 +189,8 @@
             send(root, button, 'attach', { number: number ? number.value : '' }, root.querySelector('.np-wb__issues--attach'));
         } else if (button.classList.contains('fn_np_wb_refresh')) {
             send(root, button, 'refresh', {});
+        } else if (button.classList.contains('fn_np_wb_lookup')) {
+            send(root, button, 'lookup', {});
         } else if (button.classList.contains('fn_np_wb_unlink')) {
             if (window.confirm(root.getAttribute('data-confirm-unlink'))) {
                 send(root, button, 'unlink', {});

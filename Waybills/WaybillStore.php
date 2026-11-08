@@ -63,6 +63,7 @@ final class WaybillStore implements WaybillRows
             'ref' => $ref,
             'api' => $api,
             'services' => json_encode($services, JSON_UNESCAPED_UNICODE),
+            'audit_status' => null,
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
         $saved = $this->forOrder($orderId);
@@ -75,6 +76,14 @@ final class WaybillStore implements WaybillRows
         $row = $this->forOrder($orderId);
         if (PendingWaybill::is($row)) {
             $this->entity()->delete([(int)$row->id]);
+        }
+    }
+
+    public function markUncertain(int $orderId): void
+    {
+        $row = $this->forOrder($orderId);
+        if (PendingWaybill::is($row)) {
+            $this->entity()->update((int)$row->id, ['audit_status' => 'uncertain', 'updated_at' => date('Y-m-d H:i:s')]);
         }
     }
 

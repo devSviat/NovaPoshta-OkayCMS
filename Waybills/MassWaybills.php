@@ -75,14 +75,11 @@ final class MassWaybills
 
         $outcome = $this->service->create($orderId, $draft);
         if ($outcome->ok) {
-            // The NP account may already hold a waybill from the request that died.
-            $warning = in_array('waybill_stale_attempt', $outcome->notices, true) ? 'waybill_stale_attempt' : null;
-
-            return ['kind' => 'created', 'key' => $warning, 'value' => $outcome->number];
+            return ['kind' => 'created', 'key' => null, 'value' => $outcome->number];
         }
         $first = $outcome->issues[0] ?? ['advice' => 'waybill_advice_generic', 'message' => null];
-        if ($first['advice'] === 'waybill_pending') {
-            return $skip('waybill_pending');
+        if (in_array($first['advice'], ['waybill_pending', 'waybill_uncertain_check'], true)) {
+            return $skip($first['advice']);
         }
 
         return ['kind' => 'failed', 'key' => $first['advice'], 'value' => $first['message']];

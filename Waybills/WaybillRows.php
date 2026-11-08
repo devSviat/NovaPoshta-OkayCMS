@@ -28,6 +28,9 @@ interface WaybillRows
     /** Drops the reservation; a made or attached waybill stays. */
     public function release(int $orderId): void;
 
+    /** Keeps the reservation of a create NP did not answer: the order waits for WaybillService::lookup(). */
+    public function markUncertain(int $orderId): void;
+
     public function saveAudit(int $orderId, AuditResult $audit): void;
 
     public function remove(int $orderId): void;

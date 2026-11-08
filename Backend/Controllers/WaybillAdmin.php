@@ -46,6 +46,7 @@ class WaybillAdmin extends IndexAdmin
             'attach' => $service->attach($orderId, (string)$this->request->post('number'), NpPhone::normalize((string)($order->phone ?? ''))),
             'remove' => $service->remove($orderId),
             'unlink' => $service->unlink($orderId),
+            'lookup' => $service->lookup($orderId, NpPhone::normalize((string)($order->phone ?? ''))),
             'refresh' => $tracking->refresh($orderId, NpPhone::normalize((string)($order->phone ?? ''))),
             default => null,
         };

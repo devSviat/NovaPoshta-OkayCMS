@@ -116,7 +116,8 @@ class WaybillServiceTest extends TestCase
         self::assertCount(2, $this->http->requests());
     }
 
-    public function testTransportErrorOnSaveIsUncertain(): void
+    /** NP may have made the waybill: the order stays blocked until the manager checks, so no second one is made. */
+    public function testTransportErrorOnSaveKeepsTheOrderForACheck(): void
     {
         $this->http->push(new TransportException('timeout'));
 
@@ -124,8 +125,12 @@ class WaybillServiceTest extends TestCase
 
         self::assertFalse($outcome->ok);
         self::assertSame('waybill_uncertain', $outcome->issues[0]['advice']);
-        self::assertNull($this->rows->forOrder(self::ORDER));
+        self::assertTrue(WaybillService::needsCheck($this->rows->forOrder(self::ORDER), $this->rows->now));
         self::assertCount(1, $this->http->requests());
+
+        $again = $this->service()->create(self::ORDER, W::point(['cod' => true]));
+        self::assertSame('waybill_uncertain_check', $again->issues[0]['advice']);
+        self::assertCount(1, $this->http->requests(), 'no second request to NP');
     }
 
     public function testRefusalIsExplained(): void
@@ -173,19 +178,78 @@ class WaybillServiceTest extends TestCase
         self::assertSame([], $this->http->requests());
     }
 
-    public function testStaleAttemptIsReplacedWithAWarning(): void
+    /** A request that died midway may have made the waybill too: checked first, never replaced blindly. */
+    public function testStaleAttemptNeedsACheck(): void
     {
         $this->rows->reserve(self::ORDER);
         $this->rows->now += 600;
-        $this->jwt();
-        $this->http->json(201, W::fixture('new_created'));
-        $this->statusAnswer('status_new_documents');
 
         $outcome = $this->service()->create(self::ORDER, W::point());
 
+        self::assertSame('waybill_uncertain_check', $outcome->issues[0]['advice']);
+        self::assertSame([], $this->http->requests());
+    }
+
+    private function documentList(array $documents): void
+    {
+        $this->http->json(200, ['success' => true, 'data' => $documents, 'errors' => []]);
+    }
+
+    public function testLookupAttachesTheWaybillNpMade(): void
+    {
+        $this->rows->reserve(self::ORDER);
+        $this->rows->markUncertain(self::ORDER);
+        $this->documentList([
+            ['IntDocNumber' => '20450000000777', 'Ref' => 'other-ref', 'InfoRegClientBarcodes' => '990062', 'DeletionMark' => '0'],
+            ['IntDocNumber' => '20450000000555', 'Ref' => 'deleted-ref', 'InfoRegClientBarcodes' => (string)self::ORDER, 'DeletionMark' => '1'],
+            ['IntDocNumber' => '20450000000999', 'Ref' => 'made-ref', 'InfoRegClientBarcodes' => (string)self::ORDER, 'DeletionMark' => '0'],
+        ]);
+        $this->statusAnswer('status_new_documents');
+
+        $outcome = $this->service()->lookup(self::ORDER, '380500000000');
+
         self::assertTrue($outcome->ok);
-        self::assertContains('waybill_stale_attempt', $outcome->notices);
-        self::assertSame('new', $this->rows->forOrder(self::ORDER)->api);
+        self::assertSame('20450000000999', $outcome->number);
+        $row = $this->rows->forOrder(self::ORDER);
+        self::assertSame(['20450000000999', 'made-ref', 'old'], [$row->number, $row->ref, $row->api]);
+        self::assertNull($row->audit_status ?? null, 'the check mark goes with the reservation');
+        $sent = $this->requestBody(0);
+        self::assertSame(['InternetDocument', 'getDocumentList'], [$sent['modelName'], $sent['calledMethod']]);
+        self::assertSame('1', $sent['methodProperties']['GetFullList']);
+    }
+
+    public function testLookupWithNothingFreesTheOrder(): void
+    {
+        $this->rows->reserve(self::ORDER);
+        $this->rows->markUncertain(self::ORDER);
+        $this->documentList([]);
+
+        $outcome = $this->service()->lookup(self::ORDER, '380500000000');
+
+        self::assertTrue($outcome->ok);
+        self::assertNull($outcome->number);
+        self::assertSame(['waybill_lookup_none'], $outcome->notices);
+        self::assertNull($this->rows->forOrder(self::ORDER), 'a new waybill can be made now');
+    }
+
+    public function testLookupWhileNpIsDownKeepsTheBlock(): void
+    {
+        $this->rows->reserve(self::ORDER);
+        $this->rows->markUncertain(self::ORDER);
+        $this->http->push(new TransportException('timeout'));
+
+        $outcome = $this->service()->lookup(self::ORDER, '380500000000');
+
+        self::assertFalse($outcome->ok);
+        self::assertTrue(WaybillService::needsCheck($this->rows->forOrder(self::ORDER), $this->rows->now));
+    }
+
+    public function testLookupOnlyForAnUncertainOrder(): void
+    {
+        $this->rows->add(self::ORDER, '20450000000001', 'ref', 'old', []);
+
+        self::assertSame('waybill_none', $this->service()->lookup(self::ORDER, null)->issues[0]['advice']);
+        self::assertSame([], $this->http->requests());
     }
 
     public function testSaveFailureAfterNovaPoshtaNamesTheNumber(): void

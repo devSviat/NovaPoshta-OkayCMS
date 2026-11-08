@@ -60,7 +60,7 @@ final class InMemoryWaybillRows implements WaybillRows
         if ($this->failComplete || ($owner !== null && $owner !== $orderId) || !\Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill::is($this->rows[$orderId] ?? null)) {
             return false;
         }
-        $this->rows[$orderId] = (object)(['number' => $number, 'ref' => $ref, 'api' => $api, 'services' => json_encode($services)] + (array)$this->rows[$orderId]);
+        $this->rows[$orderId] = (object)(['number' => $number, 'ref' => $ref, 'api' => $api, 'services' => json_encode($services), 'audit_status' => null] + (array)$this->rows[$orderId]);
 
         return true;
     }
@@ -69,6 +69,13 @@ final class InMemoryWaybillRows implements WaybillRows
     {
         if (\Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill::is($this->rows[$orderId] ?? null)) {
             unset($this->rows[$orderId]);
+        }
+    }
+
+    public function markUncertain(int $orderId): void
+    {
+        if (isset($this->rows[$orderId])) {
+            $this->rows[$orderId]->audit_status = 'uncertain';
         }
     }
 

@@ -12,6 +12,8 @@ final class NewShipmentRequest
         $side = new Parcel($draft->weightKg, $draft->volumeM3, $draft->declaredCost)->cubeSideMm();
 
         return [
+            // Lets the module find the shipment by its order when NP did not answer the create.
+            'clientOrder' => (string)$draft->orderId,
             'payerType' => $draft->payerType,
             'sender' => ['countryCode' => 'UA', 'divisionId' => $sender->divisionId, 'name' => $sender->contactName, 'phone' => $sender->phone],
             'recipient' => ['countryCode' => 'UA', 'divisionId' => (int)$draft->divisionId, 'name' => $draft->recipientName, 'phone' => (string)$draft->recipientPhone],

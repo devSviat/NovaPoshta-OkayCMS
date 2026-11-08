@@ -221,15 +221,15 @@ class MassWaybillsTest extends TestCase
         self::assertLessThanOrEqual(45.0, MassWaybills::BUDGET_SECONDS);
     }
 
-    public function testStaleAttemptIsReported(): void
+    /** A died or unanswered attempt may have made a waybill: the batch skips the order until it is checked. */
+    public function testOrderAwaitingACheckIsSkipped(): void
     {
         $this->rows->reserve(990068);
         $this->rows->now += 600;
-        $this->npCreates();
 
         $row = $this->mass()->run([990068])->rows[0];
 
-        self::assertSame(['created', 'waybill_stale_attempt'], [$row['kind'], $row['key']]);
+        self::assertSame(['skipped', 'waybill_uncertain_check'], [$row['kind'], $row['key']]);
     }
 
     public function testUnexpectedErrorKeepsTheBatch(): void

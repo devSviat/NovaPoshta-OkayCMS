@@ -17,6 +17,7 @@ final class WaybillService
     private const int TIMEOUT_SECONDS = 30;
     /** A reservation older than this belongs to a request that died (NP calls time out at 30 s). */
     private const int PENDING_STALE_SECONDS = 120;
+    private const string UNCERTAIN = 'uncertain';
 
     private readonly \Closure $today;
     private readonly \Closure $now;
@@ -41,21 +42,30 @@ final class WaybillService
     /** A reservation of a request still running; a stale one is not. */
     public static function isPending(?object $row, int $now): bool
     {
-        return PendingWaybill::is($row) && $now - (int)strtotime((string)($row->created_at ?? '')) < self::PENDING_STALE_SECONDS;
+        return PendingWaybill::is($row) && !self::needsCheck($row, $now);
+    }
+
+    /**
+     * A reservation whose request may have made a waybill at NP: NP did not answer it, or the request
+     * died midway. Nothing new is made for the order until lookup() has asked NP.
+     */
+    public static function needsCheck(?object $row, int $now): bool
+    {
+        return PendingWaybill::is($row)
+            && (($row->audit_status ?? null) === self::UNCERTAIN || $now - (int)strtotime((string)($row->created_at ?? '')) >= self::PENDING_STALE_SECONDS);
     }
 
     public function create(int $orderId, WaybillDraft $draft): WaybillOutcome
     {
         $notices = [];
         $existing = $this->rows->forOrder($orderId);
+        if (self::needsCheck($existing, ($this->now)())) {
+            return WaybillOutcome::refused('waybill_uncertain_check');
+        }
         if (self::isPending($existing, ($this->now)())) {
             return WaybillOutcome::refused('waybill_pending');
         }
-        if (PendingWaybill::is($existing)) {
-            // That request died midway: its waybill may exist at NP, the manager is told to check.
-            $this->rows->release($orderId);
-            $notices[] = 'waybill_stale_attempt';
-        } elseif ($existing !== null) {
+        if ($existing !== null) {
             return WaybillOutcome::refused('waybill_already', (string)$existing->number);
         }
         $sender = $this->sender->party();
@@ -92,9 +102,15 @@ final class WaybillService
         try {
             $answer = $request();
         } catch (NpApiException $e) {
+            if (self::uncertain($e)) {
+                $this->rows->markUncertain($orderId);
+
+                return WaybillOutcome::failed(WaybillIssues::explain('waybill_uncertain'));
+            }
+            // NP answered with a refusal: nothing was made.
             $this->rows->release($orderId);
 
-            return WaybillOutcome::failed(self::uncertain($e) ? WaybillIssues::explain('waybill_uncertain') : WaybillIssues::explain($e));
+            return WaybillOutcome::failed(WaybillIssues::explain($e));
         }
 
         if ($route === 'new') {
@@ -107,7 +123,7 @@ final class WaybillService
             $notices = [...$notices, ...WaybillIssues::notices($answer['warnings'])];
         }
         if (WaybillNumber::normalize($number) === null) {
-            $this->rows->release($orderId);
+            $this->rows->markUncertain($orderId);
 
             return WaybillOutcome::refused('waybill_uncertain');
         }
@@ -309,6 +325,48 @@ final class WaybillService
     }
 
     /** The waybill as NP shows it to its recipient; null when NP does not answer. */
+    /**
+     * After an unanswered create: asks NP for the order's waybill among the account's documents of
+     * the days around the attempt (both APIs file the order id as InfoRegClientBarcodes; deleted
+     * ones are not listed). Found — it is the order's waybill; not found — the order is free again.
+     */
+    public function lookup(int $orderId, ?string $phone): WaybillOutcome
+    {
+        $row = $this->rows->forOrder($orderId);
+        if (!self::needsCheck($row, ($this->now)())) {
+            return WaybillOutcome::refused('waybill_none');
+        }
+        $at = (int)strtotime((string)($row->created_at ?? '')) ?: ($this->now)();
+        try {
+            $documents = $this->oldApi->quick(self::TIMEOUT_SECONDS)->call('InternetDocument', 'getDocumentList', [
+                'DateTimeFrom' => date('d.m.Y', $at - 86400),
+                'DateTimeTo' => date('d.m.Y', $at + 86400),
+                'GetFullList' => '1',
+            ]);
+        } catch (NpApiException $e) {
+            return WaybillOutcome::failed(WaybillIssues::explain($e));
+        }
+        foreach ($documents as $document) {
+            $number = WaybillNumber::normalize((string)($document['IntDocNumber'] ?? ''));
+            if ($number === null || (string)($document['InfoRegClientBarcodes'] ?? '') !== (string)$orderId || (int)($document['DeletionMark'] ?? 0) === 1) {
+                continue;
+            }
+            $ref = (string)($document['Ref'] ?? '');
+            if (!$this->rows->complete($orderId, $number, $ref !== '' ? $ref : null, 'old', [])) {
+                return WaybillOutcome::refused('waybill_not_saved', $number);
+            }
+            $status = $this->status($number, $phone);
+            if ($status !== null) {
+                $this->rows->saveTracking($orderId, $status);
+            }
+
+            return new WaybillOutcome(true, $number, [], ['waybill_lookup_found']);
+        }
+        $this->rows->release($orderId);
+
+        return new WaybillOutcome(true, null, [], ['waybill_lookup_none']);
+    }
+
     private function status(string $number, ?string $phone): ?array
     {
         try {

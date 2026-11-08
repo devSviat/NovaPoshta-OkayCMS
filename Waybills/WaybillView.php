@@ -33,6 +33,12 @@ final class WaybillView
         $view = ['orderId' => $orderId, 'row' => null, 'draft' => null, 'refusal' => null];
 
         $row = $this->rows->forOrder($orderId);
+        if (WaybillService::needsCheck($row, time())) {
+            // NP may hold a waybill of this order: the manager asks it before anything new is made.
+            $view['check'] = true;
+
+            return $view;
+        }
         if (WaybillService::isPending($row, time())) {
             $view['refusal'] = 'waybill_pending';
             $view['refusalKey'] = 'sviat__novaposhta__waybill_pending';

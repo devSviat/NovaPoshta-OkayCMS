@@ -33,6 +33,7 @@ class WaybillRequestTest extends TestCase
     public function testNewShipment(): void
     {
         self::assertSame([
+            'clientOrder' => '990061',
             'payerType' => 'Recipient',
             'sender' => ['countryCode' => 'UA', 'divisionId' => 5524, 'name' => 'Відправник Тестовий Тестович', 'phone' => '380670000000'],
             'recipient' => ['countryCode' => 'UA', 'divisionId' => 7162, 'name' => 'Петренко Іван', 'phone' => '380500000000'],

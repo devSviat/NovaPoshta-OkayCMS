@@ -36,7 +36,7 @@
      data-busy="{$btr->sviat__novaposhta__waybill_creating|escape}" data-failed-create="{$btr->sviat__novaposhta__waybill_failed_create|escape}" data-failed-attach="{$btr->sviat__novaposhta__waybill_failed_attach|escape}" data-failed-remove="{$btr->sviat__novaposhta__waybill_failed_remove|escape}" data-failed-refresh="{$btr->sviat__novaposhta__waybill_failed_refresh|escape}" data-what-to-do="{$btr->sviat__novaposhta__waybill_what_to_do|escape}"
      data-details="{$btr->sviat__novaposhta__waybill_details|escape}" data-network="{$btr->sviat__novaposhta__waybill_network|escape}">
     <div class="np-wb__head">
-        <span class="np-wb__title">{if $w.row || $w.refusal}{$btr->sviat__novaposhta__waybill_title|escape}{else}{$btr->sviat__novaposhta__waybill_form_title|escape}{/if}</span>
+        <span class="np-wb__title">{if $w.row || $w.refusal || $w.check}{$btr->sviat__novaposhta__waybill_title|escape}{else}{$btr->sviat__novaposhta__waybill_form_title|escape}{/if}</span>
     </div>
     <div class="np-wb__notices" role="status"></div>
 
@@ -134,6 +134,15 @@
             <div class="np-wb__actions">
                 <button type="button" class="btn btn_small btn-outline-danger fn_np_wb_remove" data-attached="{if $r.attached}1{/if}">{if $r.attached}{$btr->sviat__novaposhta__waybill_unlink|escape}{else}{$btr->sviat__novaposhta__waybill_remove|escape}{/if}</button>
             </div>
+        </div>
+    {elseif $w.check}
+        <div class="alert alert--warning"><div class="alert__content">
+            <div class="alert__title">{$btr->sviat__novaposhta__waybill_check_title|escape}</div>
+            <p>{$btr->sviat__novaposhta__waybill_check_text|escape}</p>
+        </div></div>
+        <div class="np-wb__issues" role="alert"></div>
+        <div class="np-wb__actions">
+            <button type="button" class="btn btn-info fn_np_wb_lookup">{$btr->sviat__novaposhta__waybill_check_button|escape}</button>
         </div>
     {elseif $w.refusal}
         <div class="alert alert--warning"><div class="alert__content"><p>{$btr->getTranslation($w.refusalKey)|escape}</p></div></div>
