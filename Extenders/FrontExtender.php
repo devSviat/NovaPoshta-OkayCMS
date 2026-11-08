@@ -78,17 +78,29 @@ class FrontExtender implements ExtensionInterface
         if (!is_array($deliveries) || !is_object($cart)) {
             return $deliveries;
         }
+        $dictionaryReady = null;
         foreach ($deliveries as $delivery) {
-            // Already free (free_from, or a promo's free shipping earlier in the chain): left as it is.
-            $quote = is_object($delivery) && empty($delivery->is_free_delivery) ? $this->quotes->cachedForChoice($delivery, $cart) : null;
-            if ($quote?->price !== null) {
-                $this->showPrice($delivery, $quote->price, (float)$cart->total_price);
-            } elseif ($quote?->unpriced()) {
-                DeliveryPriceView::unpriced($delivery, (float)$cart->total_price, $this->translations->getTranslation('sviat__novaposhta__cart_price_by_manager'));
+            if (!is_object($delivery)) {
+                continue;
             }
-            if ($quote === null && is_object($delivery) && $this->quotes->isOwnMethod($delivery)) {
-                $key = $this->quotes->isOwnPointsMethod($delivery) ? 'sviat__novaposhta__cart_price_after_point' : 'sviat__novaposhta__cart_price_after_address';
-                DeliveryPriceView::awaiting($delivery, (float)$cart->total_price, $this->translations->getTranslation($key));
+            // Already free (free_from, or a promo's free shipping earlier in the chain): left as it is.
+            $quote = empty($delivery->is_free_delivery) ? $this->quotes->cachedForChoice($delivery, $cart) : null;
+            $own = $this->quotes->isOwnMethod($delivery);
+            $total = (float)$cart->total_price;
+            switch (DeliveryPriceView::cartState($delivery, $quote, $own, $own ? ($dictionaryReady ??= $this->settlements->hasAny()) : true, $total)) {
+                case 'price':
+                    $this->showPrice($delivery, $quote->price, $total);
+                    break;
+                case 'unpriced':
+                    DeliveryPriceView::unpriced($delivery, $total, $this->translations->getTranslation('sviat__novaposhta__cart_price_by_manager'));
+                    break;
+                case 'free':
+                    DeliveryPriceView::free($delivery, $total, $this->translations->getTranslation('cart_free'));
+                    break;
+                case 'awaiting':
+                    $key = $this->quotes->isOwnPointsMethod($delivery) ? 'sviat__novaposhta__cart_price_after_point' : 'sviat__novaposhta__cart_price_after_address';
+                    DeliveryPriceView::awaiting($delivery, $total, $this->translations->getTranslation($key));
+                    break;
             }
         }
 
