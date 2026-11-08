@@ -81,6 +81,7 @@ class Init extends AbstractInit
             [BackendExtender::class, 'assignOrderDelivery']
         );
         $this->registerQueueExtension([BackendOrdersHelper::class, 'delete'], [BackendExtender::class, 'deleteOrders']);
+        $this->registerChainExtension([BackendDeliveriesHelper::class, 'getDelivery'], [BackendExtender::class, 'offeredMode']);
         $this->registerQueueExtension([BackendDeliveriesHelper::class, 'getDelivery'], [BackendExtender::class, 'deliveryWarning']);
         $this->addBackendBlock('delivery_price_block', 'delivery_free_warning.tpl');
         $this->registerChainExtension([BackendOrdersHelper::class, 'buildFilter'], [BackendExtender::class, 'listFilter']);

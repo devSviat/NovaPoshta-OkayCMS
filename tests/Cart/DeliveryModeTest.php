@@ -47,4 +47,13 @@ class DeliveryModeTest extends TestCase
         }
         self::assertSame(['WarehouseWarehouse', 'WarehouseDoors'], $values);
     }
+
+    /** The core form selects an option only on an exact match: a stored Doors* would fall back to the first, points. */
+    public function testStoredSettingsShowAnOfferedMode(): void
+    {
+        self::assertSame(['service_type' => 'WarehouseDoors', 'x' => 1], DeliveryMode::offered(['service_type' => 'DoorsDoors', 'x' => 1]));
+        self::assertSame(['service_type' => 'WarehouseWarehouse'], DeliveryMode::offered(['service_type' => 'DoorsWarehouse']));
+        self::assertSame(['service_type' => 'WarehouseDoors'], DeliveryMode::offered(['service_type' => 'WarehouseDoors']));
+        self::assertSame([], DeliveryMode::offered([]), 'a new method has no mode yet');
+    }
 }

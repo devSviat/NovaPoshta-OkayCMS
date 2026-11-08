@@ -72,6 +72,17 @@ class BackendExtender implements ExtensionInterface
         ]);
     }
 
+    /** ChainExtension of BackendDeliveriesHelper::getDelivery: a mode stored by NovaposhtaCost or an older version stays selected. */
+    public function offeredMode($delivery, $id = null)
+    {
+        if (is_object($delivery) && !empty($delivery->module_id) && is_array($delivery->delivery_settings ?? null)
+            && (int)$delivery->module_id === (int)$this->module->getModuleIdByNamespace(__CLASS__)) {
+            $delivery->delivery_settings = DeliveryMode::offered($delivery->delivery_settings);
+        }
+
+        return $delivery;
+    }
+
     /** Queue extender of BackendDeliveriesHelper::getDelivery: the method page warns when the core makes it free for every cart. */
     public function deliveryWarning($delivery, $id = null): void
     {

@@ -17,6 +17,21 @@ enum DeliveryMode: string
         return str_ends_with((string)$serviceType, 'Doors') ? self::Address : self::Points;
     }
 
+    /**
+     * Delivery settings with `service_type` as one of the options settings.xml offers, so the
+     * method's form shows the stored mode and saving keeps it.
+     * @param array<string, mixed> $settings
+     * @return array<string, mixed>
+     */
+    public static function offered(array $settings): array
+    {
+        if (isset($settings['service_type'])) {
+            $settings['service_type'] = self::fromServiceType((string)$settings['service_type'])->serviceType();
+        }
+
+        return $settings;
+    }
+
     /** The service type priced and shipped: always from a branch — the module orders no courier pickup. */
     public function serviceType(): string
     {
