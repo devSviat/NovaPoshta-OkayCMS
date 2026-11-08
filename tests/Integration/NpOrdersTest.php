@@ -53,30 +53,6 @@ class NpOrdersTest extends TestCase
         self::assertFalse(NpOrders::shipment(self::waybill(), null)->cod);
     }
 
-    public function testReceivedAtUsesStatusDate(): void
-    {
-        self::assertSame('2026-11-01 08:00:00', NpOrders::receivedAt(self::waybill(['status_code' => 9, 'status_at' => '2026-11-01 08:00:00', 'tracked_at' => '2026-11-08 08:00:00', 'updated_at' => '2026-11-08 08:00:00'])));
-        self::assertNull(NpOrders::receivedAt(self::waybill(['status_code' => 7, 'status_at' => '2026-11-01 08:00:00'])), 'only received (9) counts');
-        self::assertNull(NpOrders::receivedAt(self::waybill(['status_code' => 9, 'number' => ''])));
-    }
-
-    public function testReceivedAtFallsBackToTrackedAt(): void
-    {
-        self::assertSame('2026-11-08 08:00:00', NpOrders::receivedAt(self::waybill(['status_code' => 9, 'status_at' => null, 'tracked_at' => '2026-11-08 08:00:00'])));
-        self::assertNull(NpOrders::receivedAt(self::waybill(['status_code' => 9])), 'no date: never counted as new');
-    }
-
-    public function testReceivedSinceComparesDates(): void
-    {
-        $rows = [
-            self::waybill(['order_id' => 1, 'status_code' => 9, 'status_at' => '2026-10-01 00:00:00', 'updated_at' => '2026-11-08 00:00:00']),
-            self::waybill(['order_id' => 2, 'status_code' => 9, 'status_at' => '2026-11-02 00:00:00']),
-            self::waybill(['order_id' => 3, 'status_code' => 9, 'status_at' => '2026-11-01 00:00:00']),
-        ];
-
-        self::assertSame([2, 3], NpOrders::receivedFrom($rows, '2026-11-01 00:00:00'));
-    }
-
     public function testAddressPoint(): void
     {
         $address = NpOrders::address((object)['mode' => 'point', 'settlement_name' => 'Вигадане', 'division_name' => 'Відділення №3', 'division_address' => 'вул. Тестова, 1']);
@@ -92,5 +68,30 @@ class NpOrdersTest extends TestCase
         self::assertSame('вул. Тестова, 5, кв. 12', NpOrders::address((object)$row)->line);
         self::assertSame('вул. Тестова, 5', NpOrders::address((object)(['flat' => ''] + $row))->line);
         self::assertNull(NpOrders::address(null));
+    }
+
+    /** The cron runs every ten minutes: received parcels are filtered by the database, without their tracking JSON. */
+    public function testReceivedSinceAsksTheDatabaseForOrderIdsOnly(): void
+    {
+        $asked = [];
+        $entity = $this->createStub(\Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class);
+        $entity->method('noLimit')->willReturnSelf();
+        $entity->method('cols')->willReturnCallback(function (array $cols) use ($entity, &$asked) {
+            $asked['cols'] = $cols;
+
+            return $entity;
+        });
+        $entity->method('find')->willReturnCallback(function (array $filter) use (&$asked) {
+            $asked['filter'] = $filter;
+
+            // One column: the core entity returns the values themselves, not rows.
+            return ['7', '7', '8'];
+        });
+        $factory = $this->createStub(\Okay\Core\EntityFactory::class);
+        $factory->method('get')->willReturn($entity);
+
+        self::assertSame([7, 8], new NpOrders($factory)->receivedSince('2026-11-01 00:00:00'));
+        self::assertSame(['order_id'], $asked['cols']);
+        self::assertSame(['received_since' => '2026-11-01 00:00:00'], $asked['filter']);
     }
 }

@@ -15,7 +15,6 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
  */
 final class NpOrders
 {
-    private const int RECEIVED = 9;
     private const array ARRIVED = [7, 8];
 
     public function __construct(private readonly EntityFactory $entityFactory)
@@ -50,7 +49,9 @@ final class NpOrders
      */
     public function receivedSince(string $since): array
     {
-        return self::receivedFrom($this->entityFactory->get(WaybillEntity::class)->noLimit()->find(['status_codes' => [self::RECEIVED]]), $since);
+        $ids = $this->entityFactory->get(WaybillEntity::class)->noLimit()->cols(['order_id'])->find(['received_since' => $since]);
+
+        return array_values(array_unique(array_map(intval(...), $ids)));
     }
 
     public function addressOf(int $orderId): ?NpAddress
@@ -76,33 +77,6 @@ final class NpOrders
         $cod = is_array($services) && array_key_exists('cod', $services) ? (bool)$services['cod'] : !empty($delivery->cod ?? null);
 
         return new NpShipment((int)$waybill->order_id, $number, $code, $statusAt, in_array($code, self::ARRIVED, true) ? $statusAt : null, $cod);
-    }
-
-    /** The date a received parcel counts from: its status date, else when it was last tracked; null if not received. */
-    public static function receivedAt(object $waybill): ?string
-    {
-        if (trim((string)($waybill->number ?? '')) === '' || (int)($waybill->status_code ?? 0) !== self::RECEIVED) {
-            return null;
-        }
-
-        return self::date($waybill->status_at ?? null) ?? self::date($waybill->tracked_at ?? null);
-    }
-
-    /**
-     * @param iterable<object> $waybills
-     * @return list<int>
-     */
-    public static function receivedFrom(iterable $waybills, string $since): array
-    {
-        $ids = [];
-        foreach ($waybills as $waybill) {
-            $at = self::receivedAt($waybill);
-            if ($at !== null && $at >= $since) {
-                $ids[] = (int)$waybill->order_id;
-            }
-        }
-
-        return array_values(array_unique($ids));
     }
 
     public static function address(?object $delivery): ?NpAddress
