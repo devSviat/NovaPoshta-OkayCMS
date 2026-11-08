@@ -110,7 +110,7 @@ final class WaybillStore implements WaybillRows
 
     /**
      * A waybill carried over from NovaPoshtaTracking (stage 5), with the status and tracking it had.
-     * @param array{number:string, ref:?string, api:string, status_code:?int, status_text:?string, status_at:?string, scheduled_at:?string, tracking:?array, tracked_at:?string} $values
+     * @param array{number:string, ref:?string, api:string, status_code:?int, status_text:?string, status_at:?string, scheduled_at:?string, tracking:?array, tracked_at:?string, created_at?:?string} $values
      * @return bool false when the order already has a waybill
      */
     public function importLegacy(int $orderId, array $values): bool
