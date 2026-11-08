@@ -16,6 +16,12 @@ class WaybillEntity extends Entity
         'services',
         'audit_status',
         'audit',
+        'status_code',
+        'status_text',
+        'status_at',
+        'scheduled_at',
+        'tracking',
+        'tracked_at',
         'created_at',
         'updated_at',
     ];
@@ -31,7 +37,7 @@ class WaybillEntity extends Entity
             ->where("{$alias}.api <> 'pending'");
     }
 
-    /** @param list<int> $codes status codes; the column is registered late, so the generic field filter does not see it */
+    /** @param list<int> $codes status codes */
     protected function filter__status_codes($codes): void
     {
         $codes = array_values(array_filter(array_map('intval', (array)$codes)));

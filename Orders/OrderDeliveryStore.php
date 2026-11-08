@@ -25,9 +25,6 @@ final class OrderDeliveryStore
             return;
         }
         $address = $selection->address;
-        if ($address !== null && !self::stored('street_name')) {
-            return;
-        }
         $now = date('Y-m-d H:i:s');
         $entity = $this->entityFactory->get(OrderDeliveryEntity::class);
         $existing = $entity->findOne(['order_id' => $orderId]);
@@ -50,9 +47,7 @@ final class OrderDeliveryStore
                 'division_name' => $title,
                 'division_address' => $place ?? ($selection->division->address_uk ?: null),
             ];
-            if (self::stored('street_name')) {
-                $row += array_fill_keys(['street_name', 'street_ref', 'house', 'flat', 'entrance', 'floor', 'address_note'], null) + ['elevator' => 0, 'lifting' => 0];
-            }
+            $row += array_fill_keys(['street_name', 'street_ref', 'house', 'flat', 'entrance', 'floor', 'address_note'], null) + ['elevator' => 0, 'lifting' => 0];
         } else {
             $row += [
                 'division_id' => null,
@@ -71,29 +66,16 @@ final class OrderDeliveryStore
                 'lifting' => $address->lifting ? 1 : 0,
             ];
         }
-        $pricing = self::stored('delivery_price') ? ($pricing ?? []) : [];
-        if (!self::stored('cod_fee')) {
-            unset($pricing['cod_fee']);
-        }
-        $row = $pricing + $row;
-        if ($existing && self::stored('legacy')) {
+        $row = ($pricing ?? []) + $row;
+        if ($existing) {
             $row['legacy'] = self::legacyAfterChoice($existing->legacy ?? null);
         }
         $existing ? $entity->update((int)$existing->id, $row) : $entity->add($row + ['created_at' => $now]);
     }
 
-    /** Columns added after 0.3.0 are registered by Init only once their update has created them. */
-    private static function stored(string $column): bool
-    {
-        return in_array($column, OrderDeliveryEntity::getFields(), true);
-    }
-
     /** The delivery price the manager set from the admin (stage 4a2). */
     public function setPrice(int $orderId, float $price, string $source): void
     {
-        if (!self::stored('delivery_price')) {
-            return;
-        }
         $entity = $this->entityFactory->get(OrderDeliveryEntity::class);
         $row = $entity->findOne(['order_id' => $orderId]);
         if (is_object($row)) {
@@ -161,8 +143,7 @@ final class OrderDeliveryStore
             return false;
         }
         $now = date('Y-m-d H:i:s');
-        $row = array_filter(self::legacyValues($values), static fn(string $column): bool => self::stored($column), ARRAY_FILTER_USE_KEY);
-        $entity->add(['order_id' => $orderId, 'delivery_id' => $deliveryId, 'created_at' => $now, 'updated_at' => $now] + $row);
+        $entity->add(['order_id' => $orderId, 'delivery_id' => $deliveryId, 'created_at' => $now, 'updated_at' => $now] + self::legacyValues($values));
 
         return true;
     }

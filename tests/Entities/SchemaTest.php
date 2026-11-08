@@ -26,17 +26,6 @@ class SchemaTest extends TestCase
             }
 
             $entityFields = (new \ReflectionProperty($entityClass, 'fields'))->getValue();
-            // Registered by Init::init() once the 0.4.0 / 0.5.0 updates have created them (upgrade window).
-            if ($entityClass === \Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class) {
-                $late = array_map(static fn(EntityField $f): string => $f->getName(), [...Init::pricingFields(), ...Init::addressFields(), Init::codFeeField(), Init::legacyField()]);
-                self::assertSame([], array_values(array_intersect($late, $entityFields)), 'registered late, not static');
-                $plain = array_values(array_diff($plain, $late));
-            }
-            if ($entityClass === \Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class) {
-                $late = array_map(static fn(EntityField $f): string => $f->getName(), Init::trackingFields());
-                self::assertSame([], array_values(array_intersect($late, $entityFields)), 'registered late, not static');
-                $plain = array_values(array_diff($plain, $late));
-            }
             self::assertSame($plain, $entityFields, $entityClass);
             $entityLang = (new \ReflectionProperty($entityClass, 'langFields'))->getValue() ?? [];
             self::assertSame($lang, $entityLang, $entityClass);
@@ -87,5 +76,13 @@ class SchemaTest extends TestCase
                 self::assertDoesNotMatchRegularExpression('/responsible|phone|person|photo/i', $field->getName());
             }
         }
+    }
+
+    /** 1.0.0 is the first release: install() creates the whole schema, there is nothing to upgrade from. */
+    public function testNoUpgradeSteps(): void
+    {
+        $updates = array_filter(get_class_methods(Init::class), static fn(string $m): bool => str_starts_with($m, 'update_'));
+
+        self::assertSame([], array_values($updates));
     }
 }
