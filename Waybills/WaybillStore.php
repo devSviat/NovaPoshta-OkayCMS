@@ -137,12 +137,7 @@ final class WaybillStore implements WaybillRows
             return;
         }
         $document = WaybillTrackingDocument::merge($document, is_string($row->tracking ?? null) ? json_decode($row->tracking, true) : null, date('Y-m-d H:i:s'));
-        $code = WaybillTrackingDocument::status($document);
-        $this->update($orderId, array_filter([
-            'tracking' => json_encode($document, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),
-            'status_code' => $code,
-            'status_text' => $code !== null ? mb_substr((string)($document['Status'] ?? ''), 0, 255) : null,
-        ], static fn($v): bool => $v !== null));
+        $this->update($orderId, ['tracking' => json_encode($document, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE)] + WaybillTrackingDocument::statusColumns($document, $row));
     }
 
     public function markChecked(int $orderId): void

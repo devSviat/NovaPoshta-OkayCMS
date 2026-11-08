@@ -57,6 +57,25 @@ class WaybillsStepTest extends TestCase
         self::assertSame(['done' => 1, 'existed' => 0, 'failed' => 0], $report->counts('waybills'));
     }
 
+    /** status_at means the date of the status at NP on every path; the old module's refresh time is only a fallback. */
+    public function testStatusDateIsTheScanDate(): void
+    {
+        $doc = ['Number' => '20450000000045', 'StatusCode' => '9', 'Status' => 'Відправлення отримано', 'DateScan' => '12:30 02.11.2026'];
+        $this->old->tracking = [self::row(1, 201, ['status_code' => '9', 'tracking_response' => json_encode($doc)])];
+        $this->migrate(new LegacyReport());
+
+        self::assertSame('2026-11-02 12:30:00', $this->orders->waybills[201]['status_at']);
+    }
+
+    public function testStatusDateFallsBackToTheOldRefreshTime(): void
+    {
+        $doc = ['Number' => '20450000000045', 'StatusCode' => '9', 'DateScan' => ''];
+        $this->old->tracking = [self::row(1, 201, ['status_code' => '9', 'tracking_response' => json_encode($doc)])];
+        $this->migrate(new LegacyReport());
+
+        self::assertSame('2026-11-01 10:00:00', $this->orders->waybills[201]['status_at']);
+    }
+
     public function testBrokenJsonKeepsNumber(): void
     {
         $this->old->tracking = [self::row(1, 202, ['ref_id' => '', 'tracking_response' => '{oops'])];

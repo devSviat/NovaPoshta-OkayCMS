@@ -79,7 +79,8 @@ final class WaybillsStep implements LegacyStep
             'api' => $ref !== null ? 'old' : 'attached',
             'status_code' => $code,
             'status_text' => $code !== null ? mb_substr(trim((string)($document['Status'] ?? '')), 0, 255) : null,
-            'status_at' => $code !== null ? $fetchedAt : null,
+            // The date of the status at NP, as the tracker writes it; the old module's refresh time only without one.
+            'status_at' => $code !== null ? (WaybillTrackingDocument::scanDate($document['DateScan'] ?? null) ?? $fetchedAt) : null,
             'scheduled_at' => self::date($document['ScheduledDeliveryDate'] ?? null),
             'tracking' => $document !== null ? WaybillTrackingDocument::merge($document, null, $fetchedAt ?? date('Y-m-d H:i:s')) : null,
             'tracked_at' => $fetchedAt,
