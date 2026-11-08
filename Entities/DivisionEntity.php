@@ -35,6 +35,6 @@ class DivisionEntity extends Entity
     ];
 
     protected static $defaultOrderFields = ['id'];
-    protected static $table = 'sviat__novaposhta_divisions';
+    protected static $table = 'sviat__novaposhta__divisions';
     protected static $tableAlias = 'nps_d';
 }

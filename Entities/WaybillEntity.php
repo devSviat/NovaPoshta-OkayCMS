@@ -60,6 +60,6 @@ class WaybillEntity extends Entity
 
         return parent::customOrder($order, $orderFields, $additionalData);
     }
-    protected static $table = 'sviat__novaposhta_waybill';
+    protected static $table = 'sviat__novaposhta__waybill';
     protected static $tableAlias = 'nps_w';
 }

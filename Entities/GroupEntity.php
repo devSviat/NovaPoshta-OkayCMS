@@ -19,8 +19,8 @@ class GroupEntity extends Entity
     ];
 
     protected static $defaultOrderFields = ['position', 'id'];
-    protected static $table = 'sviat__novaposhta_groups';
+    protected static $table = 'sviat__novaposhta__groups';
     protected static $langObject = 'group';
-    protected static $langTable = 'sviat__novaposhta_groups';
+    protected static $langTable = 'sviat__novaposhta__groups';
     protected static $tableAlias = 'nps_g';
 }

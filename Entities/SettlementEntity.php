@@ -26,7 +26,7 @@ class SettlementEntity extends Entity
     ];
 
     protected static $defaultOrderFields = ['boost DESC', 'name_uk'];
-    protected static $table = 'sviat__novaposhta_settlements';
+    protected static $table = 'sviat__novaposhta__settlements';
     protected static $tableAlias = 'nps_s';
 
     protected function filter__boosted($value): void

@@ -26,6 +26,6 @@ class OrderDeliveryEntity extends Entity
     ];
 
     protected static $defaultOrderFields = ['id DESC'];
-    protected static $table = 'sviat__novaposhta_order_delivery';
+    protected static $table = 'sviat__novaposhta__order_delivery';
     protected static $tableAlias = 'nps_o';
 }

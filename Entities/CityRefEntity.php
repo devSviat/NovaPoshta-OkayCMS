@@ -14,6 +14,6 @@ class CityRefEntity extends Entity
     ];
 
     protected static $defaultOrderFields = ['settlement_id'];
-    protected static $table = 'sviat__novaposhta_city_refs';
+    protected static $table = 'sviat__novaposhta__city_refs';
     protected static $tableAlias = 'nps_cr';
 }
