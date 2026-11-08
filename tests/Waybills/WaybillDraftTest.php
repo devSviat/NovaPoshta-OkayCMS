@@ -41,14 +41,14 @@ class WaybillDraftTest extends TestCase
         return (object)['id' => 7162, 'number' => '11/1', 'name_uk' => 'Відділення №1: вул. Пирогівський шлях, 135', 'settlement_id' => 118064];
     }
 
-    private static function build(?object $order = null, ?object $snapshot = null, object|false|null $division = false, ?CodKind $cod = null, float $rate = 1.0, ?array $purchases = null, ?array $invoice = null): WaybillDraft|string
+    private static function build(?object $order = null, ?object $snapshot = null, object|false|null $division = false, ?CodKind $cod = null, float $rate = 1.0, ?array $purchases = null, ?array $invoice = null, ?WaybillConfig $config = null): WaybillDraft|string
     {
         return WaybillDrafts::build(
             $order ?? self::order(),
             $purchases ?? self::purchases(),
             $snapshot ?? self::points(),
             $division === false ? self::division() : $division,
-            new WaybillConfig(null, null),
+            $config ?? new WaybillConfig(null, null),
             new ShippingConfig(5524, 1.0, 0.001, false),
             $cod,
             $rate,
@@ -223,5 +223,28 @@ class WaybillDraftTest extends TestCase
         self::assertSame('waybill_error_edrpou', $draft->organizationIssue());
         self::assertNull(self::build(invoice: ['edrpou' => '12345678', 'company' => 'ТОВ «Приклад»'])->organizationIssue());
         self::assertNull(self::build()->organizationIssue());
+    }
+
+    /** Delivery is inside the order total: the shop already took it, so NP must not charge the recipient again. */
+    public function testAutoPayerIsTheSenderWhenDeliveryIsInTheTotal(): void
+    {
+        $draft = self::build(cod: CodKind::Money);
+
+        self::assertSame('Sender', $draft->payerType);
+        self::assertSame(95.0, $draft->deliveryInTotal);
+    }
+
+    public function testAutoPayerIsTheRecipientWhenDeliveryIsPaidApart(): void
+    {
+        $draft = self::build(self::order(['separate_delivery' => 1, 'total_price' => 2359.0]));
+
+        self::assertSame('Recipient', $draft->payerType);
+        self::assertSame(0.0, $draft->deliveryInTotal);
+        self::assertSame('Recipient', self::build(self::order(['delivery_price' => 0]))->payerType, 'free delivery: nothing was taken');
+    }
+
+    public function testFixedPayerWins(): void
+    {
+        self::assertSame('Recipient', self::build(config: new WaybillConfig(null, null, payerType: 'Recipient'))->payerType);
     }
 }

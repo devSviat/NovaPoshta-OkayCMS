@@ -211,6 +211,11 @@
             </select><span class="np-wb__error" data-for="cargo_type"></span></label>
             <div class="heading_label np-wb__label">{$btr->sviat__novaposhta__waybill_payer|escape}</div>
             {np_wb_radios field='payer_type' value=$d->payerType options=['Sender' => $btr->sviat__novaposhta__waybill_sender_party, 'Recipient' => $btr->sviat__novaposhta__waybill_recipient]}
+            {if $d->deliveryInTotal > 0}
+                {$np_wb_delivery = $d->deliveryInTotal|string_format:'%.2f'|replace:'.':','}
+                <div class="np-wb__line text_grey">{$btr->sviat__novaposhta__waybill_payer_in_total|replace:'%sum%':$np_wb_delivery|escape}</div>
+                <div class="alert alert--warning np-wb__double" role="alert" {if !($d->payerType == 'Recipient' && $d->cod)}hidden{/if}><div class="alert__content">{$btr->sviat__novaposhta__waybill_double_delivery|replace:'%sum%':$np_wb_delivery|escape}</div></div>
+            {/if}
             <div class="heading_label np-wb__label">{$btr->sviat__novaposhta__waybill_payment|escape}</div>
             {np_wb_radios field='payment_method' value=$d->paymentMethod options=['Cash' => $btr->sviat__novaposhta__waybill_cash, 'NonCash' => $btr->sviat__novaposhta__waybill_noncash]}
 

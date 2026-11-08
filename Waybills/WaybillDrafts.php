@@ -91,7 +91,8 @@ final class WaybillDrafts
         }
 
         $total = (float)($order->total_price ?? 0);
-        $goods = empty($order->separate_delivery) ? $total - (float)($order->delivery_price ?? 0) : $total;
+        $deliveryInTotal = empty($order->separate_delivery) ? max(0.0, (float)($order->delivery_price ?? 0)) : 0.0;
+        $goods = $total - $deliveryInTotal;
         $totalUah = round($total * $uahRate, 2);
         $parcel = Parcel::fromMetrics(CartMetrics::fromPurchases($purchases, $total), $shipping);
         $note = implode(', ', array_filter([
@@ -127,7 +128,8 @@ final class WaybillDrafts
             round(max(0.0, $goods) * $uahRate, 2),
             $waybill->description,
             $waybill->cargoType,
-            $waybill->payerType,
+            // The shop already took delivery in the total: NP must not charge the recipient again.
+            $waybill->payerType === 'auto' ? ($deliveryInTotal > 0 ? 'Sender' : 'Recipient') : $waybill->payerType,
             $waybill->paymentMethod,
             $codKind !== null && empty($order->paid),
             round($amountDue ? $amountDue($totalUah) : $totalUah),
@@ -138,6 +140,7 @@ final class WaybillDrafts
             $invoice !== null ? preg_replace('/\D+/', '', $invoice['edrpou']) : null,
             $invoice !== null ? mb_substr($invoice['company'], 0, 100) : null,
             $invoice !== null,
+            round($deliveryInTotal * $uahRate, 2),
         );
     }
 }

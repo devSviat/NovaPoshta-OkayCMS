@@ -65,6 +65,8 @@ final readonly class WaybillDraft
         public ?string $companyName = null,
         /** The organization came from the order's invoice (Sviat/InvoicePayment). */
         public bool $fromInvoice = false,
+        /** Hryvnias of delivery the order total (and so the COD amount) already holds; 0 when paid apart. */
+        public float $deliveryInTotal = 0.0,
     ) {
     }
 

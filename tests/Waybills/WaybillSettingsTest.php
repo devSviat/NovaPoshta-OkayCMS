@@ -16,7 +16,7 @@ class WaybillSettingsTest extends TestCase
         self::assertNull($config->contactRef);
         self::assertNull($config->senderPhone);
         self::assertSame('16:00', $config->cutoff);
-        self::assertSame('Recipient', $config->payerType);
+        self::assertSame('auto', $config->payerType, 'as in the order: sender when delivery is inside the total');
         self::assertSame('Cash', $config->paymentMethod);
         self::assertSame('Parcel', $config->cargoType);
         self::assertSame('Recipient', $config->codPayer);
@@ -38,6 +38,7 @@ class WaybillSettingsTest extends TestCase
     public function testChoicesOutsideTheListAreRefused(): void
     {
         self::assertSame(['waybill_error_payer'], WaybillSettings::parse(['payer_type' => 'Third']));
+        self::assertSame('auto', WaybillSettings::parse(['payer_type' => 'auto'])->payerType);
         self::assertSame(['waybill_error_payment'], WaybillSettings::parse(['payment_method' => 'Card']));
         self::assertSame(['waybill_error_cargo'], WaybillSettings::parse(['cargo_type' => 'Pallet']));
         self::assertSame(['waybill_error_cod_payer'], WaybillSettings::parse(['cod_payer' => 'Bank']));

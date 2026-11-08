@@ -9,7 +9,7 @@ final readonly class WaybillConfig
     public const string DEFAULT_DESCRIPTION = 'Товари інтернет-магазину';
 
     /**
-     * @param 'Recipient'|'Sender' $payerType
+     * @param 'auto'|'Recipient'|'Sender' $payerType who pays delivery; auto — the sender when the order total already holds it
      * @param 'Cash'|'NonCash' $paymentMethod
      * @param 'Parcel'|'Cargo'|'Documents' $cargoType
      * @param 'Recipient'|'Sender' $codPayer who pays the money-transfer commission
@@ -19,7 +19,7 @@ final readonly class WaybillConfig
         public ?string $senderPhone,
         /** HH:MM; a waybill made at or after it is dated tomorrow. */
         public string $cutoff = self::DEFAULT_CUTOFF,
-        public string $payerType = 'Recipient',
+        public string $payerType = 'auto',
         public string $paymentMethod = 'Cash',
         public string $cargoType = 'Parcel',
         public string $codPayer = 'Recipient',

@@ -432,6 +432,7 @@
                     <div>
                         <label class="heading_label" for="np_waybill_payer">{$btr->sviat__novaposhta__waybill_payer|escape}</label>
                         <select id="np_waybill_payer" name="payer_type" class="form-control">
+                            <option value="auto" {if $np_waybill.config->payerType == 'auto'}selected{/if}>{$btr->sviat__novaposhta__waybill_payer_auto|escape}</option>
                             <option value="Recipient" {if $np_waybill.config->payerType == 'Recipient'}selected{/if}>{$btr->sviat__novaposhta__waybill_recipient|escape}</option>
                             <option value="Sender" {if $np_waybill.config->payerType == 'Sender'}selected{/if}>{$btr->sviat__novaposhta__waybill_sender_party|escape}</option>
                         </select>

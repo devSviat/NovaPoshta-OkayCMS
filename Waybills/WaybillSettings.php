@@ -86,7 +86,7 @@ final class WaybillSettings
 
             return $value;
         };
-        $payer = $choice($text('payer_type'), ['Recipient', 'Sender'], 'waybill_error_payer');
+        $payer = $choice($text('payer_type'), ['auto', 'Recipient', 'Sender'], 'waybill_error_payer');
         $payment = $choice($text('payment_method'), ['Cash', 'NonCash'], 'waybill_error_payment');
         $cargo = $choice($text('cargo_type'), ['Parcel', 'Cargo', 'Documents'], 'waybill_error_cargo');
         $codPayer = $choice($text('cod_payer'), ['Recipient', 'Sender'], 'waybill_error_cod_payer');

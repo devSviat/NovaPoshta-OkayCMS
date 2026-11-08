@@ -510,3 +510,6 @@ $lang['sviat__novaposhta__legacy_stalled'] = 'The run has not moved for a long t
 $lang['sviat__novaposhta__free_for_all_title'] = 'Delivery is free for every cart';
 $lang['sviat__novaposhta__free_for_all_settings'] = 'These delivery methods have "Free from 0". OkayCMS reads zero as "always free", so customers never see the Nova Poshta price. Enter the amount from which delivery is free, or choose "Free" if that is what you want.';
 $lang['sviat__novaposhta__free_for_all_delivery'] = 'Nova Poshta calculates the price, but with "Free from 0" OkayCMS makes delivery free for every cart. Enter a threshold or choose "Free". The module uses the "Price" field only when Nova Poshta did not answer.';
+$lang['sviat__novaposhta__waybill_payer_auto'] = 'As in the order (recommended)';
+$lang['sviat__novaposhta__waybill_payer_in_total'] = 'Delivery (UAH %sum%) is already in the order total, so by default the sender pays for it.';
+$lang['sviat__novaposhta__waybill_double_delivery'] = 'The customer will pay for delivery twice: UAH %sum% is already in "To collect", and again to Nova Poshta at pickup. Choose "Sender" or lower "To collect" by UAH %sum%.';

@@ -216,6 +216,22 @@
         }
     });
 
+    /** Delivery inside the order total plus the recipient paying NP for it again: say so before creating. */
+    document.addEventListener('change', function (event) {
+        var input = event.target;
+        if (!input.matches || !input.matches('[data-field="payer_type"], [data-field="cod"]')) {
+            return;
+        }
+        var root = rootOf(input);
+        var warning = root && root.querySelector('.np-wb__double');
+        if (!warning) {
+            return;
+        }
+        var recipient = root.querySelector('[data-field="payer_type"][value="Recipient"]');
+        var cod = root.querySelector('[data-field="cod"]');
+        warning.hidden = !(recipient && recipient.checked && cod && cod.checked);
+    });
+
     document.addEventListener('click', function (event) {
         var hide = event.target.closest('.fn_np_mass_hide');
         if (hide) {
