@@ -513,6 +513,7 @@ $lang['sviat__novaposhta__waybill_payer_auto'] = 'As in the order (recommended)'
 $lang['sviat__novaposhta__waybill_payer_in_total'] = 'Delivery (UAH %sum%) is already in the order total, so by default the sender pays for it.';
 $lang['sviat__novaposhta__waybill_double_delivery'] = 'The customer will pay for delivery twice: UAH %sum% is already in the order total, and again to Nova Poshta at pickup. Choose "Sender". With cash on delivery you can lower "To collect" by UAH %sum% instead.';
 $lang['sviat__novaposhta__waybill_uncertain_check'] = 'First check whether the previous attempt created a waybill: the "Check at Nova Poshta" button in the order.';
+$lang['sviat__novaposhta__waybill_lookup_too_soon'] = 'Nova Poshta does not show a waybill for this order yet, but the attempt was less than 10 minutes ago. Check again a little later, so the order does not get two waybills.';
 $lang['sviat__novaposhta__waybill_check_title'] = 'We do not know whether the waybill was created';
 $lang['sviat__novaposhta__waybill_check_text'] = 'Nova Poshta did not answer the create, or the attempt broke off. The waybill may exist, so a new one cannot be made until you check.';
 $lang['sviat__novaposhta__waybill_check_button'] = 'Check at Nova Poshta';

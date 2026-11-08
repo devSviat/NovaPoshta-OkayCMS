@@ -222,6 +222,7 @@ class WaybillServiceTest extends TestCase
     {
         $this->rows->reserve(self::ORDER);
         $this->rows->markUncertain(self::ORDER);
+        $this->rows->now += 600;
         $this->documentList([]);
 
         $outcome = $this->service()->lookup(self::ORDER, '380500000000');
@@ -230,6 +231,21 @@ class WaybillServiceTest extends TestCase
         self::assertNull($outcome->number);
         self::assertSame(['waybill_lookup_none'], $outcome->notices);
         self::assertNull($this->rows->forOrder(self::ORDER), 'a new waybill can be made now');
+    }
+
+    /** A shipment made through the new API reaches the document list with a delay: "none" right away is not yet an answer. */
+    public function testLookupTooSoonKeepsTheBlock(): void
+    {
+        $this->rows->reserve(self::ORDER);
+        $this->rows->markUncertain(self::ORDER);
+        $this->rows->now += 60;
+        $this->documentList([]);
+
+        $outcome = $this->service()->lookup(self::ORDER, '380500000000');
+
+        self::assertFalse($outcome->ok);
+        self::assertSame('waybill_lookup_too_soon', $outcome->issues[0]['advice']);
+        self::assertTrue(WaybillService::needsCheck($this->rows->forOrder(self::ORDER), $this->rows->now));
     }
 
     public function testLookupWhileNpIsDownKeepsTheBlock(): void

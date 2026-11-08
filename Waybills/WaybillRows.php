@@ -53,7 +53,6 @@ interface WaybillRows
      */
     public function forOrders(array $orderIds): array;
 
-
     /** @return list<int> order ids with a waybill of this number */
     public function ordersOfNumber(string $number): array;
 }

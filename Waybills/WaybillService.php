@@ -17,6 +17,8 @@ final class WaybillService
     private const int TIMEOUT_SECONDS = 30;
     /** A reservation older than this belongs to a request that died (NP calls time out at 30 s). */
     private const int PENDING_STALE_SECONDS = 120;
+    /** A new-API shipment shows up in the old API's document list only after a while; until then "none" proves nothing. */
+    private const int LOOKUP_SETTLE_SECONDS = 600;
     private const string UNCERTAIN = 'uncertain';
 
     private readonly \Closure $today;
@@ -324,11 +326,10 @@ final class WaybillService
         return is_string($ref) ? $ref : null;
     }
 
-    /** The waybill as NP shows it to its recipient; null when NP does not answer. */
     /**
      * After an unanswered create: asks NP for the order's waybill among the account's documents of
      * the days around the attempt (both APIs file the order id as InfoRegClientBarcodes; deleted
-     * ones are not listed). Found — it is the order's waybill; not found — the order is free again.
+     * ones are not listed). Found — it is the order's waybill; not found once LOOKUP_SETTLE_SECONDS have passed — the order is free again.
      */
     public function lookup(int $orderId, ?string $phone): WaybillOutcome
     {
@@ -362,11 +363,15 @@ final class WaybillService
 
             return new WaybillOutcome(true, $number, [], ['waybill_lookup_found']);
         }
+        if (($this->now)() - $at < self::LOOKUP_SETTLE_SECONDS) {
+            return WaybillOutcome::refused('waybill_lookup_too_soon');
+        }
         $this->rows->release($orderId);
 
         return new WaybillOutcome(true, null, [], ['waybill_lookup_none']);
     }
 
+    /** The waybill as NP shows it to its recipient; null when NP does not answer. */
     private function status(string $number, ?string $phone): ?array
     {
         try {
