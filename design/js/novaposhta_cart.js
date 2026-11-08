@@ -615,15 +615,19 @@
         }
     };
 
-    /** Not charged: the order summary says the manager will tell instead of the theme's "0". */
+    /**
+     * Not charged yet (NP gave no price, or no point or address is chosen): the order summary repeats
+     * the method's text instead of the theme's "0".
+     */
     Block.prototype.showUnpricedSummary = function () {
         var input = this.themeInput();
-        var text = this.texts.cart_price_by_manager || '';
+        var texts = [this.texts.cart_price_by_manager, this.texts.cart_price_after_point, this.texts.cart_price_after_address].filter(Boolean);
         if (!input || !input.length || !input.is(':checked') || input.data('is_free_delivery') || Number(input.data('delivery_price')) !== 0) {
             return;
         }
-        if (text !== '' && input.closest('.fn_delivery_item').find('.fn_delivery_price').first().text().trim() === text) {
-            window.jQuery('#fn_total_delivery_price').text(text);
+        var shown = input.closest('.fn_delivery_item').find('.fn_delivery_price').first().text().trim().replace(/^\(|\)$/g, '');
+        if (texts.indexOf(shown) !== -1) {
+            window.jQuery('#fn_total_delivery_price').text(shown);
         }
     };
 

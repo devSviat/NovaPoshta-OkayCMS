@@ -60,4 +60,14 @@ final class QuoteSession
 
         return is_array($row) && is_string($row['target'] ?? null) ? ['target' => $row['target'], 'cod' => (bool)($row['cod'] ?? false), 'lifting' => (bool)($row['lifting'] ?? false)] : null;
     }
+
+    /** @return array{division_id?: int, settlement_id?: int} the ids a "d:" or "a:" target names */
+    public static function targetIds(string $target): array
+    {
+        if (!preg_match('/^([da]):(\d+)$/', $target, $m) || (int)$m[2] <= 0) {
+            return [];
+        }
+
+        return [$m[1] === 'd' ? 'division_id' : 'settlement_id' => (int)$m[2]];
+    }
 }

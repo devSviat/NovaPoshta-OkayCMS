@@ -52,4 +52,21 @@ class DeliveryPriceViewTest extends TestCase
 
         self::assertSame('безкоштовно', $d->delivery_price_text);
     }
+
+    /** Nothing chosen yet: no price the module did not get from NP, and nothing added to the total. */
+    public function testAwaitingChoiceShowsNoPrice(): void
+    {
+        $d = (object)['free_from' => 999999, 'separate_payment' => 0, 'price' => 70, 'is_free_delivery' => false, 'delivery_price_text' => '70,00 грн', 'total_price_with_delivery' => 1320.0];
+        DeliveryPriceView::awaiting($d, 1250.0, 'вартість — після вибору відділення');
+
+        self::assertSame([0.0, 'вартість — після вибору відділення', 1250.0, false], [$d->price, $d->delivery_price_text, $d->total_price_with_delivery, $d->is_free_delivery]);
+    }
+
+    public function testFreeDeliveryStaysFreeWhileAwaiting(): void
+    {
+        $d = (object)['free_from' => 1000, 'separate_payment' => 0, 'price' => 70, 'is_free_delivery' => true, 'delivery_price_text' => 'безкоштовно'];
+        DeliveryPriceView::awaiting($d, 1250.0, 'вартість — після вибору відділення');
+
+        self::assertSame('безкоштовно', $d->delivery_price_text);
+    }
 }

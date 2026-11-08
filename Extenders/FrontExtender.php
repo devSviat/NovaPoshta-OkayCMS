@@ -30,6 +30,7 @@ use Okay\Entities\CurrenciesEntity;
 use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
+use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteSession;
 use Okay\Modules\Sviat\NovaPoshta\Quote\PriceDecision;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
 
@@ -39,7 +40,7 @@ class FrontExtender implements ExtensionInterface
     private const array SCRIPT_TEXTS = [
         'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_all_day', 'cart_up_to_kg', 'cart_weekdays', 'cart_day_off', 'cart_change', 'cart_change_city', 'cart_schedule',
         'cart_too_heavy', 'cart_too_expensive', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
-        'cart_cod_fee', 'cart_cod_fee_unknown', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager', 'cart_none_fit',
+        'cart_cod_fee', 'cart_cod_fee_unknown', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager', 'cart_price_after_point', 'cart_price_after_address', 'cart_none_fit',
         'cart_street_failed', 'cart_no_street', 'cart_address_choice', 'cart_flat_short', 'cart_no_address', 'cart_lifting_paid', 'cart_lifting_unknown', 'cart_note_left', 'cart_price_rejected',
         'error_city', 'error_point', 'error_street', 'error_house', 'error_floor', 'error_lifting_floor',
     ];
@@ -83,6 +84,10 @@ class FrontExtender implements ExtensionInterface
                 $this->showPrice($delivery, $quote->price, (float)$cart->total_price);
             } elseif ($quote?->unpriced()) {
                 DeliveryPriceView::unpriced($delivery, (float)$cart->total_price, $this->translations->getTranslation('sviat__novaposhta__cart_price_by_manager'));
+            }
+            if ($quote === null && is_object($delivery) && $this->quotes->isOwnMethod($delivery)) {
+                $key = $this->quotes->isOwnPointsMethod($delivery) ? 'sviat__novaposhta__cart_price_after_point' : 'sviat__novaposhta__cart_price_after_address';
+                DeliveryPriceView::awaiting($delivery, (float)$cart->total_price, $this->translations->getTranslation($key));
             }
         }
 
@@ -237,8 +242,11 @@ class FrontExtender implements ExtensionInterface
         $metrics = CartMetrics::fromCart($cart);
         foreach ($deliveries as $delivery) {
             $deliveryId = (int)$delivery->id;
-            $choice = is_array($posted[$deliveryId] ?? null) ? $posted[$deliveryId]
-                : ($last ? ['settlement_id' => $last->settlement_id, 'division_id' => $last->division_id] + self::lastAddress($last) : []);
+            // The form posted back, else what this visitor last priced (survives a reload), else the previous order.
+            $choice = is_array($posted[$deliveryId] ?? null) ? $posted[$deliveryId] : $this->sessionChoice($deliveryId);
+            if ($choice === [] && $last) {
+                $choice = ['settlement_id' => $last->settlement_id, 'division_id' => $last->division_id] + self::lastAddress($last);
+            }
             $described = $this->describe($delivery, $metrics, (int)($choice['settlement_id'] ?? 0), (int)($choice['division_id'] ?? 0), $lang);
             $prefill[(int)$deliveryId] = $described + [
                 'address' => self::addressPrefill($choice),
@@ -248,6 +256,18 @@ class FrontExtender implements ExtensionInterface
         }
 
         return $prefill;
+    }
+
+    /** @return array{settlement_id?: int, division_id?: int} */
+    private function sessionChoice(int $deliveryId): array
+    {
+        $ids = QuoteSession::targetIds((string)($this->quotes->chosen($deliveryId)['target'] ?? ''));
+        if (isset($ids['division_id'])) {
+            $division = $this->entityFactory->get(DivisionEntity::class)->get($ids['division_id']);
+            $ids['settlement_id'] = $division ? (int)$division->settlement_id : 0;
+        }
+
+        return $ids;
     }
 
     /** Address fields of the previous order's snapshot, under the names the cart posts. */

@@ -23,6 +23,15 @@ final class DeliveryPriceView
         $delivery->total_price_with_delivery = $cartTotal + ($free || !empty($delivery->separate_payment) ? 0.0 : $price);
     }
 
+    /**
+     * No point or address chosen yet: the method's own price is not what NP will charge, so none is
+     * shown or added to the total; a free delivery (threshold, promo) stays free.
+     */
+    public static function awaiting(object $delivery, float $cartTotal, string $text): void
+    {
+        self::unpriced($delivery, $cartTotal, $text);
+    }
+
     /** Nova Poshta gave no price: nothing is added to the total, the text says the manager will tell. */
     public static function unpriced(object $delivery, float $cartTotal, string $text): void
     {
