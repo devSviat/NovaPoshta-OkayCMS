@@ -94,4 +94,35 @@ class NpOrdersTest extends TestCase
         self::assertSame(['order_id'], $asked['cols']);
         self::assertSame(['received_since' => '2026-11-01 00:00:00'], $asked['filter']);
     }
+
+    /** Messaging polls unfinished parcels on every cron run: the tracking JSON and audit are not read. */
+    public function testShipmentsReadOnlyTheColumnsTheyUse(): void
+    {
+        $asked = [];
+        $entity = function (string $class) use (&$asked) {
+            $entity = $this->createStub($class);
+            // mappedBy() is final in the core entity: it runs for real and returns the stub.
+            $entity->method('noLimit')->willReturnSelf();
+            $entity->method('cols')->willReturnCallback(function (array $cols) use ($entity, $class, &$asked) {
+                $asked[$class] = $cols;
+
+                return $entity;
+            });
+            $entity->method('find')->willReturn($class === \Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class ? [self::waybill()] : []);
+
+            return $entity;
+        };
+        $waybills = $entity(\Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class);
+        $deliveries = $entity(\Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class);
+        $factory = $this->createStub(\Okay\Core\EntityFactory::class);
+        $factory->method('get')->willReturnCallback(static fn(string $class) => $class === \Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class ? $waybills : $deliveries);
+        $orders = new NpOrders($factory);
+
+        foreach (['unfinished' => [], 'shipments' => [[990101]]] as $method => $args) {
+            $asked = [];
+            self::assertArrayHasKey(990101, $orders->$method(...$args), $method);
+            self::assertSame(['order_id', 'number', 'status_code', 'status_at', 'services'], $asked[\Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity::class] ?? null, $method);
+            self::assertSame(['order_id', 'cod'], $asked[\Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class] ?? null, $method);
+        }
+    }
 }

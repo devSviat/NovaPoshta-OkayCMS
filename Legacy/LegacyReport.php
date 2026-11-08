@@ -10,7 +10,7 @@ final class LegacyReport
 
     /** @var array<string, array{done:int, existed:int, failed:int}> */
     private array $counts = [];
-    /** @var list<array{step:string, order:?int, key:string, name:?string}> */
+    /** @var list<array{step:string, order:?int, key:string, name:?string, record:?int}> */
     private array $fails = [];
     private int $moreFails = 0;
 
