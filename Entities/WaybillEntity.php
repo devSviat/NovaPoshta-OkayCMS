@@ -38,6 +38,19 @@ class WaybillEntity extends Entity
         $this->select->where($this->getTableAlias() . '.status_code IN (' . ($codes === [] ? '0' : implode(',', $codes)) . ')');
     }
 
+    /**
+     * Received (9) on or after the date: NP's status date, else when the row was last tracked; never the row's
+     * update time, which a migration or a refresh rewrites for old parcels.
+     */
+    protected function filter__received_since($since): void
+    {
+        $alias = $this->getTableAlias();
+        $this->select->where("{$alias}.status_code = 9")
+            ->where("{$alias}.number <> ''")
+            ->where("COALESCE({$alias}.status_at, {$alias}.tracked_at) >= :nps_received_since")
+            ->bindValue('nps_received_since', (string)$since);
+    }
+
     /** `due`: the longest unchecked first. */
     protected function customOrder($order = null, array $orderFields = [], array $additionalData = [])
     {
