@@ -498,6 +498,7 @@ $lang['sviat__novaposhta__legacy_fail_no_point'] = 'the point is no longer in NP
 $lang['sviat__novaposhta__legacy_fail_no_place'] = 'settlement not found — the order asks to choose again';
 $lang['sviat__novaposhta__legacy_fail_namesakes'] = 'several settlements with this name — the order asks to choose again';
 $lang['sviat__novaposhta__legacy_fail_deleted'] = 'the waybill was deleted at NP — not carried over';
+$lang['sviat__novaposhta__legacy_fail_number_taken'] = 'this waybill already belongs to another order — not carried over';
 $lang['sviat__novaposhta__legacy_fail_bad_number'] = 'the waybill number is not 14 digits — not carried over';
 $lang['sviat__novaposhta__legacy_fail_online_payment'] = 'method with a payment module — cash on delivery not switched on';
 $lang['sviat__novaposhta__legacy_fail_namesakes_popular'] = 'the city could not be found — add it by hand in «Popular cities»';

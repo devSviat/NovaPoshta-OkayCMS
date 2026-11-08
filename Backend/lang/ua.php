@@ -498,6 +498,7 @@ $lang['sviat__novaposhta__legacy_fail_no_point'] = 'відділення нем�
 $lang['sviat__novaposhta__legacy_fail_no_place'] = 'населений пункт не знайдено — у замовленні попередження «виберіть заново»';
 $lang['sviat__novaposhta__legacy_fail_namesakes'] = 'кілька населених пунктів з такою назвою — у замовленні попередження «виберіть заново»';
 $lang['sviat__novaposhta__legacy_fail_deleted'] = 'накладну видалено в НП — не перенесено';
+$lang['sviat__novaposhta__legacy_fail_number_taken'] = 'ця накладна вже прив\'язана до іншого замовлення — не перенесено';
 $lang['sviat__novaposhta__legacy_fail_bad_number'] = 'номер накладної не з 14 цифр — не перенесено';
 $lang['sviat__novaposhta__legacy_fail_online_payment'] = 'спосіб з платіжним модулем — післяплату не вмикаємо';
 $lang['sviat__novaposhta__legacy_fail_namesakes_popular'] = 'не вдалося визначити місто — додайте вручну в «Популярних містах»';

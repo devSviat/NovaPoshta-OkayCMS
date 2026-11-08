@@ -64,14 +64,14 @@ class OrderPointChangeTest extends TestCase
 
     public function testWaybillBeingCreatedLocks(): void
     {
-        $pending = (object)['api' => 'pending', 'number' => '', 'created_at' => date('Y-m-d H:i:s', self::NOW - 20)];
+        $pending = (object)['api' => null, 'number' => null, 'created_at' => date('Y-m-d H:i:s', self::NOW - 20)];
 
         self::assertSame('order_point_locked', self::select(self::points(), self::division(), [], $pending)['error']);
     }
 
     public function testStaleReservationDoesNotLock(): void
     {
-        $stale = (object)['api' => 'pending', 'number' => '', 'created_at' => date('Y-m-d H:i:s', self::NOW - 600)];
+        $stale = (object)['api' => null, 'number' => null, 'created_at' => date('Y-m-d H:i:s', self::NOW - 600)];
 
         self::assertNull(self::select(self::points(), self::division(), [], $stale)['error']);
     }

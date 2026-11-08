@@ -56,6 +56,10 @@ class SchemaTest extends TestCase
             array_map(static fn(EntityField $f): string => $f->getName(), $fields),
         );
         self::assertArrayHasKey(EntityField::INDEX_UNIQUE, $fields[1]->getIndexes());
+        // One waybill belongs to one order; while it is being made it has no number (NULL repeats freely).
+        self::assertArrayHasKey(EntityField::INDEX_UNIQUE, $fields[2]->getIndexes(), 'number');
+        self::assertTrue($fields[2]->isNullable(), 'number');
+        self::assertTrue($fields[4]->isNullable(), 'api: how it was made, unknown while it is being made');
     }
 
     public function testDictionaryIdsAreNovaPoshtaIdsNotAutoIncrement(): void

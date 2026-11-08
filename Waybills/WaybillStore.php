@@ -27,14 +27,15 @@ final class WaybillStore implements WaybillRows
     }
 
     /**
-     * @param 'new'|'old'|'attached'|'pending' $api
+     * @param ?string $number null while the waybill is being made
+     * @param 'new'|'old'|'attached'|null $api how it was made; null while it is being made
      * @param array<string, mixed> $services what was ordered, for the audit and the card
      */
-    public function add(int $orderId, string $number, ?string $ref, string $api, array $services): bool
+    public function add(int $orderId, ?string $number, ?string $ref, ?string $api, array $services): bool
     {
         $now = date('Y-m-d H:i:s');
 
-        // The core swallows the duplicate-key error and returns false: that is the lost race.
+        // The core swallows the duplicate-key error (order_id or number) and returns false.
         return (bool)$this->entity()->add([
             'order_id' => $orderId,
             'number' => $number,
@@ -48,13 +49,13 @@ final class WaybillStore implements WaybillRows
 
     public function reserve(int $orderId): bool
     {
-        return $this->add($orderId, '', null, 'pending', []);
+        return $this->add($orderId, null, null, null, []);
     }
 
     public function complete(int $orderId, string $number, ?string $ref, string $api, array $services): bool
     {
         $row = $this->forOrder($orderId);
-        if ($row === null || $row->api !== 'pending') {
+        if (!PendingWaybill::is($row)) {
             return false;
         }
         $this->entity()->update((int)$row->id, [
@@ -72,7 +73,7 @@ final class WaybillStore implements WaybillRows
     public function release(int $orderId): void
     {
         $row = $this->forOrder($orderId);
-        if ($row !== null && $row->api === 'pending') {
+        if (PendingWaybill::is($row)) {
             $this->entity()->delete([(int)$row->id]);
         }
     }

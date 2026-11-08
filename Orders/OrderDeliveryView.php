@@ -2,6 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Orders;
 
+use Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill;
 use Okay\Modules\Sviat\NovaPoshta\Cart\PointTitle;
 
 /** The order's saved choice as lines of text, for the order pages (customer and admin) and both order emails. */
@@ -58,7 +59,7 @@ final class OrderDeliveryView
      */
     public static function waybill(?object $row): ?array
     {
-        if ($row === null || $row->api === 'pending' || (int)($row->status_code ?? 0) === 2 || strlen((string)$row->number) !== 14) {
+        if ($row === null || PendingWaybill::is($row) || (int)($row->status_code ?? 0) === 2 || strlen((string)$row->number) !== 14) {
             return null;
         }
         $number = (string)$row->number;

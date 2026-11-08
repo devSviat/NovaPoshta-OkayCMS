@@ -62,6 +62,11 @@ final class WaybillsStep implements LegacyStep
 
             return;
         }
+        if ($this->orders->waybillOwner($number) !== null) {
+            $report->fail(self::NAME, $orderId, 'legacy_fail_number_taken', $number);
+
+            return;
+        }
         $document = json_decode((string)($row->tracking_response ?? ''), true);
         $document = is_array($document) ? $document : null;
         if ((int)($row->status_code ?? 0) === self::DELETED || (int)($document['StatusCode'] ?? 0) === self::DELETED) {

@@ -163,9 +163,9 @@ class Init extends AbstractInit
             WaybillEntity::class => [
                 new EntityField('id')->setIndexPrimaryKey()->setTypeInt(11, false)->setAutoIncrement(),
                 new EntityField('order_id')->setTypeInt(11, false)->setIndexUnique(),
-                new EntityField('number')->setTypeVarchar(14, false)->setIndex(),
+                new EntityField('number')->setTypeVarchar(14)->setNullable()->setIndexUnique(),
                 new EntityField('ref')->setTypeVarchar(36)->setNullable(),
-                new EntityField('api')->setTypeVarchar(8, false),
+                new EntityField('api')->setTypeVarchar(8)->setNullable(),
                 new EntityField('services')->setTypeText()->setNullable(),
                 new EntityField('audit_status')->setTypeVarchar(16)->setNullable(),
                 new EntityField('audit')->setTypeText()->setNullable(),

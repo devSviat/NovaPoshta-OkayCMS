@@ -2,6 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Extenders;
 
+use Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill;
 use Okay\Core\Design;
 use Okay\Core\EntityFactory;
 use Okay\Entities\DeliveriesEntity;
@@ -195,7 +196,7 @@ class BackendExtender implements ExtensionInterface
         $rows = $this->waybillRows->forOrders(array_map(static fn($o): int => (int)$o->id, array_values($orders)));
         foreach ($orders as $order) {
             $row = $rows[(int)$order->id] ?? null;
-            if ($row === null || $row->api === 'pending') {
+            if ($row === null || PendingWaybill::is($row)) {
                 continue;
             }
             $code = isset($row->status_code) ? (int)$row->status_code : null;

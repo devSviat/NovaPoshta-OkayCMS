@@ -105,7 +105,7 @@ class OrderDeliveryViewTest extends TestCase
             \Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill($row([])),
         );
         self::assertNull(\Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill($row(['status_code' => 2])));
-        self::assertNull(\Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill($row(['api' => 'pending', 'number' => ''])));
+        self::assertNull(\Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill($row(['api' => null, 'number' => null])));
         self::assertNull(\Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill(null));
         self::assertNotNull(\Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill($row(['status_code' => null, 'api' => 'attached'])));
     }

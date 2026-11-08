@@ -15,6 +15,9 @@ interface LegacyOrders
 
     public function hasWaybill(int $orderId): bool;
 
+    /** The order a waybill number already belongs to: a number is unique in the module's table. */
+    public function waybillOwner(string $number): ?int;
+
     /** @return bool false when the order already has a waybill */
     public function importWaybill(int $orderId, array $values): bool;
 }

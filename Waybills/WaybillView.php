@@ -39,7 +39,7 @@ final class WaybillView
 
             return $view;
         }
-        if ($row !== null && $row->api === 'pending') {
+        if (PendingWaybill::is($row)) {
             $row = null;
         }
         if ($row !== null) {

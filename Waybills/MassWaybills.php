@@ -61,7 +61,7 @@ final class MassWaybills
         }
         $existing = $this->rows->forOrder($orderId);
         // A reservation is judged by create(): fresh is refused, a dead one is replaced with a warning.
-        if ($existing !== null && $existing->api !== 'pending') {
+        if ($existing !== null && !PendingWaybill::is($existing)) {
             return $skip('mass_has_waybill', (string)$existing->number);
         }
         $draft = $this->orders->draft($orderId);

@@ -153,7 +153,7 @@ class WaybillServiceTest extends TestCase
 
     public function testCreateInProgressIsRefusedWithoutRequest(): void
     {
-        $this->rows->add(self::ORDER, '', null, 'pending', []);
+        $this->rows->reserve(self::ORDER);
         $this->rows->now += 30;
 
         $outcome = $this->service()->create(self::ORDER, W::point());
@@ -175,7 +175,7 @@ class WaybillServiceTest extends TestCase
 
     public function testStaleAttemptIsReplacedWithAWarning(): void
     {
-        $this->rows->add(self::ORDER, '', null, 'pending', []);
+        $this->rows->reserve(self::ORDER);
         $this->rows->now += 600;
         $this->jwt();
         $this->http->json(201, W::fixture('new_created'));

@@ -34,7 +34,7 @@ class WaybillEntity extends Entity
         $alias = $this->getTableAlias();
         $closed = implode(',', [...\Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus::FINAL, \Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus::NOT_FOUND]);
         $this->select->where("({$alias}.status_code IS NULL OR {$alias}.status_code NOT IN ({$closed}))")
-            ->where("{$alias}.api <> 'pending'");
+            ->where("{$alias}.number IS NOT NULL");
     }
 
     /** @param list<int> $codes status codes */
