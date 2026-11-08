@@ -89,6 +89,23 @@
 
 Якщо cron немає, блок «Довідники» в налаштуваннях модуля прямо про це скаже.
 
+## Для інших модулів
+
+Інші модулі читають дані Нової Пошти лише через `Okay\Modules\Sviat\NovaPoshta\Integration\NpOrders`.
+Решта класів і таблиць модуля може змінюватись без попередження.
+
+Перед зверненням перевірте, що модуль увімкнений: `class_exists(NpOrders::class)` і
+`Modules::isActiveModule('Sviat', 'NovaPoshta')`. Тоді фасад береться через
+`ServiceLocator::getInstance()->getService(NpOrders::class)`.
+
+| Метод | Що повертає |
+| --- | --- |
+| `shipments(array $orderIds)` | `NpShipment` за id замовлення: номер, код і дата статусу, дата прибуття, чи є післяплата |
+| `unfinished()` | накладні, які ще в дорозі чи чекають у відділенні |
+| `receivedSince(string $since)` | id замовлень, отриманих з цієї дати (за датою статусу НП) |
+| `addressOf(int $orderId)` | `NpAddress`: місто й відділення або адреса |
+| `NpOrders::waybillTable()` | таблиця накладних для підзапитів у фільтрах сутностей |
+
 ## Перевірено
 
 Чиста OkayCMS 4.5.3 і [форк](https://github.com/devSviat/OkayCMS-Fork), PHP 8.5.

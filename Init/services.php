@@ -53,6 +53,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\MassOrderSource;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\MassWaybills;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersMassAction;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\AmountDue;
+use Okay\Modules\Sviat\NovaPoshta\Integration\NpOrders;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillSettings;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderContacts;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
@@ -375,5 +376,9 @@ return [
         'class' => LegacyMigration::class,
         // Orders before waybills: a waybill's card reads the order's point.
         'arguments' => [new SR(ModuleState::class), new SR(LegacyGate::class), new SR(OrdersStep::class), new SR(WaybillsStep::class), new SR(PaymentsStep::class), new SR(VolumesStep::class), new SR(PopularStep::class), new SR(SettingsStep::class)],
+    ],
+    NpOrders::class => [
+        'class' => NpOrders::class,
+        'arguments' => [new SR(EntityFactory::class)],
     ],
 ];
