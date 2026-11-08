@@ -60,7 +60,7 @@ final class MassWaybills
             return $skip('mass_not_np');
         }
         $existing = $this->rows->forOrder($orderId);
-        // A reservation is judged by create(): fresh is refused, a dead one is replaced with a warning.
+        // A reservation is judged by create(): refused while fresh, and once stale until the manager checks NP.
         if ($existing !== null && !PendingWaybill::is($existing)) {
             return $skip('mass_has_waybill', (string)$existing->number);
         }
@@ -71,6 +71,9 @@ final class MassWaybills
         $issue = $draft->organizationIssue();
         if ($issue !== null) {
             return $skip($issue);
+        }
+        if ($draft->chargesDeliveryTwice()) {
+            return $skip('mass_double_delivery');
         }
 
         $outcome = $this->service->create($orderId, $draft);

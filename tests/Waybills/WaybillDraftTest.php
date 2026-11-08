@@ -41,7 +41,7 @@ class WaybillDraftTest extends TestCase
         return (object)['id' => 7162, 'number' => '11/1', 'name_uk' => 'Відділення №1: вул. Пирогівський шлях, 135', 'settlement_id' => 118064];
     }
 
-    private static function build(?object $order = null, ?object $snapshot = null, object|false|null $division = false, ?CodKind $cod = null, float $rate = 1.0, ?array $purchases = null, ?array $invoice = null, ?WaybillConfig $config = null): WaybillDraft|string
+    private static function build(?object $order = null, ?object $snapshot = null, object|false|null $division = false, ?CodKind $cod = null, float $rate = 1.0, ?array $purchases = null, ?array $invoice = null, ?WaybillConfig $config = null, bool $promisedFree = false): WaybillDraft|string
     {
         return WaybillDrafts::build(
             $order ?? self::order(),
@@ -55,6 +55,7 @@ class WaybillDraftTest extends TestCase
             new \DateTimeImmutable('2026-11-07 10:00'),
             null,
             $invoice,
+            $promisedFree,
         );
     }
 
@@ -250,7 +251,29 @@ class WaybillDraftTest extends TestCase
 
         self::assertSame('Recipient', $draft->payerType);
         self::assertSame(0.0, $draft->deliveryInTotal);
-        self::assertSame('Recipient', self::build(self::order(['delivery_price' => 0]))->payerType, 'free delivery: nothing was taken');
+        self::assertSame('Recipient', self::build(self::order(['delivery_price' => 0]))->payerType, 'unpriced: the manager settles delivery with the customer');
+    }
+
+    /** The cart said "free": NP must not charge the customer at pickup. */
+    public function testAutoPayerIsTheSenderWhenTheShopPromisedFreeDelivery(): void
+    {
+        $order = self::order(['delivery_price' => 0, 'total_price' => 1200.0]);
+
+        self::assertSame('Sender', self::build($order, promisedFree: true)->payerType);
+        self::assertSame('Recipient', self::build($order, promisedFree: true, config: new WaybillConfig(null, null, payerType: 'Recipient'))->payerType);
+    }
+
+    public function testPromisedFreeDelivery(): void
+    {
+        $order = self::order(['delivery_price' => 0, 'total_price' => 1200.0]);
+        $paid = (object)['paid' => 1, 'free_from' => 1000, 'price' => 70];
+
+        self::assertTrue(WaybillDrafts::promisedFree($paid, $order, (object)['price_source' => 'np']), 'past the threshold');
+        self::assertTrue(WaybillDrafts::promisedFree((object)['paid' => 0, 'free_from' => 0, 'price' => 0], $order, null), 'a free method');
+        self::assertTrue(WaybillDrafts::promisedFree((object)['paid' => 1, 'free_from' => 5000, 'price' => 70], $order, (object)['price_source' => 'external']), 'another module (a promo) made it free');
+        self::assertFalse(WaybillDrafts::promisedFree((object)['paid' => 1, 'free_from' => 5000, 'price' => 70], $order, (object)['price_source' => 'fallback']), 'NP did not price it');
+        self::assertFalse(WaybillDrafts::promisedFree((object)['paid' => 1, 'free_from' => 5000, 'price' => 70], self::order(), (object)['price_source' => 'np']), 'priced, below the threshold');
+        self::assertFalse(WaybillDrafts::promisedFree(null, $order, null));
     }
 
     public function testFixedPayerWins(): void

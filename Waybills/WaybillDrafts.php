@@ -3,6 +3,7 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 use Okay\Core\EntityFactory;
+use Okay\Entities\DeliveriesEntity;
 use Okay\Entities\OrdersEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
@@ -12,6 +13,7 @@ use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderParcel;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
+use Okay\Modules\Sviat\NovaPoshta\Quote\FreeDelivery;
 use Okay\Modules\Sviat\NovaPoshta\Quote\Parcel;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
 
@@ -56,13 +58,29 @@ final class WaybillDrafts
             new \DateTimeImmutable(),
             fn(float $totalUah): float => $this->amountDue->onPickup($order, $totalUah),
             $this->invoices->forOrder($order),
+            self::promisedFree($this->entityFactory->get(DeliveriesEntity::class)->get((int)($order->delivery_id ?? 0)) ?: null, $order, $snapshot),
         );
+    }
+
+    /** The cart showed delivery as free: a free method, the free_from threshold, or another module (a promo) zeroing the price. */
+    public static function promisedFree(?object $delivery, object $order, ?object $snapshot): bool
+    {
+        if ($delivery === null) {
+            return false;
+        }
+        $deliveryPrice = max(0.0, (float)($order->delivery_price ?? 0));
+        $goods = (float)($order->total_price ?? 0) - (empty($order->separate_delivery) ? $deliveryPrice : 0.0);
+
+        return empty($delivery->paid)
+            || FreeDelivery::applies($delivery, $goods)
+            || (($snapshot->price_source ?? null) === 'external' && $deliveryPrice <= 0.0);
     }
 
     /**
      * @param float $uahRate hryvnias per unit of the shop's main currency (order sums are in it)
      * @param ?\Closure(float): float $amountDue what NP collects, from the order total in hryvnias
      * @param ?array{edrpou: string, company: string} $invoice the organization the order was invoiced to
+     * @param bool $promisedFree see promisedFree(): with the "auto" payer the shop then pays Nova Poshta
      * @return WaybillDraft|string the draft, or the language key of what the order lacks
      */
     public static function build(
@@ -77,6 +95,7 @@ final class WaybillDrafts
         \DateTimeImmutable $now,
         ?\Closure $amountDue = null,
         ?array $invoice = null,
+        bool $promisedFree = false,
     ): WaybillDraft|string {
         $mode = DeliveryMode::tryFrom((string)($snapshot->mode ?? '')) ?? DeliveryMode::Points;
         if ($mode === DeliveryMode::Points) {
@@ -128,8 +147,8 @@ final class WaybillDrafts
             round(max(0.0, $goods) * $uahRate, 2),
             $waybill->description,
             $waybill->cargoType,
-            // The shop already took delivery in the total: NP must not charge the recipient again.
-            $waybill->payerType === 'auto' ? ($deliveryInTotal > 0 ? 'Sender' : 'Recipient') : $waybill->payerType,
+            // Delivery taken in the total, or promised free: NP must not charge the recipient.
+            $waybill->payerType === 'auto' ? ($deliveryInTotal > 0 || $promisedFree ? 'Sender' : 'Recipient') : $waybill->payerType,
             $waybill->paymentMethod,
             $codKind !== null && empty($order->paid),
             round($amountDue ? $amountDue($totalUah) : $totalUah),

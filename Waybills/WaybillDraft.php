@@ -76,6 +76,12 @@ final readonly class WaybillDraft
         return clone($this, $values);
     }
 
+    /** The recipient pays Nova Poshta for delivery the order total already includes. */
+    public function chargesDeliveryTwice(): bool
+    {
+        return $this->payerType === 'Recipient' && $this->deliveryInTotal > 0;
+    }
+
     /** @return ?string language key of what is wrong with the organization; NP checks the code against its registry itself */
     public function organizationIssue(): ?string
     {

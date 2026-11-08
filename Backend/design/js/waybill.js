@@ -228,7 +228,7 @@
     /** Delivery inside the order total plus the recipient paying NP for it again: say so before creating. */
     document.addEventListener('change', function (event) {
         var input = event.target;
-        if (!input.matches || !input.matches('[data-field="payer_type"], [data-field="cod"]')) {
+        if (!input.matches || !input.matches('[data-field="payer_type"]')) {
             return;
         }
         var root = rootOf(input);
@@ -237,8 +237,7 @@
             return;
         }
         var recipient = root.querySelector('[data-field="payer_type"][value="Recipient"]');
-        var cod = root.querySelector('[data-field="cod"]');
-        warning.hidden = !(recipient && recipient.checked && cod && cod.checked);
+        warning.hidden = !(recipient && recipient.checked);
     });
 
     document.addEventListener('click', function (event) {
