@@ -18,8 +18,18 @@ class WaybillsStepTest extends TestCase
     private FakeLegacyData $old;
     private FakeLegacyOrders $orders;
 
+    private string $zone;
+
+    protected function tearDown(): void
+    {
+        date_default_timezone_set($this->zone);
+    }
+
     protected function setUp(): void
     {
+        // NP's DateScan is Kyiv time; the expectations below are in the same zone.
+        $this->zone = date_default_timezone_get();
+        date_default_timezone_set('Europe/Kyiv');
         $this->old = new FakeLegacyData();
         $this->orders = new FakeLegacyOrders();
         foreach ([201, 202, 203, 204] as $id) {

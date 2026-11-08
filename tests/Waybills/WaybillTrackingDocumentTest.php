@@ -11,6 +11,27 @@ use PHPUnit\Framework\TestCase;
  */
 class WaybillTrackingDocumentTest extends TestCase
 {
+    private string $zone;
+
+    protected function setUp(): void
+    {
+        $this->zone = date_default_timezone_get();
+        date_default_timezone_set('Europe/Kyiv');
+    }
+
+    protected function tearDown(): void
+    {
+        date_default_timezone_set($this->zone);
+    }
+
+    /** NP gives Kyiv time; the shop stores its own (CI runs in UTC). */
+    public function testScanDateIsConvertedToTheShopTimeZone(): void
+    {
+        date_default_timezone_set('UTC');
+
+        self::assertSame('2026-11-07 13:01:00', WaybillTrackingDocument::scanDate('15:01 07.11.2026'));
+    }
+
     public function testNewStatusTakesTheDateOfItsScan(): void
     {
         $columns = WaybillTrackingDocument::statusColumns(['StatusCode' => '9', 'Status' => 'Отримано', 'DateScan' => '15:01 07.11.2026'], (object)['status_code' => 7, 'status_at' => '2026-11-05 10:00:00']);
