@@ -78,9 +78,8 @@ final class InMemoryWaybillRows implements WaybillRows
     {
         $previous = isset($this->rows[$orderId]->tracking) ? json_decode($this->rows[$orderId]->tracking, true) : null;
         $document = \Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTrackingDocument::merge($document, $previous, date('Y-m-d H:i:s', $this->now));
-        $code = \Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTrackingDocument::status($document);
         $this->rows[$orderId] = (object)(['tracking' => json_encode($document, JSON_UNESCAPED_UNICODE), 'tracked_at' => date('Y-m-d H:i:s', $this->now)]
-            + ($code !== null ? ['status_code' => $code, 'status_text' => (string)($document['Status'] ?? '')] : []) + (array)$this->rows[$orderId]);
+            + \Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTrackingDocument::statusColumns($document, $this->rows[$orderId]) + (array)$this->rows[$orderId]);
     }
 
     public function markChecked(int $orderId): void

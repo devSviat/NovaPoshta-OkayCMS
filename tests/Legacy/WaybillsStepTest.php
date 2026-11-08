@@ -18,8 +18,18 @@ class WaybillsStepTest extends TestCase
     private FakeLegacyData $old;
     private FakeLegacyOrders $orders;
 
+    private string $zone;
+
+    protected function tearDown(): void
+    {
+        date_default_timezone_set($this->zone);
+    }
+
     protected function setUp(): void
     {
+        // NP's DateScan is Kyiv time; the expectations below are in the same zone.
+        $this->zone = date_default_timezone_get();
+        date_default_timezone_set('Europe/Kyiv');
         $this->old = new FakeLegacyData();
         $this->orders = new FakeLegacyOrders();
         foreach ([201, 202, 203, 204] as $id) {
@@ -55,6 +65,25 @@ class WaybillsStepTest extends TestCase
         self::assertSame('2026-11-01 10:00:00', $w['tracking']['_fetched_at']);
         self::assertSame('9', $w['tracking']['StatusCode']);
         self::assertSame(['done' => 1, 'existed' => 0, 'failed' => 0], $report->counts('waybills'));
+    }
+
+    /** status_at means the date of the status at NP on every path; the old module's refresh time is only a fallback. */
+    public function testStatusDateIsTheScanDate(): void
+    {
+        $doc = ['Number' => '20450000000045', 'StatusCode' => '9', 'Status' => 'Відправлення отримано', 'DateScan' => '12:30 02.11.2026'];
+        $this->old->tracking = [self::row(1, 201, ['status_code' => '9', 'tracking_response' => json_encode($doc)])];
+        $this->migrate(new LegacyReport());
+
+        self::assertSame('2026-11-02 12:30:00', $this->orders->waybills[201]['status_at']);
+    }
+
+    public function testStatusDateFallsBackToTheOldRefreshTime(): void
+    {
+        $doc = ['Number' => '20450000000045', 'StatusCode' => '9', 'DateScan' => ''];
+        $this->old->tracking = [self::row(1, 201, ['status_code' => '9', 'tracking_response' => json_encode($doc)])];
+        $this->migrate(new LegacyReport());
+
+        self::assertSame('2026-11-01 10:00:00', $this->orders->waybills[201]['status_at']);
     }
 
     public function testBrokenJsonKeepsNumber(): void

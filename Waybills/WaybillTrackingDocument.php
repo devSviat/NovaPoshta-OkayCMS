@@ -29,4 +29,36 @@ final class WaybillTrackingDocument
 
         return $code > 0 && $code !== WaybillStatus::NOT_FOUND ? $code : null;
     }
+
+    /**
+     * Status columns to write from a getStatusDocuments answer; empty when it has no status worth keeping.
+     * A changed status takes the date of the scan that produced it (NP: DateScan, "H:i d.m.Y" in Kyiv time),
+     * or none: the previous status's date would date it wrong. An unchanged status keeps the tracker's date.
+     *
+     * @return array{status_code?: int, status_text?: string, status_at?: ?string}
+     */
+    public static function statusColumns(array $document, ?object $row): array
+    {
+        $code = self::status($document);
+        if ($code === null) {
+            return [];
+        }
+        $columns = ['status_code' => $code, 'status_text' => mb_substr((string)($document['Status'] ?? ''), 0, 255)];
+        if ($row === null || (int)($row->status_code ?? 0) !== $code) {
+            $columns['status_at'] = self::scanDate($document['DateScan'] ?? null);
+        }
+
+        return $columns;
+    }
+
+    /** NP's DateScan ("H:i d.m.Y", Kyiv time) — the date of the scan that produced the status — in the shop's time. */
+    public static function scanDate(mixed $value): ?string
+    {
+        if (!is_string($value) || trim($value) === '') {
+            return null;
+        }
+        $date = \DateTimeImmutable::createFromFormat('!H:i d.m.Y', trim($value), new \DateTimeZone('Europe/Kyiv'));
+
+        return $date === false ? null : $date->setTimezone(new \DateTimeZone(date_default_timezone_get()))->format('Y-m-d H:i:s');
+    }
 }
