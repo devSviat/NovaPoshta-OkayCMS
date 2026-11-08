@@ -170,6 +170,8 @@
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_weight|escape}</span><input class="form-control" inputmode="decimal" data-field="weight" value="{$d->weightKg|escape}"><span class="np-wb__error" data-for="weight"></span></label>
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_volume|escape}</span><input class="form-control" inputmode="decimal" data-field="volume" value="{$d->volumeM3|escape}"><span class="np-wb__error" data-for="volume"></span></label>
             </div>
+            {* The block name NovaPoshtaTracking had: Checkbox warns here that part of the order is prepaid. *}
+            {get_design_block block="novaposhta_document_payment"}
             <div class="np-wb__pair">
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_declared_cost|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_declared_tip}</span><input class="form-control" inputmode="decimal" data-field="declared_cost" value="{$d->declaredCost|escape}"><span class="np-wb__error" data-for="declared_cost"></span></label>
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cod_amount|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_amount_tip}</span><input class="form-control" inputmode="decimal" data-field="cod_amount" value="{$d->codAmount|escape}" {if !$d->cod}disabled{/if}><span class="np-wb__error" data-for="cod_amount"></span></label>
