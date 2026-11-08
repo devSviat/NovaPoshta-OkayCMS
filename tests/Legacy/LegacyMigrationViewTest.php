@@ -66,4 +66,19 @@ class LegacyMigrationViewTest extends TestCase
         self::assertFalse(LegacyMigrationView::vars(self::state('running', 0), self::COUNTS, [], [], self::STEPS)['canStart']);
         self::assertTrue(LegacyMigrationView::vars(self::state('done', 6), self::COUNTS, [], [], self::STEPS)['canStart']);
     }
+
+    public function testFinishedAtReadsLikeTheRestOfTheAdmin(): void
+    {
+        $vars = LegacyMigrationView::vars(self::state('done', 6), self::COUNTS, ['OkayCMS/NovaposhtaCost'], [], self::STEPS);
+
+        self::assertSame('08.11.2026 14:32', $vars['finishedAt']);
+    }
+
+    public function testRecordSurvivesTheStoredReport(): void
+    {
+        $report = new \Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyReport();
+        $report->fail('orders', null, 'legacy_fail_no_order', '999', 12);
+
+        self::assertSame(12, \Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyReport::fromArray($report->toArray())->fails()[0]['record']);
+    }
 }

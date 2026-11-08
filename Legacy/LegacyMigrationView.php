@@ -45,7 +45,7 @@ final class LegacyMigrationView
             'rows' => $rows,
             'fails' => $report->fails(),
             'moreFails' => $report->moreFails(),
-            'finishedAt' => $state['finished_at'] ?? null,
+            'finishedAt' => ($at = strtotime((string)($state['finished_at'] ?? ''))) ? date('d.m.Y H:i', $at) : null,
             'switch' => $status === 'done' ? array_map(static fn(object $d): array => [
                 'id' => (int)$d->id,
                 'name' => (string)$d->name,

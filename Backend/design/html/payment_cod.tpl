@@ -13,7 +13,13 @@
         </label>
     </div>
     <div class="np-codpay__kinds{if !$np_codpay.kind} hidden{/if}">
-        <label class="np-codpay__kind"><input type="radio" name="sviat_np_cod_kind" value="money" {if $np_codpay.kind != 'control'}checked{/if}> <span><b>{$btr->sviat__novaposhta__cod_kind_money|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__codpay_money_note|escape}</span></span></label>
-        <label class="np-codpay__kind"><input type="radio" name="sviat_np_cod_kind" value="control" {if $np_codpay.kind == 'control'}checked{/if}> <span><b>{$btr->sviat__novaposhta__waybill_cod_control_title|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__codpay_control_note|escape}</span></span></label>
+        <div class="okay_type_radio_wrap">
+            <input id="np_codpay_money" class="hidden_check" type="radio" name="sviat_np_cod_kind" value="money" {if $np_codpay.kind != 'control'}checked{/if}>
+            <label for="np_codpay_money" class="okay_type_radio"><span><b>{$btr->sviat__novaposhta__cod_kind_money|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__codpay_money_note|escape}</span></span></label>
+        </div>
+        <div class="okay_type_radio_wrap">
+            <input id="np_codpay_control" class="hidden_check" type="radio" name="sviat_np_cod_kind" value="control" {if $np_codpay.kind == 'control'}checked{/if}>
+            <label for="np_codpay_control" class="okay_type_radio"><span><b>{$btr->sviat__novaposhta__waybill_cod_control_title|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__codpay_control_note|escape}</span></span></label>
+        </div>
     </div>
 </div>

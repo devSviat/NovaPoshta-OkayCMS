@@ -135,7 +135,9 @@ class OrdersStepTest extends TestCase
 
         self::assertSame([], $this->orders->rows);
         self::assertSame(2, $report->counts('orders')['failed']);
-        self::assertSame('legacy_fail_no_order', $report->fails()[1]['key']);
+        // The shop has no such order: the report names the old record, not a link to nothing.
+        self::assertSame(['step' => 'orders', 'order' => null, 'key' => 'legacy_fail_no_order_id', 'name' => null, 'record' => 1], $report->fails()[0]);
+        self::assertSame(['step' => 'orders', 'order' => null, 'key' => 'legacy_fail_no_order', 'name' => '999', 'record' => 2], $report->fails()[1]);
     }
 
     public function testRowWithoutDataIsSkipped(): void

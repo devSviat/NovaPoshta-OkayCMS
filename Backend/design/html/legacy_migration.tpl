@@ -61,8 +61,8 @@
                     <div class="np_legacy__fails">
                         {foreach $L.fails as $f}
                             <div>
-                                <span>{if $f.order}<a href="index.php?controller=OrderAdmin&amp;id={$f.order|escape:'url'}">№ {$f.order|escape}</a>{else}{$btr->getTranslation('sviat__novaposhta__legacy_row_'|cat:$f.step)|escape}{/if}</span>
-                                <span>{if $f.name}<b>{$f.name|escape}</b> — {/if}{$btr->getTranslation('sviat__novaposhta__'|cat:$f.key)|escape}</span>
+                                <span>{if $f.order}<a href="index.php?controller=OrderAdmin&amp;id={$f.order|escape:'url'}">№ {$f.order|escape}</a>{elseif $f.record}{$btr->sviat__novaposhta__legacy_record|escape} № {$f.record|escape}{else}{$btr->getTranslation('sviat__novaposhta__'|cat:'legacy_row_'|cat:$f.step)|escape}{/if}</span>
+                                <span>{if $f.key == 'legacy_fail_no_order'}{$btr->sviat__novaposhta__legacy_fail_no_order|replace:'%s':$f.name|escape}{else}{if $f.name}<b>{$f.name|escape}</b> — {/if}{$btr->getTranslation('sviat__novaposhta__'|cat:$f.key)|escape}{/if}</span>
                             </div>
                         {/foreach}
                         {if $L.moreFails}<div><span></span><span class="text_grey">{$btr->sviat__novaposhta__legacy_more|escape} {$L.moreFails|escape}</span></div>{/if}
@@ -78,7 +78,11 @@
                     {if $L.phase == 'before'}
                         <div class="alert alert--warning mt-1" role="note"><div class="alert__content"><p>{$btr->sviat__novaposhta__legacy_backup_warning|escape}</p></div></div>
                     {/if}
-                    <label class="np_check mt-1"><input type="checkbox" name="legacy_backup" value="1"> <span>{$btr->sviat__novaposhta__legacy_backup_check|escape}</span></label>
+                    <div class="np_check mt-1">
+                        <input class="hidden_check" type="checkbox" id="np_legacy_backup" name="legacy_backup" value="1">
+                        <label class="okay_ckeckbox" for="np_legacy_backup"></label>
+                        <label class="np_check__text" for="np_legacy_backup">{$btr->sviat__novaposhta__legacy_backup_check|escape}</label>
+                    </div>
                     <button type="submit" class="btn btn_small btn_blue mt-1"><span>{if $L.phase == 'done'}{$btr->sviat__novaposhta__legacy_again|escape}{else}{$btr->sviat__novaposhta__legacy_start|escape}{/if}</span></button>
                 </form>
             {/if}

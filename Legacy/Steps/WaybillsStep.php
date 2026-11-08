@@ -47,7 +47,8 @@ final class WaybillsStep implements LegacyStep
     {
         $orderId = (int)($row->order_id ?? 0);
         if ($orderId <= 0 || $this->orders->order($orderId) === null) {
-            $report->fail(self::NAME, $orderId > 0 ? $orderId : null, 'legacy_fail_no_order');
+            // No such order in the shop: the old record is named, a link would lead nowhere.
+            $report->fail(self::NAME, null, $orderId > 0 ? 'legacy_fail_no_order' : 'legacy_fail_no_order_id', $orderId > 0 ? (string)$orderId : null, (int)($row->id ?? 0) ?: null);
 
             return;
         }

@@ -241,9 +241,11 @@
                                     <span class="switch-handle"></span>
                                 </span>
                             </label>
-                            <label class="np_inline text_grey">
-                                <input type="checkbox" data-field="delete" value="1"> {$btr->sviat__novaposhta__groups_delete|escape}
-                            </label>
+                            <div class="np_check np_inline text_grey">
+                                <input class="hidden_check" type="checkbox" id="np_group_delete_{$group.id|escape}" data-field="delete" value="1">
+                                <label class="okay_ckeckbox" for="np_group_delete_{$group.id|escape}"></label>
+                                <label class="np_check__text" for="np_group_delete_{$group.id|escape}">{$btr->sviat__novaposhta__groups_delete|escape}</label>
+                            </div>
                         </div>
                     {/foreach}
                     <div class="np_group_row np_group_new" data-form-id="new" hidden>
@@ -360,8 +362,16 @@
                     </div>
                 </div>
                 <p class="text_grey mt-1">{$btr->sviat__novaposhta__shipping_defaults_note|escape}</p>
-                <label class="np_check mt-1"><input type="checkbox" name="show_term" value="1" {if $np_shipping.config->showTerm}checked{/if}> <span><b>{$btr->sviat__novaposhta__shipping_show_term|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__shipping_show_term_note|escape}</span></span></label>
-                <label class="np_check mt-1"><input type="checkbox" name="show_lifting" value="1" {if $np_shipping.config->showLifting}checked{/if}> <span><b>{$btr->sviat__novaposhta__shipping_show_lifting|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__shipping_show_lifting_note|escape}</span></span></label>
+                <div class="np_check mt-1">
+                    <input class="hidden_check" type="checkbox" id="np_show_term" name="show_term" value="1" {if $np_shipping.config->showTerm}checked{/if}>
+                    <label class="okay_ckeckbox" for="np_show_term"></label>
+                    <label class="np_check__text" for="np_show_term"><b>{$btr->sviat__novaposhta__shipping_show_term|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__shipping_show_term_note|escape}</span></label>
+                </div>
+                <div class="np_check mt-1">
+                    <input class="hidden_check" type="checkbox" id="np_show_lifting" name="show_lifting" value="1" {if $np_shipping.config->showLifting}checked{/if}>
+                    <label class="okay_ckeckbox" for="np_show_lifting"></label>
+                    <label class="np_check__text" for="np_show_lifting"><b>{$btr->sviat__novaposhta__shipping_show_lifting|escape}</b><br><span class="text_grey">{$btr->sviat__novaposhta__shipping_show_lifting_note|escape}</span></label>
+                </div>
                 <div><button type="submit" class="btn btn_small btn_blue mt-1"><span>{$btr->sviat__novaposhta__shipping_save|escape}</span></button></div>
             </div>
         </div>
@@ -571,7 +581,8 @@
     .np_fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
     .np_payment_row { padding: 8px 0; border-bottom: 1px solid var(--ok-line, #e4e6e9); margin: 0; }
     .np_check { display: flex; align-items: flex-start; gap: 8px; }
-    .np_check input { margin-top: 4px; }
+    .np_check .okay_ckeckbox { flex: none; margin: 0; }
+    .np_check__text { font-weight: 400; cursor: pointer; margin: 0; line-height: 1.4; }
     .np_legacy__steps { margin: 0 0 12px; padding-left: 20px; line-height: 1.7; }
     .np_legacy__done { color: #4caf50; }
     .np_legacy__now { font-weight: 600; }

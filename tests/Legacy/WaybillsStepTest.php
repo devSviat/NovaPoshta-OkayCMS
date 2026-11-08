@@ -96,7 +96,7 @@ class WaybillsStepTest extends TestCase
         self::assertArrayHasKey(201, $this->orders->waybills);
         self::assertArrayNotHasKey(202, $this->orders->waybills);
         self::assertSame(['done' => 1, 'existed' => 0, 'failed' => 1], $report->counts('waybills'));
-        self::assertSame(['step' => 'waybills', 'order' => 202, 'key' => 'legacy_fail_number_taken', 'name' => '20450000000045'], $report->fails()[0] ?? null);
+        self::assertSame(['step' => 'waybills', 'order' => 202, 'key' => 'legacy_fail_number_taken', 'name' => '20450000000045', 'record' => null], $report->fails()[0] ?? null);
     }
 
     public function testBrokenJsonKeepsNumber(): void
@@ -141,5 +141,6 @@ class WaybillsStepTest extends TestCase
 
         self::assertSame([], $this->orders->waybills);
         self::assertSame(['legacy_fail_bad_number', 'legacy_fail_no_order'], array_column($report->fails(), 'key'));
+        self::assertSame([null, 2], array_column($report->fails(), 'record'));
     }
 }

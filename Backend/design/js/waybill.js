@@ -96,7 +96,14 @@
             var alert = el('div', 'alert alert--error np-wb__issue');
             var content = el('div', 'alert__content');
             content.appendChild(el('p', 'text_600', heading || ''));
-            if (issue.message) {
+            if (issue.orderUrl) {
+                var link = el('a', '', issue.orderText);
+                link.href = issue.orderUrl;
+                link.target = '_blank';
+                var line = el('p', '');
+                line.appendChild(link);
+                content.appendChild(line);
+            } else if (issue.message) {
                 content.appendChild(el('p', '', issue.message));
             }
             content.appendChild(el('p', 'text_grey', root.getAttribute('data-what-to-do') + ' ' + issue.advice));

@@ -20,6 +20,8 @@
 </label>
 {/function}
 {* form="np-wb-none" keeps the radios out of the order form: saving the order must not post them. *}
+{* An audit value in words: NP answers in API codes (Recipient, WarehouseDoors…). *}
+{function name=np_wb_audit_value kind='' v=''}{if $kind == 'cod_payer' && $v == 'Sender'}{$btr->sviat__novaposhta__waybill_sender_party|escape}{elseif $kind == 'cod_payer' && $v == 'Recipient'}{$btr->sviat__novaposhta__waybill_recipient|escape}{elseif $kind == 'service_type' && $v != ''}{$btr->getTranslation('sviat__novaposhta__waybill_service_'|cat:$v)|escape}{else}{$v|escape}{/if}{/function}
 {function name=np_wb_radios}
 <div class="np-wb__radios" role="radiogroup">
     {foreach $options as $v => $label}
@@ -104,7 +106,7 @@
                     {foreach $r.audit.findings as $f}
                         <div class="alert alert--error" role="alert"><div class="alert__content">
                             <p><b>{if $f.kind == 'cod'}{$btr->sviat__novaposhta__waybill_find_cod|escape}{elseif $f.kind == 'cod_payer'}{$btr->sviat__novaposhta__waybill_find_cod_payer|escape}{elseif $f.kind == 'control'}{$btr->sviat__novaposhta__waybill_find_control|escape}{elseif $f.kind == 'point'}{$btr->sviat__novaposhta__waybill_find_point|escape}{elseif $f.kind == 'address'}{$btr->sviat__novaposhta__waybill_find_address|escape}{elseif $f.kind == 'city'}{$btr->sviat__novaposhta__waybill_find_city|escape}{else}{$btr->sviat__novaposhta__waybill_find_service_type|escape}{/if}</b></p>
-                            <p>{$btr->sviat__novaposhta__waybill_find_expected|escape}: {$f.expected|escape}. {$btr->sviat__novaposhta__waybill_find_actual|escape}: {$f.actual|escape}.</p>
+                            <p>{$btr->sviat__novaposhta__waybill_find_expected|escape}: {np_wb_audit_value kind=$f.kind v=$f.expected}. {$btr->sviat__novaposhta__waybill_find_actual|escape}: {np_wb_audit_value kind=$f.kind v=$f.actual}.</p>
                             <p class="text_grey">{if $f.kind == 'control'}{$btr->sviat__novaposhta__waybill_find_control_advice|escape}{elseif $f.kind == 'cod_payer'}{$btr->sviat__novaposhta__waybill_find_cod_payer_advice|escape}{else}{$btr->sviat__novaposhta__waybill_find_advice|escape}{/if}</p>
                         </div></div>
                     {/foreach}

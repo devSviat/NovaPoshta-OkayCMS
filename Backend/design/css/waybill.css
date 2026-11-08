@@ -62,7 +62,8 @@
 .np-wb__more { margin-top: 10px; }
 .np-wb__more summary { cursor: pointer; color: #2a76c6; }
 .np-wb__more > div { margin-top: 6px; }
-.np-wb__footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; }
+.np-wb__footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; margin-top: 10px; font-size: 12px; }
+.np-wb__footer .np-wb__link { flex: none; }
 .np-wb__link { background: none; border: 0; padding: 0; color: #2a76c6; text-decoration: underline; cursor: pointer; font: inherit; }
 .np-wb__more > div { display: flex; justify-content: space-between; gap: 12px; }
 .np-wb__more > div > .np-wb__label { display: inline; flex: none; font-size: 13px; }
@@ -93,5 +94,6 @@
 .np-wb__attach > summary.btn::-webkit-details-marker { display: none; }
 
 .np-codpay__kinds{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-.np-codpay__kind{display:flex;gap:8px;align-items:flex-start;font-weight:400;cursor:pointer;line-height:1.4}
-.np-codpay__kind input{margin-top:3px;flex:none}
+/* The core centres the switches of a row; with the COD kinds open, the neighbours would slide down. */
+.activity_of_switch:has(> .np-codpay){align-items:flex-start}
+.np-codpay__kinds .okay_type_radio_wrap{margin:0}

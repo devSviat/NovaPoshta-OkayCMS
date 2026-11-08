@@ -94,6 +94,11 @@ class WaybillAdmin extends IndexAdmin
                 'message' => $issue['message'],
                 'advice' => $text($issue['advice']),
                 'details' => $issue['details'],
+                // The order the number belongs to: the manager opens it instead of searching.
+                'orderUrl' => $issue['advice'] === 'waybill_attached_elsewhere' && ctype_digit((string)$issue['message'])
+                    ? 'index.php?controller=OrderAdmin&id=' . (int)$issue['message'] : null,
+                'orderText' => $issue['advice'] === 'waybill_attached_elsewhere' && ctype_digit((string)$issue['message'])
+                    ? sprintf($text('waybill_order_link'), (int)$issue['message']) : null,
             ], $outcome->issues),
             'notices' => array_map($text, $outcome->notices),
             'audit' => $outcome->audit?->toArray(),
