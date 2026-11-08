@@ -94,7 +94,7 @@ class DeliveryPriceViewTest extends TestCase
 
         self::assertSame('free', DeliveryPriceView::cartState($d, null, true, true, 1000.0));
         DeliveryPriceView::free($d, 1000.0, 'безкоштовно');
-        self::assertTrue($d->is_free_delivery);
-        self::assertSame(['безкоштовно', 1000.0, 0.0], [$d->delivery_price_text, $d->total_price_with_delivery, $d->price]);
+        $shown = (array)$d;
+        self::assertSame([true, 'безкоштовно', 1000.0, 0.0], [$shown['is_free_delivery'], $shown['delivery_price_text'], $shown['total_price_with_delivery'], $shown['price']]);
     }
 }
