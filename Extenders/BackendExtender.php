@@ -70,13 +70,13 @@ class BackendExtender implements ExtensionInterface
         ]);
     }
 
-    /** QueueExtension of BackendOrdersHelper::findOrder: the order page shows where the parcel goes. */
     /** Queue extender of BackendOrdersHelper::delete (runs before the core deletes the orders). */
     public function deleteOrders($result, $ids): void
     {
         new OrderRowsCleanup($this->entityFactory)->forOrders((array)$ids);
     }
 
+    /** QueueExtension of BackendOrdersHelper::findOrder: the order page shows where the parcel goes. */
     public function assignOrderDelivery($order, $orderId = null)
     {
         $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;

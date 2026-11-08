@@ -52,7 +52,7 @@ class WaybillEntity extends Entity
     {
         $alias = $this->getTableAlias();
         $this->select->where("{$alias}.status_code = 9")
-            ->where("{$alias}.number <> ''")
+            ->where("{$alias}.number IS NOT NULL")
             ->where("COALESCE({$alias}.status_at, {$alias}.tracked_at) >= :nps_received_since")
             ->bindValue('nps_received_since', (string)$since);
     }

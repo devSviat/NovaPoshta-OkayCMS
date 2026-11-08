@@ -169,7 +169,12 @@ final class WaybillService
             return WaybillOutcome::refused('waybill_deleted');
         }
         if (!$this->rows->add($orderId, $number, null, 'attached', [])) {
-            return WaybillOutcome::refused('waybill_pending');
+            // The number is unique: another request may have attached it to another order meanwhile.
+            $owner = $this->rows->orderOfNumber($number);
+
+            return $owner !== null && $owner !== $orderId
+                ? WaybillOutcome::refused('waybill_attached_elsewhere', (string)$owner)
+                : WaybillOutcome::refused('waybill_pending');
         }
 
         return new WaybillOutcome(true, $number);

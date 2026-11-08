@@ -13,6 +13,8 @@ final class InMemoryWaybillRows implements WaybillRows
     public bool $failReserve = false;
     /** The database refused the write after Nova Poshta made the waybill. */
     public bool $failComplete = false;
+    /** Runs just before add(): another request writing between the service's checks and its insert. */
+    public ?\Closure $beforeAdd = null;
     public int $now = 1_900_000_000;
 
     public function forOrder(int $orderId): ?object
@@ -33,6 +35,11 @@ final class InMemoryWaybillRows implements WaybillRows
 
     public function add(int $orderId, ?string $number, ?string $ref, ?string $api, array $services): bool
     {
+        if ($this->beforeAdd !== null) {
+            $race = $this->beforeAdd;
+            $this->beforeAdd = null;
+            $race($this);
+        }
         // Both are unique in the table; NULL numbers (waybills being made) repeat freely.
         if (isset($this->rows[$orderId]) || ($number !== null && $this->orderOfNumber($number) !== null)) {
             return false;
@@ -49,7 +56,8 @@ final class InMemoryWaybillRows implements WaybillRows
 
     public function complete(int $orderId, string $number, ?string $ref, string $api, array $services): bool
     {
-        if ($this->failComplete || !\Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill::is($this->rows[$orderId] ?? null)) {
+        $owner = $this->orderOfNumber($number);
+        if ($this->failComplete || ($owner !== null && $owner !== $orderId) || !\Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill::is($this->rows[$orderId] ?? null)) {
             return false;
         }
         $this->rows[$orderId] = (object)(['number' => $number, 'ref' => $ref, 'api' => $api, 'services' => json_encode($services)] + (array)$this->rows[$orderId]);

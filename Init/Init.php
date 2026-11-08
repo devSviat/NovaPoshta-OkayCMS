@@ -52,7 +52,11 @@ class Init extends AbstractInit
         $this->addCoreFields();
     }
 
-    /** Fields the module keeps on core tables, under its own names (§9). */
+    /**
+     * Fields the module keeps on core tables, under its own names (§9). init() registers them with no
+     * check: install() creates them. A later version adding one must not register it before its update
+     * has run — every SELECT of that core table would fail and the storefront would lose its products.
+     */
     private function addCoreFields(): void
     {
         $this->migrateEntityField(PaymentsEntity::class, new EntityField(CodPayments::FIELD)->setTypeTinyInt(1, false)->setDefault(0));

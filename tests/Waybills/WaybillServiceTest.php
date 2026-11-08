@@ -297,6 +297,34 @@ class WaybillServiceTest extends TestCase
         self::assertNull($this->rows->forOrder(self::ORDER)->ref);
     }
 
+    /** Two managers attach one number at once: the database lets one through; the other is told where it went. */
+    public function testAttachLostToAnotherOrderSaysWhere(): void
+    {
+        $this->statusAnswer('status_cod');
+        $this->rows->beforeAdd = static fn($rows) => $rows->add(77, '20451581317746', null, 'attached', []);
+
+        $outcome = $this->service()->attach(self::ORDER, '20451581317746', '380500000000');
+
+        self::assertFalse($outcome->ok);
+        self::assertSame('waybill_attached_elsewhere', $outcome->issues[0]['advice']);
+        self::assertSame('77', $outcome->issues[0]['message']);
+        self::assertNull($this->rows->forOrder(self::ORDER));
+    }
+
+    /** NP made the waybill, but its number is already another order's: the shop learns the number, the reservation goes. */
+    public function testCreatedNumberTakenByAnotherOrder(): void
+    {
+        $this->rows->add(77, W::fixture('old_save_ok')['data'][0]['IntDocNumber'], null, 'attached', []);
+        $this->http->json(200, W::fixture('old_save_ok'));
+
+        $outcome = $this->service()->create(self::ORDER, W::point(['cod' => true]));
+
+        self::assertFalse($outcome->ok);
+        self::assertSame('waybill_not_saved', $outcome->issues[0]['advice']);
+        self::assertSame(W::fixture('old_save_ok')['data'][0]['IntDocNumber'], $outcome->issues[0]['message']);
+        self::assertNull($this->rows->forOrder(self::ORDER), 'the reservation is released');
+    }
+
     public function testDeletedWaybillIsNotAttached(): void
     {
         $this->http->json(200, ['success' => true, 'data' => [['StatusCode' => '2', 'Status' => 'Видалено'] + W::fixture('status_cod')], 'errors' => []]);
