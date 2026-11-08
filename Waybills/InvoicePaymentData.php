@@ -23,15 +23,18 @@ final class InvoicePaymentData
         if (!class_exists($this->entityClass) || empty($order->id) || empty($order->payment_method_id)) {
             return null;
         }
+        $payment = $this->entityFactory->get(PaymentsEntity::class)->get((int)$order->payment_method_id);
+        if (!is_object($payment) || ($payment->module ?? null) !== self::PAYMENT_MODULE) {
+            return null;
+        }
         try {
-            $payment = $this->entityFactory->get(PaymentsEntity::class)->get((int)$order->payment_method_id);
             $row = $this->entityFactory->get($this->entityClass)->findOne(['order_id' => (int)$order->id]);
         } catch (\Throwable) {
             // The module's table may be gone while its files stay.
             return null;
         }
 
-        return self::read(is_object($payment) ? $payment : null, is_object($row) ? $row : null);
+        return self::read($payment, is_object($row) ? $row : null);
     }
 
     /** @return ?array{edrpou: string, company: string} */

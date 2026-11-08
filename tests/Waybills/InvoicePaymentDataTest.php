@@ -37,4 +37,22 @@ class InvoicePaymentDataTest extends TestCase
     {
         self::assertSame(['edrpou' => '12345678', 'company' => 'ТОВ «Приклад»'], InvoicePaymentData::read(self::payment(), (object)['edrpou' => ' 12345678 ', 'company_name' => ' ТОВ «Приклад» ']));
     }
+
+    /** Its files may stay without its table: an order paid otherwise does not query it (no SQL error in the log). */
+    public function testOtherPaymentDoesNotQueryInvoiceTable(): void
+    {
+        $asked = [];
+        $payments = $this->createStub(\Okay\Entities\PaymentsEntity::class);
+        $payments->method('get')->willReturn(self::payment('Sviat/LiqPay'));
+        $factory = $this->createStub(EntityFactory::class);
+        $factory->method('get')->willReturnCallback(function (string $class) use ($payments, &$asked) {
+            $asked[] = $class;
+
+            return $class === \Okay\Entities\PaymentsEntity::class ? $payments : $this->createStub(\Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class);
+        });
+        $data = new InvoicePaymentData($factory, \Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity::class);
+
+        self::assertNull($data->forOrder((object)['id' => 990101, 'payment_method_id' => 7]));
+        self::assertSame([\Okay\Entities\PaymentsEntity::class], $asked);
+    }
 }
