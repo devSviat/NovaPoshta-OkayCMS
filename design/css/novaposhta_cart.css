@@ -1,10 +1,10 @@
 /* Лише розкладка: поля й чіпи беруть класи теми; кольори дає тема (змінні або, якщо тема
    змінних не має, скрипт зчитує їх із власної кнопки теми). */
 .np-cart {
-    --np-accent: var(--okay-basic-company, var(--broken-basic-company, var(--vs-accent, #00afee)));
-    --np-border: var(--okay-border-color, var(--broken-border-color, var(--vs-border, #dbdbdb)));
-    --np-text: var(--okay-body-text, var(--broken-body-text, var(--vs-ink, #222)));
-    --np-surface: var(--okay-boxed-color, var(--broken-boxed-color, #fff));
+    --np-accent: var(--okay-basic-company, var(--vs-accent, #00afee));
+    --np-border: var(--okay-border-color, var(--vs-border, #dbdbdb));
+    --np-text: var(--okay-body-text, var(--vs-ink, #222));
+    --np-surface: var(--okay-boxed-color, #fff);
     --np-warning: #a35a00;
     display: flex;
     flex-direction: column;
@@ -95,7 +95,7 @@
 }
 .np-chip:hover { border-color: var(--np-accent, #00afee); }
 .np-chip--selected {
-    color: var(--np-accent-text, var(--okay-basic-company-text, var(--broken-basic-company-text, #fff)));
+    color: var(--np-accent-text, var(--okay-basic-company-text, #fff));
     background: var(--np-accent, #00afee);
     border-color: var(--np-accent, #00afee);
 }
