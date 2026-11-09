@@ -63,7 +63,7 @@ class WaybillRequestTest extends TestCase
         ], OldDocumentRequest::forDivision(W::point(['cod' => true]), W::sender()));
     }
 
-    /** NP refuses a parcel-locker waybill of the old API without the seat («OptionsSeat is empty», live 08.11.2026). */
+    /** НП відхиляє накладну старого API на поштомат без місця («OptionsSeat is empty», live 08.11.2026). */
     public function testOldLockerSendsTheSeat(): void
     {
         $request = OldDocumentRequest::forDivision(W::point(['cod' => true, 'locker' => true, 'seatCm' => [30, 20, 10], 'weightKg' => 2.5, 'volumeM3' => 0.006]), W::sender());
@@ -72,7 +72,10 @@ class WaybillRequestTest extends TestCase
         self::assertArrayNotHasKey('OptionsSeat', OldDocumentRequest::forDivision(W::point(['cod' => true]), W::sender()), 'a branch takes the general weight and volume');
     }
 
-    /** NP takes documents at 0.1, 0.5 or 1 kg only and refuses any volume (live 09.11.2026: «VolumeWeight must be empty»). */
+    /**
+     * НП приймає документи лише вагою 0.1, 0.5 або 1 kg і відхиляє будь-який об'єм
+     * (live 09.11.2026: «VolumeWeight must be empty»).
+     */
     public function testOldDocumentsSendAnAllowedWeightAndNoVolume(): void
     {
         $documents = static fn(array $override): array => OldDocumentRequest::forDivision(W::point(['cargoType' => 'Documents', 'cod' => true] + $override), W::sender());
@@ -87,7 +90,10 @@ class WaybillRequestTest extends TestCase
         self::assertSame('0.008', OldDocumentRequest::forDivision(W::point(['cod' => true]), W::sender())['VolumeGeneral'], 'a parcel keeps its volume');
     }
 
-    /** The new API takes documents of any size and records the size's weight: a 40 cm cube became 16 kg (live 09.11.2026). */
+    /**
+     * Новий API приймає документи будь-якого розміру й записує вагу за розміром: куб 40 cm став 16 kg
+     * (live 09.11.2026).
+     */
     public function testNewDocumentsGoAsAnEnvelopeOfOneKilogramAtMost(): void
     {
         $parcel = NewShipmentRequest::build(W::point(['cargoType' => 'Documents', 'weightKg' => 3.0, 'volumeM3' => 0.064]), W::sender())['parcels'][0];

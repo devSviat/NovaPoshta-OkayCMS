@@ -6,7 +6,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\AddressNames;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-/** Cases ported from NovaPoshtaTracking AddressByReferenceTest::streetProvider. */
+/** Випадки перенесено з NovaPoshtaTracking AddressByReferenceTest::streetProvider. */
 class AddressNamesTest extends TestCase
 {
     #[DataProvider('streets')]

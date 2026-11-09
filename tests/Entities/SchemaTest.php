@@ -6,7 +6,7 @@ use Okay\Core\Modules\EntityField;
 use Okay\Modules\Sviat\NovaPoshta\Init\Init;
 use PHPUnit\Framework\TestCase;
 
-/** The migration and the entity list the same columns: a column missing on either side is lost silently. */
+/** Міграція й сутність перелічують ті самі колонки: колонка, якої бракує з будь-якого боку, тихо губиться. */
 class SchemaTest extends TestCase
 {
     public function testEveryEntityMatchesItsMigration(): void
@@ -56,7 +56,7 @@ class SchemaTest extends TestCase
             array_map(static fn(EntityField $f): string => $f->getName(), $fields),
         );
         self::assertArrayHasKey(EntityField::INDEX_UNIQUE, $fields[1]->getIndexes());
-        // One waybill belongs to one order; while it is being made it has no number (NULL repeats freely).
+        // Одна накладна належить одному замовленню; поки її створюють, номера немає (NULL вільно повторюється).
         self::assertArrayHasKey(EntityField::INDEX_UNIQUE, $fields[2]->getIndexes(), 'number');
         self::assertTrue($fields[2]->isNullable(), 'number');
         self::assertTrue($fields[4]->isNullable(), 'api: how it was made, unknown while it is being made');
@@ -82,7 +82,7 @@ class SchemaTest extends TestCase
         }
     }
 
-    /** 1.0.0 is the first release: install() creates the whole schema, there is nothing to upgrade from. */
+    /** 1.0.0 — перший реліз: install() створює всю схему, оновлюватися нема з чого. */
     public function testNoUpgradeSteps(): void
     {
         $updates = array_filter(get_class_methods(Init::class), static fn(string $m): bool => str_starts_with($m, 'update_'));
@@ -90,7 +90,7 @@ class SchemaTest extends TestCase
         self::assertSame([], array_values($updates));
     }
 
-    /** Dates are dates in the database, not strings or Unix seconds (the core's EntityField has no DATE). */
+    /** Дати зберігаються в базі як дати, а не як рядки чи секунди Unix (EntityField ядра не має DATE). */
     public function testDatesAreDatetimeColumns(): void
     {
         $type = static function (string $entity, string $name): string {

@@ -3,8 +3,8 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
 /**
- * A request another site made the visitor's browser send. The quote route stores the visitor's
- * chosen point in the session, so a link on another site must not reach it.
+ * Запит, який інший сайт змусив надіслати браузер відвідувача. Маршрут розрахунку ціни зберігає
+ * обраний відвідувачем пункт видачі в сесії, тож посилання з іншого сайту не повинне до нього дістатися.
  */
 final class CrossSiteRequest
 {
@@ -15,7 +15,7 @@ final class CrossSiteRequest
         if (is_string($site)) {
             return !in_array($site, ['same-origin', 'none'], true);
         }
-        // Browsers without fetch metadata: the Origin header, when sent, still tells.
+        // Браузери без fetch metadata: заголовок Origin, якщо його надіслано, усе одно про це скаже.
         $origin = $server['HTTP_ORIGIN'] ?? null;
         if (!is_string($origin)) {
             return false;

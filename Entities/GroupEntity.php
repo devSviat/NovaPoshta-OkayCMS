@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Entities;
 
 use Okay\Core\Entity\Entity;
 
-/** A group of Nova Poshta categories the customer chooses from (e.g. «Відділення»). */
+/** Група категорій Нової Пошти, з якої обирає покупець (напр. «Відділення»). */
 class GroupEntity extends Entity
 {
     protected static $fields = [

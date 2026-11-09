@@ -55,9 +55,9 @@ class Init extends AbstractInit
     }
 
     /**
-     * Fields the module keeps on core tables, under its own names. init() registers them with no
-     * check: install() creates them. A later version adding one must not register it before its update
-     * has run — every SELECT of that core table would fail and the storefront would lose its products.
+     * Поля, які модуль тримає в таблицях ядра під власними назвами. init() реєструє їх без
+     * перевірки: їх створює install(). Пізніша версія, що додає поле, не повинна реєструвати його до свого оновлення —
+     * кожен SELECT з тієї таблиці ядра падав би, і вітрина втратила б товари.
      */
     private function addCoreFields(): void
     {
@@ -69,7 +69,7 @@ class Init extends AbstractInit
     {
         $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
         $this->registerEntityField(VariantsEntity::class, VariantVolume::FIELD);
-        // The variant's volume field goes into the row itself, by a module.json modification of product.tpl.
+        // Поле об'єму варіанта потрапляє в сам рядок через модифікацію product.tpl у module.json.
         $this->registerChainExtension([BackendPaymentsRequest::class, 'postPayment'], [BackendExtender::class, 'paymentPost']);
         $this->registerQueueExtension([BackendPaymentsHelper::class, 'getPaymentMethod'], [BackendExtender::class, 'assignPaymentCod']);
         $this->addBackendBlock('payment_switch_checkboxes', 'payment_cod.tpl');
@@ -91,7 +91,7 @@ class Init extends AbstractInit
         $this->registerEntityFilter(OrdersEntity::class, 'np_without_waybill', OrdersEntityFilters::class, 'filter__np_without_waybill');
         $this->registerEntityFilter(OrdersEntity::class, 'np_status_codes', OrdersEntityFilters::class, 'filter__np_status_codes');
         $this->addBackendBlock('orders_list_name', 'orders_status.tpl');
-        // The core prints a block's templates last-registered first: the point goes above the waybill.
+        // Ядро виводить шаблони блоку від останнього зареєстрованого: пункт видачі йде над накладною.
         $this->addBackendBlock('order_custom_block', 'waybill_main.tpl');
         $this->addBackendBlock('order_contact', 'waybill_side.tpl');
         $this->addBackendBlock('order_contact', 'order_delivery.tpl');
@@ -131,8 +131,8 @@ class Init extends AbstractInit
         $this->addFrontBlock('front_email_order_user_contact_info', 'email_delivery.tpl');
         $this->addBackendBlock('email_order_admin_contact_info', 'email_delivery.tpl');
 
-        // Every 5 minutes is only a cheap check; the runner itself decides whether work is due,
-        // so the admin button is served within minutes and the daily update needs no own slot.
+        // Кожні 5 хвилин — лише дешева перевірка; runner сам вирішує, чи пора працювати,
+        // тож кнопку в адмінці обслуговують за кілька хвилин, а щоденному оновленню не потрібен свій слот.
         $this->registerSchedule(
             new Schedule([DictionaryRunner::class, 'tick'])
                 ->name('Nova Poshta: dictionaries')
@@ -147,7 +147,7 @@ class Init extends AbstractInit
                 ->overlap(false)
                 ->timeout(300)
         );
-        // A cheap check every 15 minutes; the work itself runs once a day (see OrderRowsCleanup::tick).
+        // Дешева перевірка кожні 15 хвилин; сама робота виконується раз на день (див. OrderRowsCleanup::tick).
         $this->registerSchedule(
             new Schedule([OrderRowsCleanup::class, 'tick'])
                 ->name('Nova Poshta: rows of deleted orders')
@@ -164,7 +164,7 @@ class Init extends AbstractInit
         );
     }
 
-    /** @return array<class-string, list<EntityField>> every table of the module */
+    /** @return array<class-string, list<EntityField>> усі таблиці модуля */
     public static function tables(): array
     {
         return [
@@ -177,7 +177,7 @@ class Init extends AbstractInit
         ] + self::dictionaryTables() + self::orderTables() + self::quoteTables() + self::waybillTables();
     }
 
-    /** @return array<class-string, list<EntityField>> the waybill of an order and its tracking */
+    /** @return array<class-string, list<EntityField>> накладна замовлення та її трекінг */
     public static function waybillTables(): array
     {
         return [
@@ -202,7 +202,7 @@ class Init extends AbstractInit
         ];
     }
 
-    /** @return array<class-string, list<EntityField>> old-API city Refs of settlements, for pricing */
+    /** @return array<class-string, list<EntityField>> Ref міст старого API для населених пунктів, для розрахунку ціни */
     public static function quoteTables(): array
     {
         return [
@@ -214,7 +214,7 @@ class Init extends AbstractInit
         ];
     }
 
-    /** @return array<class-string, list<EntityField>> what the customer chose for an order, names copied */
+    /** @return array<class-string, list<EntityField>> що покупець обрав для замовлення, з копіями назв */
     public static function orderTables(): array
     {
         $name = static fn(string $field): EntityField => new EntityField($field)->setTypeVarchar(255);
@@ -248,7 +248,7 @@ class Init extends AbstractInit
                 new EntityField('delivery_term')->setTypeDatetime(),
                 new EntityField('cod')->setTypeTinyInt(1, false)->setDefault(0),
                 new EntityField('cod_fee')->setTypeDecimal('10,2'),
-                // Carried over from the old modules: null, 'migrated' or 'unmatched'.
+                // Перенесено зі старих модулів: null, 'migrated' або 'unmatched'.
                 new EntityField('legacy')->setTypeVarchar(16),
                 new EntityField('created_at')->setTypeDatetime(false),
                 new EntityField('updated_at')->setTypeDatetime(false),
@@ -256,7 +256,7 @@ class Init extends AbstractInit
         ];
     }
 
-    /** @return array<class-string, list<EntityField>> Nova Poshta dictionaries and the cart's point groups */
+    /** @return array<class-string, list<EntityField>> довідники Нової Пошти та групи пунктів видачі для кошика */
     public static function dictionaryTables(): array
     {
         $loaded = static fn(): array => [
@@ -278,7 +278,7 @@ class Init extends AbstractInit
                 new EntityField('search_text')->setTypeText(),
                 new EntityField('boost')->setTypeInt(11, false)->setDefault(0)->setIndex(),
                 new EntityField('prohibited_issuance')->setTypeTinyInt(1, false)->setDefault(0),
-                // Precomputed by the dictionary run: city search over ~9.7k such settlements instead of 27.5k.
+                // Обчислюється наперед запуском довідників: пошук міста по ~9.7k таких населених пунктах замість 27.5k.
                 new EntityField('has_pickup')->setTypeTinyInt(1, false)->setDefault(0)->setIndex(),
                 ...$loaded(),
             ],
@@ -317,8 +317,8 @@ class Init extends AbstractInit
     }
 
     /**
-     * Deleting a module keeps its tables, and migrateEntityTable() is a bare CREATE TABLE:
-     * a reinstall would fill the log with "table already exists".
+     * Видалення модуля лишає його таблиці, а migrateEntityTable() — це голий CREATE TABLE:
+     * повторне встановлення засмітило б лог повідомленнями "table already exists".
      *
      * @param array<class-string, list<EntityField>> $tables
      */
@@ -335,14 +335,14 @@ class Init extends AbstractInit
 
         $prefix = (string)$serviceLocator->getService(Config::class)->get('db_prefix');
         foreach ($tables as $entityClass => $fields) {
-            // The core writes the table prefix in place of the leading "__".
+            // Ядро підставляє префікс таблиць замість початкового "__".
             if (!in_array($prefix . substr($entityClass::getTable(), 2), $existing, true)) {
                 $this->migrateEntityTable($entityClass, $fields);
             }
         }
     }
 
-    /** Each site language gets its own name: the entity writes a language row per current language. */
+    /** Кожна мова сайту отримує свою назву: entity записує мовний рядок для поточної мови. */
     private function addDefaultGroups(): void
     {
         $serviceLocator = ServiceLocator::getInstance();
@@ -351,7 +351,7 @@ class Init extends AbstractInit
         /** @var Languages $languages */
         $languages = $serviceLocator->getService(Languages::class);
         $groups = $entityFactory->get(GroupEntity::class);
-        // Deleting a module keeps its tables: a reinstall must not add the defaults twice.
+        // Видалення модуля лишає його таблиці: повторне встановлення не повинне додати типові значення вдруге.
         if ($groups->count() > 0) {
             return;
         }

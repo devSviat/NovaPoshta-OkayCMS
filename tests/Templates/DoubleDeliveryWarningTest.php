@@ -4,7 +4,7 @@ namespace Modules\Sviat\NovaPoshta\Templates;
 
 use PHPUnit\Framework\TestCase;
 
-/** A prepaid order is charged twice too: the warning depends on the payer alone, not on cash on delivery. */
+/** Передплачене замовлення теж оплачується двічі: попередження залежить лише від платника, а не від післяплати. */
 class DoubleDeliveryWarningTest extends TestCase
 {
     public function testWarningIgnoresCashOnDelivery(): void

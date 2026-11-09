@@ -3,10 +3,10 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
 /**
- * Classes of the shop's theme for the cart block, so the block looks like the rest of the
- * checkout (author's requirement). Two markup families exist among the themes we know:
- * okay_shop and the themes derived from it (broken, broken_new) share `form__*`; vibe_shop
- * has its own `vs-*` components. An unknown theme is treated as okay_shop-derived.
+ * Класи теми магазину для блоку в кошику, щоб блок виглядав як решта сторінки оформлення
+ * замовлення (вимога автора). Серед відомих нам тем є дві родини розмітки: okay_shop і
+ * похідні від неї теми (broken, broken_new) мають спільні `form__*`; vibe_shop має власні
+ * компоненти `vs-*`. Невідома тема вважається похідною від okay_shop.
  */
 final class ThemeClasses
 {
@@ -22,7 +22,7 @@ final class ThemeClasses
                 'chips' => 'vs-chips',
                 'chip' => 'vs-chip',
                 'chipSelected' => 'vs-chip--selected',
-                // vibe_shop has no checkbox component: the module's own, in the theme's colours.
+                // У vibe_shop немає компонента чекбокса: модуль малює власний, у кольорах теми.
                 'check' => 'np-check',
             ];
         }
@@ -32,7 +32,7 @@ final class ThemeClasses
             'field' => 'form__group',
             'input' => 'form__input form__placeholder--focus',
             'label' => 'form__placeholder',
-            // These themes have no chip component; the module draws one with the theme's colours.
+            // У цих тем немає компонента chip; модуль малює власний у кольорах теми.
             'chips' => 'np-chips',
             'chip' => 'np-chip',
             'chipSelected' => 'np-chip--selected',

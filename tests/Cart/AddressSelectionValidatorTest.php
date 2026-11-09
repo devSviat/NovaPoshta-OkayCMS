@@ -34,7 +34,10 @@ class AddressSelectionValidatorTest extends TestCase
         self::assertNull($selection->division);
     }
 
-    /** Before the first dictionary run the cart shows only a notice, as for points: the order is not blocked. */
+    /**
+     * До першого запуску довідників кошик показує лише повідомлення, як і для пунктів видачі: замовлення не
+     * блокується.
+     */
     public function testEmptyDictionariesDoNotBlockTheOrder(): void
     {
         $selection = CartSelectionValidator::checkAddress(self::delivery('WarehouseDoors'), self::MODULE, null, [], false, dictionaryReady: false);

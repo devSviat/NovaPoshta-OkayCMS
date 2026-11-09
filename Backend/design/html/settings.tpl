@@ -30,7 +30,7 @@
     </div>
 {/if}
 
-{* Core tabs: the active one is kept in ?active_tab=, so a form posted to the same URL reopens it. *}
+{* Вкладки ядра: активна зберігається в ?active_tab=, тож форма, надіслана на той самий URL, знову її відкриває. *}
 <div class="tabs np_tabs">
     <div class="tab_navigation tab_navigation--round">
         <a href="#np_tab_main" class="tab_navigation_link">{$btr->sviat__novaposhta__tab_main|escape}</a>
@@ -490,7 +490,7 @@
         <div class="heading_box mb-1">{$btr->sviat__novaposhta__waybill_defaults_box|escape}</div>
         <p class="text_grey">{$btr->sviat__novaposhta__waybill_defaults_intro|escape}</p>
         <div class="heading_label">{$btr->sviat__novaposhta__waybill_cargo_types|escape}</div>
-        {* The empty marker tells «no box ticked» apart from «not posted». *}
+        {* Порожній маркер відрізняє «жодної галочки» від «не надіслано». *}
         <input type="hidden" name="cargo_types[]" value="">
         {foreach ['Parcel', 'Cargo', 'Documents'] as $np_cargo}
             {$np_cargo_key = $np_cargo|lower}
@@ -630,11 +630,11 @@
     .np_city__chosen[hidden], .np_city__search[hidden] { display: none; }
     .np_city__search.np_popular_add { margin-top: 0; }
     .np_link { background: none; border: 0; padding: 0; color: var(--ok-accent, #135c94); cursor: pointer; text-decoration: underline; font: inherit; }
-    /* Stock has no wide hints: long texts wrap instead of running off the screen. */
+    /* На стоку немає широких підказок: довгі тексти переносяться, а не виходять за екран. */
     .np_tip[data-hint]:after { width: max-content; max-width: 280px; white-space: normal; font-style: normal; font-weight: 400; font-size: 13px; line-height: 1.35; text-align: left; padding: 8px 10px; color: #23272b; background: #fff; border: 1px solid #d0d5da; border-radius: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, .08); text-shadow: none; }
     .np_grid { display: grid; gap: 12px; align-items: end; }
     .np_grid > div { min-width: 0; }
-    /* A label with a hint icon and a plain one sit on the same line. */
+    /* Підпис з іконкою підказки і звичайний стоять на одній лінії. */
     .np_grid .heading_label { display: flex; align-items: center; gap: 4px; min-height: 22px; margin: 0 0 6px; }
     .np_grid .heading_label label { margin: 0; }
     .np_grid--point { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
@@ -656,7 +656,7 @@
         });
         if (pressed && pressed.dataset.npBusy) {
             pressed.querySelector('span').textContent = pressed.dataset.npBusy;
-            // A disabled button is not submitted: keep the recheck flag in the form.
+            // Вимкнена кнопка не надсилається: прапорець повторної перевірки тримаємо у формі.
             if (pressed.name) {
                 var flag = document.createElement('input');
                 flag.type = 'hidden';
@@ -667,7 +667,7 @@
         }
     });
 
-    /** One settlement suggestion: the type as plain text, the title bold, district and region below. */
+    /** Одна підказка населеного пункту: тип звичайним текстом, назва жирним, район і область нижче. */
     function npSettlementItem(city) {
         var item = document.createElement('li');
         item.setAttribute('role', 'option');
@@ -723,7 +723,7 @@
             selects.selectpicker('refresh');
         });
 
-        // Names follow the order on the page, so a dragged group keeps its new position.
+        // Атрибути name йдуть у порядку на сторінці, тож перетягнута група зберігає нову позицію.
         form.addEventListener('submit', function () {
             var index = 0;
             rows.querySelectorAll('.np_group_row').forEach(function (row) {
@@ -738,7 +738,7 @@
         });
     })();
 
-    /** Debounced settlement search on an input; onPick gets the chosen settlement. */
+    /** Пошук населеного пункту в полі з debounce; onPick отримує обраний населений пункт. */
     function npSettlementSearch(input, list, onPick) {
         var url = '{$smarty.server.SCRIPT_NAME|escape:'javascript'}?controller=Sviat.NovaPoshta.NovaPoshtaSettingsAdmin@searchSettlements&q=';
         var timer = null;

@@ -3,17 +3,18 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
 /**
- * Only what certainly does not fit: the known weight alone is over the limit, or
- * the cart costs more than the point accepts, or the known volume does not fit its largest place. A guessed weight never hides a point.
+ * Лише те, що напевно не вміщується: сама відома вага перевищує ліміт, або кошик коштує більше,
+ * ніж приймає пункт видачі, або відомий об'єм не вміщується в його найбільше місце.
+ * Вгадана вага ніколи не приховує пункт видачі.
  */
 final class DivisionFit
 {
-    /** The dictionary carries garbage like 2 147 483 kg; such a limit is treated as unknown. */
+    /** Довідник містить сміття на кшталт 2 147 483 kg; такий ліміт вважається невідомим. */
     private const float MAX_REAL_WEIGHT = 100000;
     private const float MAX_REAL_COST = 1e9;
-    /** Sizes come in cm; anything outside (0; 1000] is treated as unknown. */
+    /** Розміри приходять у cm; усе поза (0; 1000] вважається невідомим. */
     private const float MAX_REAL_SIZE = 1000;
-    /** The largest locker cell, 40×60×30 cm: used when a locker has no sizes. */
+    /** Найбільша комірка поштомата, 40×60×30 cm: використовується, коли в поштомата немає розмірів. */
     public const float POSTOMAT_CELL_M3 = 0.072;
 
     /** @return list<FitProblem> */
@@ -25,7 +26,7 @@ final class DivisionFit
             $problems[] = FitProblem::TooHeavy;
         }
         $maxCost = self::limit($division->max_declared_cost ?? null, self::MAX_REAL_COST);
-        // NP limits are in hryvnias; the cart total is in the shop's main currency.
+        // Ліміти НП — у гривнях; сума кошика — в основній валюті магазину.
         if ($maxCost !== null && ($cart->totalUah ?? $cart->total) > $maxCost + 1e-9) {
             $problems[] = FitProblem::TooExpensive;
         }
@@ -37,7 +38,7 @@ final class DivisionFit
         return $problems;
     }
 
-    /** m³ the point takes in one place, or null when unknown. */
+    /** m³, які пункт видачі приймає в одне місце, або null, коли невідомо. */
     private static function maxVolume(object $division): ?float
     {
         $sizes = array_map(static fn(string $f): ?float => self::limit($division->$f ?? null, self::MAX_REAL_SIZE), ['max_length', 'max_width', 'max_height']);

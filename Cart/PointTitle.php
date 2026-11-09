@@ -2,7 +2,10 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
-/** A point's name without what the cart already shows: the weight limit has its own label, and the whole block is Nova Poshta's. */
+/**
+ * Назва пункту видачі без того, що кошик уже показує: ліміт ваги має власну мітку,
+ * а весь блок і так належить Новій Пошті.
+ */
 final class PointTitle
 {
     public static function short(string $title): string

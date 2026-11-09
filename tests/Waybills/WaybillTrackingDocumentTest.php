@@ -6,8 +6,8 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTrackingDocument;
 use PHPUnit\Framework\TestCase;
 
 /**
- * A refresh from the card (old getStatusDocuments) writes the status; its date must belong to that
- * status: Checkbox counts receipts from it, Messaging the days a parcel waits at the branch.
+ * Оновлення з картки (старий getStatusDocuments) записує статус; його дата має належати саме цьому
+ * статусу: Checkbox рахує від неї чеки, Messaging — дні, які посилка чекає у відділенні.
  */
 class WaybillTrackingDocumentTest extends TestCase
 {
@@ -24,7 +24,7 @@ class WaybillTrackingDocumentTest extends TestCase
         date_default_timezone_set($this->zone);
     }
 
-    /** NP gives Kyiv time; the shop stores its own (CI runs in UTC). */
+    /** НП дає київський час; магазин зберігає свій (CI працює в UTC). */
     public function testScanDateIsConvertedToTheShopTimeZone(): void
     {
         date_default_timezone_set('UTC');

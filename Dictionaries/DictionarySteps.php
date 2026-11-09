@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries;
 
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Cdn\CdnVersions;
 
-/** The work a dictionary run is made of; DictionaryRunner decides which steps run. */
+/** Робота, з якої складається запуск довідників; DictionaryRunner вирішує, які кроки виконуються. */
 interface DictionarySteps
 {
     public function siteHasEnglish(): bool;
@@ -19,6 +19,6 @@ interface DictionarySteps
 
     public function fullSettlements(string $ukUrl, ?string $enUrl, int $run): UpdateCounts;
 
-    /** @return int settlements with non-zero popularity */
+    /** @return int населені пункти з ненульовою популярністю */
     public function boost(): int;
 }

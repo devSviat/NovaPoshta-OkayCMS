@@ -166,7 +166,10 @@ class MassWaybillsTest extends TestCase
         self::assertSame([['orderId' => 990065, 'kind' => 'skipped', 'key' => 'waybill_no_point', 'value' => null]], $this->mass()->run([990065])->rows);
     }
 
-    /** An online payment not made yet and no COD: a mass run would ship goods nobody paid for. The form can still make it. */
+    /**
+     * Онлайн-оплату ще не здійснено й післяплати немає: масовий запуск відправив би товар, за який ніхто не заплатив.
+     * Через форму накладну все ще можна створити.
+     */
     public function testUnpaidOrderWithoutCodIsSkipped(): void
     {
         $this->drafts[990068] = W::point(['orderId' => 990068, 'cod' => false, 'awaitsPayment' => true]);
@@ -179,7 +182,10 @@ class MassWaybillsTest extends TestCase
         self::assertSame('created', $rows[1]['kind'], 'COD collects the money on pickup');
     }
 
-    /** No form in a mass run: a fixed "Recipient" payer with delivery inside the total would charge the customer twice. */
+    /**
+     * У масовому запуску форми немає: фіксований платник "Recipient" при доставці, включеній у суму, стягнув би з
+     * покупця двічі.
+     */
     public function testDoubleDeliveryIsSkipped(): void
     {
         $this->drafts[990067] = W::point(['orderId' => 990067, 'cod' => true, 'codAmount' => 500.0, 'payerType' => 'Recipient', 'deliveryInTotal' => 95.0]);
@@ -248,7 +254,10 @@ class MassWaybillsTest extends TestCase
         self::assertLessThanOrEqual(45.0, MassWaybills::BUDGET_SECONDS);
     }
 
-    /** A died or unanswered attempt may have made a waybill: the batch skips the order until it is checked. */
+    /**
+     * Спроба, що впала або лишилася без відповіді, могла створити накладну: пакет пропускає замовлення, доки його не
+     * перевірять.
+     */
     public function testOrderAwaitingACheckIsSkipped(): void
     {
         $this->rows->reserve(990068);

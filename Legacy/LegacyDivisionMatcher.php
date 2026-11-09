@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
-/** An old warehouse in our dictionary: same settlement, number "…/13", and the address when numbers repeat. */
+/** Старе відділення в нашому довіднику: той самий населений пункт, номер "…/13" і адреса, коли номери повторюються. */
 final class LegacyDivisionMatcher
 {
     public function __construct(private readonly LegacyPlaces $places)
@@ -14,7 +14,7 @@ final class LegacyDivisionMatcher
         return $number === null ? null : self::pick($this->places->divisionsOf($settlementId), $number, $oldName);
     }
 
-    /** @param list<object> $divisions points of one settlement */
+    /** @param list<object> $divisions пункти видачі одного населеного пункту */
     public static function pick(array $divisions, int $number, string $oldName): ?object
     {
         $suffix = '/' . $number;

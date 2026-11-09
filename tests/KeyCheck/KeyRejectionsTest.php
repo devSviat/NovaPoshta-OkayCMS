@@ -42,7 +42,7 @@ class KeyRejectionsTest extends TestCase
         return KeyCheckResult::fromJson((string)$this->state->get(KeyChecker::STATE));
     }
 
-    /** A key that stopped working shows in the key block, not only as failing waybills. */
+    /** Ключ, що перестав працювати, видно в блоці ключа, а не лише за накладними, які не створюються. */
     public function testRefusalDuringWorkMarksTheKey(): void
     {
         $this->rejections()->record('old', F::KEY);

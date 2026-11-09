@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
-/** The key owner as the sender of one waybill: the old API wants the refs, the new one the point and phone. */
+/** Власник ключа як відправник однієї накладної: старому API потрібні refs, новому — пункт видачі й телефон. */
 final readonly class SenderParty
 {
     public function __construct(
@@ -11,7 +11,7 @@ final readonly class SenderParty
         public string $contactName,
         public string $phone,
         public int $divisionId,
-        /** The point's `number`, which the old API takes as SenderWarehouseIndex. */
+        /** `number` пункту видачі, який старий API приймає як SenderWarehouseIndex. */
         public string $divisionNumber,
     ) {
     }

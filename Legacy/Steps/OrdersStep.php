@@ -14,7 +14,7 @@ use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlaces;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyReport;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyStep;
 
-/** NovaposhtaCost's point or address of each order, matched to our dictionary or kept by name. */
+/** Пункт видачі або адреса кожного замовлення з NovaposhtaCost, зіставлені з нашим довідником або збережені за назвою. */
 final class OrdersStep implements LegacyStep
 {
     public const string NAME = 'orders';
@@ -54,7 +54,7 @@ final class OrdersStep implements LegacyStep
         $orderId = (int)($row->order_id ?? 0);
         $order = $orderId > 0 ? $this->orders->order($orderId) : null;
         if ($order === null) {
-            // No such order in the shop: the old record is named, a link would lead nowhere.
+            // Такого замовлення в магазині немає: старий запис названо, посилання вело б у нікуди.
             $report->fail(self::NAME, null, $orderId > 0 ? 'legacy_fail_no_order' : 'legacy_fail_no_order_id', $orderId > 0 ? (string)$orderId : null, (int)($row->id ?? 0) ?: null);
 
             return null;
@@ -95,7 +95,7 @@ final class OrdersStep implements LegacyStep
         return null;
     }
 
-    /** @return array{0: array, 1: ?string, 2: ?string}|null values, problem key, name for the report; null — wait for NP */
+    /** @return array{0: array, 1: ?string, 2: ?string}|null значення, ключ проблеми, назва для звіту; null — чекати НП */
     private function point(object $row, string $warehouseRef, LegacyBudget $budget): ?array
     {
         $warehouse = $this->old->warehouse($warehouseRef);
@@ -130,10 +130,10 @@ final class OrdersStep implements LegacyStep
     }
 
     /**
-     * The City Ref first: old address rows rarely carry a region, and a big city by name alone has
-     * village namesakes (Київ, Запоріжжя). The name with region and district is the fallback.
+     * Спершу City Ref: старі рядки з адресами рідко містять область, а велике місто лише за назвою має
+     * сіл-тезок (Київ, Запоріжжя). Запасний варіант — назва з областю й районом.
      *
-     * @return array{0: array, 1: ?string, 2: ?string}|null values, problem key, name for the report; null — wait for NP
+     * @return array{0: array, 1: ?string, 2: ?string}|null значення, ключ проблеми, назва для звіту; null — чекати НП
      */
     private function address(object $row, LegacyBudget $budget): ?array
     {

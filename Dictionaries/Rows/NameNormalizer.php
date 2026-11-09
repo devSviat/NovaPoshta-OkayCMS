@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries\Rows;
 
-/** One form of a place name for search: what a customer types and what the dictionary says must meet. */
+/** Одна форма назви місця для пошуку: те, що вводить покупець, і те, що каже довідник, мають збігтися. */
 final class NameNormalizer
 {
     private const string TYPE_PREFIX = '/^(?:селище міського типу|місто|село|селище|смт)\s+/u';

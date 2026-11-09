@@ -18,7 +18,10 @@ class CodPaymentsTest extends TestCase
         self::assertSame(3, CodKind::Control->flag());
     }
 
-    /** 1.0.0 has no shop-wide kind to fall back on: a flag that names no kind is no cash on delivery. */
+    /**
+     * У 1.0.0 немає загального для магазину виду, до якого можна відступити: прапорець, що не називає виду, — не
+     * післяплата.
+     */
     public function testFlagOneIsNotCashOnDelivery(): void
     {
         self::assertNull(CodKind::fromFlag(1));
@@ -51,7 +54,7 @@ class CodPaymentsTest extends TestCase
         self::assertTrue(CodPayments::wantsFee(['18'], [18]), 'the core gives ids as strings');
     }
 
-    /** A switched-off method is not offered in the cart, so its commission is not shown there either. */
+    /** Вимкнений спосіб оплати не пропонується в кошику, тож його комісія там теж не показується. */
     public function testDisabledMethodHasNoCartCommission(): void
     {
         $entity = $this->createStub(\Okay\Entities\PaymentsEntity::class);

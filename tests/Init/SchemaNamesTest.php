@@ -7,8 +7,8 @@ use Okay\Modules\Sviat\NovaPoshta\Init\Init;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The module's tables carry the module's prefix, like its settings: next to the old
- * NovaPoshtaTracking's `sviat__novaposhta_tracking` a single underscore reads as one family.
+ * Таблиці модуля мають префікс модуля, як і його налаштування: поруч зі старим
+ * `sviat__novaposhta_tracking` від NovaPoshtaTracking одинарне підкреслення читається як одна родина.
  */
 class SchemaNamesTest extends TestCase
 {

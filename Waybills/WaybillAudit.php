@@ -7,16 +7,16 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\AddressCityResolver;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 
 /**
- * Compares a created waybill, as getStatusDocuments shows it, with what was ordered: Nova Poshta
- * accepts a waybill and silently drops or changes a service.
+ * Порівнює створену накладну, як її показує getStatusDocuments, із замовленим: Нова Пошта
+ * приймає накладну й мовчки відкидає або змінює послугу.
  */
 final class WaybillAudit
 {
-    /** @param array<string, mixed> $status one item of TrackingDocument.getStatusDocuments, asked with the recipient's phone */
+    /** @param array<string, mixed> $status один елемент TrackingDocument.getStatusDocuments, запитаний з телефоном отримувача */
     public static function compare(WaybillDraft $draft, array $status): AuditResult
     {
         $unchecked = $draft->lifting ? ['lifting'] : [];
-        // Without the recipient's phone NP hides the recipient and the money fields: nothing to compare.
+        // Без телефону отримувача НП приховує отримувача й грошові поля: порівнювати нічого.
         $known = in_array((string)($status['StatusCode'] ?? ''), ['', '3'], true) === false
             && trim((string)($status['RecipientFullName'] ?? '')) !== '';
         if (!$known) {
@@ -46,7 +46,7 @@ final class WaybillAudit
                 $add('address', trim($draft->street . ', ' . $draft->house), (string)($status['RecipientAddress'] ?? ''));
             }
         } elseif (trim((string)($status['WarehouseRecipient'] ?? '')) === '') {
-            // A new-API waybill gets its point in this answer only a while after it is made (live 07.11.2026).
+            // Накладна нового API отримує свій пункт видачі в цій відповіді лише через деякий час після створення (live 07.11.2026).
             $unchecked[] = 'point';
         } elseif (!self::same((string)$draft->divisionName, (string)$status['WarehouseRecipient'])) {
             $add('point', (string)$draft->divisionName, (string)$status['WarehouseRecipient']);
@@ -61,7 +61,7 @@ final class WaybillAudit
         }
         $payer = (string)($status['RedeliveryPayer'] ?? '');
         if ($wantsMoney && $hasMoney && $payer !== $draft->codPayer) {
-            // For 10–20 s after creation Nova Poshta reports its default, Sender, whatever was sent (live 09.11.2026).
+            // Перші 10–20 с після створення Нова Пошта повідомляє своє значення за замовчуванням, Sender, хоч би що надіслали (live 09.11.2026).
             if ($payer === 'Sender') {
                 $unchecked[] = 'cod_payer';
             } else {

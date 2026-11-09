@@ -18,7 +18,7 @@
             <div class="alert__content"><p>{$btr->sviat__novaposhta__order_price_fallback|escape}</p></div>
         </div>
     {/if}
-    {* Label above value, as in the waybill card: the label small and muted, the value plain. *}
+    {* Підпис над значенням, як у картці накладної: підпис дрібний і приглушений, значення звичайне. *}
     <div class="np-op__row"><span class="np-op__label">{$btr->sviat__novaposhta__order_city|escape}</span>{$np_order_delivery.city|escape}</div>
     {if $np_order_delivery.point}
         <div class="np-op__row"><span class="np-op__label">{$btr->sviat__novaposhta__order_point|escape}</span>{$np_order_delivery.point|escape}</div>

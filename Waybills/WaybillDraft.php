@@ -5,20 +5,20 @@ namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 
-/** Everything one waybill is made of: first from the order and the settings, then as the manager edits it. */
+/** Усе, з чого складається одна накладна: спершу із замовлення й налаштувань, потім — як її редагує менеджер. */
 final readonly class WaybillDraft
 {
     private const float MAX_WEIGHT = 1000.0;
     private const float MAX_VOLUME = 10.0;
-    /** The longest recipient name NP takes. */
+    /** Найдовше ім'я отримувача, яке приймає НП. */
     public const int NAME_MAX = 60;
     private const int DESCRIPTION_MAX = 100;
     private const int NOTE_MAX = 50;
     private const int FLOOR_MAX = 200;
     private const int COMPANY_MAX = 100;
-    /** AdditionalInformation as the old module limited it. */
+    /** AdditionalInformation з обмеженням, як у старому модулі. */
     public const int EXTRA_INFO_MAX = 100;
-    /** Parcel-locker cell limits, as the old NovaPoshtaTracking checked them: length, width, height in cm; weight in kg. */
+    /** Обмеження комірки поштомату, як їх перевіряв старий NovaPoshtaTracking: довжина, ширина, висота в см; вага в кг. */
     private const array LOCKER_MAX_CM = ['seat_length' => 60, 'seat_width' => 40, 'seat_height' => 30];
     private const float LOCKER_MAX_KG = 20.0;
 
@@ -51,46 +51,46 @@ final readonly class WaybillDraft
         public ?string $recipientPhone,
         public float $weightKg,
         public float $volumeM3,
-        /** In hryvnias, goods without delivery. */
+        /** У гривнях, товари без доставки. */
         public float $declaredCost,
         public string $description,
         public string $cargoType,
         public string $payerType,
         public string $paymentMethod,
         public bool $cod,
-        /** Whole hryvnias: the old API takes RedeliveryString as an integer, the card shows what is sent. */
+        /** Цілі гривні: старий API приймає RedeliveryString як ціле число, картка показує те, що надіслано. */
         public float $codAmount,
         public CodKind $codKind,
         public string $codPayer,
         /** d.m.Y */
         public string $shipDate,
         public string $recipientType = 'PrivatePerson',
-        /** Digits only. */
+        /** Лише цифри. */
         public ?string $edrpou = null,
-        /** For the manager only: Nova Poshta names the organization from its registry by the code. */
+        /** Лише для менеджера: Нова Пошта називає організацію за кодом зі свого реєстру. */
         public ?string $companyName = null,
-        /** The organization came from the order's invoice (Sviat/InvoicePayment). */
+        /** Організацію взято з рахунку замовлення (Sviat/InvoicePayment). */
         public bool $fromInvoice = false,
-        /** Hryvnias of delivery the order total (and so the COD amount) already holds; 0 when paid apart. */
+        /** Гривні доставки, які вже містить сума замовлення (а отже й сума післяплати); 0, коли оплачено окремо. */
         public float $deliveryInTotal = 0.0,
-        /** AdditionalInformation: what is inside, for the sender's eyes (SKUs by default). */
+        /** AdditionalInformation: що всередині; бачить лише відправник (за замовчуванням SKU). */
         public string $extraInfo = '',
-        /** Why the draft made the sender pay: 'in_total', 'free' or null — for the form's note. */
+        /** Чому чернетка зробила платником відправника: 'in_total', 'free' або null — для примітки у формі. */
         public ?string $senderPaysBecause = null,
-        /** The point is a parcel locker: the old API needs the seat's size for it. */
+        /** Пункт видачі — поштомат: старому API для нього потрібен розмір місця. */
         public bool $locker = false,
-        /** @var ?array{int, int, int} length, width, height in cm the manager set */
+        /** @var ?array{int, int, int} довжина, ширина, висота в см, задані менеджером */
         public ?array $seatCm = null,
-        /** @var list<string> cargo types the settings turn on; the form also keeps the draft's own one */
+        /** @var list<string> типи вантажу, ввімкнені в налаштуваннях; форма також зберігає власний тип чернетки */
         public array $cargoTypes = WaybillConfig::CARGO_TYPES,
-        /** Not paid, and its payment method collects nothing on pickup: a mass run leaves it to the form. */
+        /** Не оплачено, а його спосіб оплати нічого не стягує при отриманні: масове створення лишає його формі. */
         public bool $awaitsPayment = false,
     ) {
     }
 
     /**
-     * The seat for a parcel locker in cm: what the manager set, else a cube of the volume
-     * (0.001 m³ gives 10 × 10 × 10, what the old module started with).
+     * Місце для поштомату в см: задане менеджером, інакше куб з об'єму
+     * (0.001 м³ дає 10 × 10 × 10, з чого починав старий модуль).
      *
      * @return array{int, int, int}
      */
@@ -101,25 +101,25 @@ final readonly class WaybillDraft
         return $this->seatCm ?? [$side, $side, $side];
     }
 
-    /** @param array<string, mixed> $values property name => new value */
+    /** @param array<string, mixed> $values назва властивості => нове значення */
     public function with(array $values): self
     {
         return clone($this, $values);
     }
 
-    /** @return list<string> the types the form offers: those turned on, and the draft's own one */
+    /** @return list<string> типи, які пропонує форма: ввімкнені та власний тип чернетки */
     public function cargoChoices(): array
     {
         return array_values(array_filter(WaybillConfig::CARGO_TYPES, fn(string $type): bool => $type === $this->cargoType || in_array($type, $this->cargoTypes, true)));
     }
 
-    /** The recipient pays Nova Poshta for delivery the order total already includes. */
+    /** Отримувач платить Новій Пошті за доставку, яку сума замовлення вже містить. */
     public function chargesDeliveryTwice(): bool
     {
         return $this->payerType === 'Recipient' && $this->deliveryInTotal > 0;
     }
 
-    /** @return ?string language key of what is wrong with the organization; NP checks the code against its registry itself */
+    /** @return ?string мовний ключ того, що не так з організацією; код за своїм реєстром НП перевіряє сама */
     public function organizationIssue(): ?string
     {
         if ($this->recipientType !== 'Organization') {
@@ -130,8 +130,8 @@ final readonly class WaybillDraft
     }
 
     /**
-     * The manager's form on top of this draft. A missing `cod` means its checkbox is off; other
-     * missing fields keep the draft's value.
+     * Форма менеджера поверх цієї чернетки. Відсутній `cod` означає, що його прапорець вимкнено; інші
+     * відсутні поля зберігають значення чернетки.
      *
      * @return self|list<array{field: string, key: string}>
      */
@@ -184,7 +184,7 @@ final readonly class WaybillDraft
         }
         $cod = !empty($form['cod']);
         $codAmount = $number('cod_amount', $this->codAmount);
-        // NP keeps the money transfer in whole hryvnias, rounding to the nearest: what rounds to 0 is no amount.
+        // НП зберігає грошовий переказ у цілих гривнях, округлюючи до найближчого: те, що округлюється до 0, — не сума.
         if ($cod && ($codAmount === null || round($codAmount) <= 0)) {
             $errors[] = ['field' => 'cod_amount', 'key' => 'waybill_error_cod_amount'];
         }

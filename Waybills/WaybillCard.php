@@ -3,17 +3,17 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 /**
- * The waybill card as NovaPoshtaTracking drew it: values formatted from the
- * last getStatusDocuments answer. Words NP sends as codes (payer, cargo type) become language keys.
+ * Картка накладної, як її малював NovaPoshtaTracking: значення, відформатовані з
+ * останньої відповіді getStatusDocuments. Слова, які НП надсилає кодами (платник, тип вантажу), стають мовними ключами.
  */
 final class WaybillCard
 {
     private const string KEY = 'sviat__novaposhta__';
     private const int ADDRESS_MAX = 70;
-    /** NP's volumetric weight: kg per m³. */
+    /** Об'ємна вага НП: кг на м³. */
     private const int VOLUME_TO_KG = 250;
 
-    /** @param ?array $document an item of TrackingDocument.getStatusDocuments, null before the first refresh */
+    /** @param ?array $document елемент TrackingDocument.getStatusDocuments, null до першого оновлення */
     public static function fromDocument(?array $document, object $row): array
     {
         $number = (string)$row->number;
@@ -22,11 +22,11 @@ final class WaybillCard
         $card = [
             'number' => $number,
             'numberSpaced' => self::spaced($number),
-            // A just-created waybill can still be edited in the NP account.
+            // Щойно створену накладну ще можна редагувати в кабінеті НП.
             'link' => $code === 1 && $ref !== '' ? 'https://new.novaposhta.ua/edit/' . rawurlencode($ref) : WaybillNumber::trackingUrl($number),
             'statusGroup' => WaybillStatus::group($code),
             'statusKey' => $code ? self::KEY . WaybillStatus::textKey($code) : null,
-            // When the details were fetched, and when the status was last checked: two different times.
+            // Коли отримано дані і коли востаннє перевірено статус: це два різні моменти.
             'updated' => self::dateTime($document['_fetched_at'] ?? null, 'Y-m-d H:i:s'),
             'checked' => self::dateTime($row->tracked_at ?? null, 'Y-m-d H:i:s'),
             'created' => null, 'description' => null, 'announced' => null,
@@ -92,7 +92,7 @@ final class WaybillCard
         return $card;
     }
 
-    /** "20451581331601" → "20 4515 8133 1601", as NP prints it. */
+    /** "20451581331601" → "20 4515 8133 1601", як друкує НП. */
     private static function spaced(string $number): string
     {
         return strlen($number) === 14 ? substr($number, 0, 2) . ' ' . implode(' ', str_split(substr($number, 2), 4)) : $number;
@@ -128,7 +128,7 @@ final class WaybillCard
         return $phone !== null && preg_match('/^380(\d{2})(\d{3})(\d{2})(\d{2})$/', $phone, $m) ? "+380 {$m[1]} {$m[2]} {$m[3]} {$m[4]}" : $phone;
     }
 
-    /** @param bool $withTime the hour too, unless NP gave midnight (a date only) */
+    /** @param bool $withTime також година, якщо НП не дала північ (лише дату) */
     private static function date(?string $value, bool $withTime = false): ?string
     {
         $date = $value === null ? false : \DateTimeImmutable::createFromFormat('d-m-Y H:i:s', $value);

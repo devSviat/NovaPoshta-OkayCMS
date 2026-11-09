@@ -8,9 +8,9 @@ final class FakeLegacyOrders implements LegacyOrders
 {
     /** @var array<int, object> id => (id, delivery_id, delivery_price, payment_method_id) */
     public array $orders = [];
-    /** @var array<int, array> order id => imported values */
+    /** @var array<int, array> id замовлення => імпортовані значення */
     public array $rows = [];
-    /** @var array<int, array> order id => imported waybill */
+    /** @var array<int, array> id замовлення => імпортована накладна */
     public array $waybills = [];
 
     public function order(int $orderId): ?object

@@ -31,7 +31,7 @@ class JsonItemStreamTest extends TestCase
             ['id' => 1, 'countryCode' => 'UA', 'name' => 'Відділення №1 {центр}', 'nested' => ['a' => [1, 2, ['b' => '}]']]]],
             ['id' => 2, 'countryCode' => 'PL', 'name' => 'Oddział "Wrocław" \\ 1'],
             ['id' => 3, 'countryCode' => 'UA', 'name' => 'Пункт \\"лапки\\" і \\\\ слеш', 'schedule' => []],
-            // An escaped quote followed by brackets: a scanner that ends the string at \" would close the item here.
+            // Екранована лапка, за якою йдуть дужки: сканер, що завершує рядок на \", закрив би тут елемент.
             ['id' => 4, 'countryCode' => 'UA', 'name' => 'Кафе "Ріг } ] {" і \\', 'note' => '\\"}'],
         ];
     }

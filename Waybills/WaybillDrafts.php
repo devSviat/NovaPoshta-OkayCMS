@@ -18,7 +18,7 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\FreeDelivery;
 use Okay\Modules\Sviat\NovaPoshta\Quote\Parcel;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
 
-/** Builds the first draft of an order's waybill. */
+/** Будує першу чернетку накладної замовлення. */
 final class WaybillDrafts
 {
     private const int NOTE_MAX = 50;
@@ -35,7 +35,7 @@ final class WaybillDrafts
     ) {
     }
 
-    /** @return WaybillDraft|string the draft, or the language key of what the order lacks */
+    /** @return WaybillDraft|string чернетка або мовний ключ того, чого бракує замовленню */
     public function forOrder(int $orderId): WaybillDraft|string
     {
         $order = $this->entityFactory->get(OrdersEntity::class)->get($orderId);
@@ -63,7 +63,7 @@ final class WaybillDrafts
         );
     }
 
-    /** The cart showed delivery as free: a free method, the free_from threshold, or another module (a promo) zeroing the price. */
+    /** Кошик показав доставку безкоштовною: безкоштовний спосіб, поріг free_from або інший модуль (промо), що обнулив ціну. */
     public static function promisedFree(?object $delivery, object $order, ?object $snapshot): bool
     {
         if ($delivery === null) {
@@ -78,11 +78,11 @@ final class WaybillDrafts
     }
 
     /**
-     * @param float $uahRate hryvnias per unit of the shop's main currency (order sums are in it)
-     * @param ?\Closure(float): float $amountDue what NP collects, from the order total in hryvnias
-     * @param ?array{edrpou: string, company: string} $invoice the organization the order was invoiced to
-     * @param bool $promisedFree see promisedFree(): the shop then pays Nova Poshta, whatever the setting
-     * @return WaybillDraft|string the draft, or the language key of what the order lacks
+     * @param float $uahRate гривень за одиницю основної валюти магазину (суми замовлення в ній)
+     * @param ?\Closure(float): float $amountDue що стягує НП, із суми замовлення в гривнях
+     * @param ?array{edrpou: string, company: string} $invoice організація, на яку виставлено рахунок замовлення
+     * @param bool $promisedFree див. promisedFree(): тоді Новій Пошті платить магазин, хоч би що було в налаштуваннях
+     * @return WaybillDraft|string чернетка або мовний ключ того, чого бракує замовленню
      */
     public static function build(
         object $order,
@@ -117,24 +117,24 @@ final class WaybillDrafts
         $parcel = Parcel::fromMetrics(CartMetrics::fromPurchases($purchases, $total), $shipping);
         $note = implode(', ', array_filter([
             trim((string)($snapshot->entrance ?? '')) !== '' ? "під'їзд " . trim((string)$snapshot->entrance) : null,
-            // Paid lifting sends the floor in its own field; without it NP has none, and the courier needs it.
+            // Платний підйом на поверх передає поверх у власному полі; без нього в НП поверху немає, а кур'єру він потрібен.
             empty($snapshot->lifting) && (int)($snapshot->floor ?? 0) > 0 ? 'поверх ' . (int)$snapshot->floor : null,
             trim((string)($snapshot->address_note ?? '')) ?: null,
         ]));
         $phone = NpPhone::normalize((string)($order->phone ?? ''));
         $name = trim(preg_replace('/\s+/u', ' ', trim((string)($order->last_name ?? '')) . ' ' . trim((string)($order->name ?? ''))));
-        // The form refuses a longer name; a mass run has no form. NP takes a cut word for an abbreviation and refuses it.
+        // Форма відхиляє довше ім'я; масове створення не має форми. НП сприймає обрізане слово як скорочення й відхиляє його.
         if (mb_strlen($name) > WaybillDraft::NAME_MAX) {
             $cut = mb_substr($name, 0, WaybillDraft::NAME_MAX + 1);
             $space = mb_strrpos($cut, ' ');
             $name = $space !== false ? rtrim(mb_substr($cut, 0, $space)) : mb_substr($name, 0, WaybillDraft::NAME_MAX);
         }
-        // What another module (a prepayment) leaves to collect; nothing left is no COD, never a «0» or negative one.
+        // Що лишає стягнути інший модуль (передоплата); якщо нічого не лишилось — післяплати немає, ніколи не «0» чи від'ємна.
         $due = max(0.0, round($amountDue ? $amountDue($totalUah) : $totalUah));
         $cod = $codKind !== null && empty($order->paid) && $due > 0;
         $address = $mode === DeliveryMode::Address;
         $locker = !$address && ($division->category ?? null) === DivisionCategory::Postomat->value;
-        // Delivery the shop already took (in the total) or promised free: NP must not charge the recipient.
+        // Доставку магазин уже взяв (у сумі) або пообіцяв безкоштовною: НП не має стягувати з отримувача.
         $senderPaysBecause = $deliveryInTotal > 0 ? 'in_total' : ($promisedFree ? 'free' : null);
 
         return new WaybillDraft(
@@ -161,7 +161,7 @@ final class WaybillDrafts
             $parcel->volumeM3,
             round(max(0.0, $goods) * $uahRate, 2),
             $waybill->descriptionMode === 'text' ? $waybill->description : 'Замовлення №' . (int)$order->id,
-            // A parcel locker takes no «Вантаж» (api-docs-ua, «ЕН на поштомат»).
+            // Поштомат не приймає «Вантаж» (api-docs-ua, «ЕН на поштомат»).
             $locker && $waybill->cargoType === 'Cargo' ? 'Parcel' : $waybill->cargoType,
             $senderPaysBecause !== null ? 'Sender' : $waybill->payerType,
             $waybill->paymentMethod,
@@ -184,8 +184,8 @@ final class WaybillDrafts
     }
 
     /**
-     * AdditionalInformation as the old module made it: SKUs (a name where there is none), «(2 шт)» for
-     * several, cut to NP's 100 characters.
+     * AdditionalInformation, як його складав старий модуль: SKU (назва, де SKU немає), «(2 шт)» для
+     * кількох, обрізане до 100 символів НП.
      */
     public static function extraInfo(array $purchases, string $kind): string
     {

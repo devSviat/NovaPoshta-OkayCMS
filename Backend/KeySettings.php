@@ -8,7 +8,7 @@ use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyAccess;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyCheckResult;
 
-/** What happens to the key when the manager presses a button on the settings page. */
+/** Що відбувається з ключем, коли менеджер натискає кнопку на сторінці налаштувань. */
 final class KeySettings
 {
     public function __construct(
@@ -18,14 +18,14 @@ final class KeySettings
     ) {
     }
 
-    /** @return KeySubmission|null null when there was nothing to check */
+    /** @return KeySubmission|null null, коли не було чого перевіряти */
     public function submit(string $input, bool $recheck): ?KeySubmission
     {
         $key = ApiKey::normalize($input);
         if ($key !== '') {
             $result = $this->checker->check($key);
-            // A key Nova Poshta rejects must not replace one that may still work: one wrong
-            // paste would stop the shop. An unchecked or partly working key is still saved.
+            // Ключ, який Нова Пошта відхиляє, не повинен замінити той, що ще може працювати: одна хибна
+            // вставка зупинила б магазин. Неперевірений або частково робочий ключ усе одно зберігається.
             $saved = $result->newApi !== KeyAccess::InvalidKey && $result->oldApi !== KeyAccess::InvalidKey;
             if ($saved) {
                 $this->settings->set(ApiKey::SETTING, $key);

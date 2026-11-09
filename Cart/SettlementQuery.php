@@ -4,15 +4,15 @@ namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Rows\NameNormalizer;
 
-/** What a customer typed in the city field, in the form `search_text` is stored in. */
+/** Що покупець ввів у поле міста, у тій формі, в якій зберігається `search_text`. */
 final readonly class SettlementQuery
 {
     private const int MAX_WORDS = 5;
     private const int MAX_LENGTH = 64;
-    /** A settlement type alone ("місто") matches every settlement and finds nothing useful. */
+    /** Сам лише тип населеного пункту ("місто") збігається з кожним населеним пунктом і нічого корисного не знаходить. */
     private const array TYPE_WORDS = ['місто', 'село', 'селище', 'смт'];
 
-    /** @param list<string> $words already escaped for LIKE */
+    /** @param list<string> $words уже екрановані для LIKE */
     private function __construct(public array $words, public string $prefix)
     {
     }

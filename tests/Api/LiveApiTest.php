@@ -12,7 +12,9 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 use PHPUnit\Framework\TestCase;
 
-/** Talks to Nova Poshta; runs only with NP_TEST_API_KEY set (a test key, never a shop key). */
+/**
+ * Звертається до Нової Пошти; запускається лише із заданим NP_TEST_API_KEY (тестовий ключ, ніколи не ключ магазину).
+ */
 class LiveApiTest extends TestCase
 {
     private string $key;

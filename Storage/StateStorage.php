@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Storage;
 
-/** Small named values the module keeps between requests (JWT, key check result, dictionary versions). */
+/** Невеликі іменовані значення, які модуль зберігає між запитами (JWT, результат перевірки ключа, версії довідників). */
 interface StateStorage
 {
     public function get(string $name): ?string;

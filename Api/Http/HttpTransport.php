@@ -5,9 +5,9 @@ namespace Okay\Modules\Sviat\NovaPoshta\Api\Http;
 interface HttpTransport
 {
     /**
-     * Any HTTP status, error statuses included, comes back as a response.
+     * Будь-який HTTP-статус, зокрема статуси помилок, повертається як відповідь.
      *
-     * @throws TransportException when no response arrived (network, DNS, TLS, timeout)
+     * @throws TransportException коли відповідь не надійшла (мережа, DNS, TLS, тайм-аут)
      */
     public function send(HttpRequest $request): HttpResponse;
 }

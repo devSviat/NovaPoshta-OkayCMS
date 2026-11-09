@@ -9,9 +9,9 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\AddressCityResolver;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefUnavailable;
 
 /**
- * Street suggestions for address delivery. The new API has no street dictionary (06.11.2026);
- * the old `getStreet` by city Ref gives the street Ref an address shipment needs later.
- * A failure only means no suggestions: the customer can still type the street.
+ * Підказки вулиць для адресної доставки. У новому API немає довідника вулиць (06.11.2026);
+ * старий `getStreet` за Ref міста дає Ref вулиці, потрібний пізніше для адресного відправлення.
+ * Збій означає лише відсутність підказок: покупець усе одно може ввести вулицю.
  */
 final class StreetSearch
 {

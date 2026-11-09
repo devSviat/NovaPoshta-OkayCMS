@@ -40,7 +40,7 @@ class OrderDeliveryViewTest extends TestCase
         self::assertSame('18.03.2030', $lines['term']);
         self::assertTrue($lines['priceUnconfirmed']);
         self::assertNull(OrderDeliveryView::lines((object)['settlement_name' => 'x', 'delivery_term' => 'garbage'])['term']);
-        // The column is DATETIME: the database gives the date back at midnight.
+        // Колонка має тип DATETIME: база повертає дату з часом опівночі.
         self::assertSame('18.03.2030', OrderDeliveryView::lines((object)['settlement_name' => 'x', 'delivery_term' => '2030-03-18 00:00:00'])['term']);
     }
 
@@ -51,7 +51,7 @@ class OrderDeliveryViewTest extends TestCase
             'street_name' => 'вул. Хрещатик', 'street_ref' => '0f0d85b0-4143-11dd-9198-001d60451983', 'house' => '1', 'flat' => '5', 'entrance' => '', 'floor' => '7', 'elevator' => '1', 'address_note' => 'домофон 5', 'lifting' => '1',
         ]);
 
-        // streetRef: the manager's address editor starts from it, so an unchanged street keeps its NP ref.
+        // streetRef: з нього починає редактор адреси менеджера, тож незмінена вулиця зберігає свій ref НП.
         self::assertSame(['street' => 'вул. Хрещатик', 'streetRef' => '0f0d85b0-4143-11dd-9198-001d60451983', 'house' => '1', 'flat' => '5', 'entrance' => null, 'floor' => 7, 'elevator' => true, 'note' => 'домофон 5'], $lines['address']);
         self::assertTrue($lines['lifting']);
         self::assertSame('', $lines['point']);
@@ -99,7 +99,7 @@ class OrderDeliveryViewTest extends TestCase
         self::assertSame('Поштомат №1001: вул. Сім\'ї Кульженків, 31а', $lines['point']);
     }
 
-    /** A branch name already carries its street («Відділення №2: вул. Богатирська, 11»): the address would repeat it. */
+    /** Назва відділення вже містить його вулицю («Відділення №2: вул. Богатирська, 11»): адреса повторила б її. */
     public function testBranchAddressIsNotRepeated(): void
     {
         $lines = OrderDeliveryView::lines((object)['settlement_name' => 'місто Київ', 'division_name' => 'Відділення №2: вул. Богатирська, 11', 'division_address' => 'Київ, Богатирська, 11']);

@@ -9,8 +9,8 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
 /**
- * The module's rows of orders the admin deletes. Only the rows: a waybill already made stays at
- * Nova Poshta — deleting the order is not a request to cancel the shipment.
+ * Рядки модуля для замовлень, які видаляє адмінка. Лише рядки: уже створена накладна лишається в
+ * Новій Пошті — видалення замовлення не є запитом скасувати відправлення.
  */
 final class OrderRowsCleanup
 {
@@ -29,8 +29,8 @@ final class OrderRowsCleanup
     }
 
     /**
-     * Scheduler: once a day, the rows of orders deleted while the module was off (the delete hook did not run).
-     * Without it tracking keeps asking NP about them, and a reused order number would show another customer's point.
+     * Планувальник: раз на день — рядки замовлень, видалених, поки модуль був вимкнений (хук видалення не спрацював).
+     * Без цього трекінг і далі питає НП про них, а повторно використаний номер замовлення показав би пункт іншого покупця.
      */
     public function tick(): void
     {

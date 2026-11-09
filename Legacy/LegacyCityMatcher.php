@@ -3,32 +3,32 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
 /**
- * Our settlement for an old City Ref (getCities). Known pairs first, then a name only when it is unique,
- * then Nova Poshta: any point of that city gives its WarehouseIndex, which is our point number.
+ * Наш населений пункт для старого City Ref (getCities). Спершу відомі пари, потім назва — лише якщо вона унікальна,
+ * потім Нова Пошта: будь-який пункт видачі цього міста дає свій WarehouseIndex, а це наш номер пункту видачі.
  */
 final class LegacyCityMatcher
 {
-    /** Not a failure: the tick ran out of calls; the row is tried again next tick. */
+    /** Не збій: тік вичерпав виклики; рядок спробують знову на наступному тіку. */
     public const string BUDGET = 'budget';
 
     public function __construct(private readonly LegacyPlaces $places)
     {
     }
 
-    /** @return array{0: ?int, 1: ?string} settlement id, or the reason */
+    /** @return array{0: ?int, 1: ?string} id населеного пункту або причина */
     public function match(string $cityRef, ?string $cityName, LegacyBudget $budget): array
     {
         if ($cityRef !== '' && ($known = $this->places->settlementOfCityRef($cityRef)) !== null) {
             return [$known, null];
         }
-        // getCities adds "(… р-н)" to namesakes: such a name is not unique by itself, NP decides.
+        // getCities додає "(… р-н)" до тезок: така назва сама по собі не унікальна, вирішує НП.
         if ($cityName !== null && !str_contains($cityName, '(') && ($place = LegacyNames::place($cityName)) !== ''
             && count($named = $this->places->settlementsNamed($place)) < LegacyPlaces::NAMED_MAX) {
             $found = array_values(array_filter(
                 $named,
                 static fn(object $s): bool => (int)$s->has_pickup === 1 && LegacyNames::place((string)$s->name_uk) === $place,
             ));
-            // Not remembered as a city Ref: a name is not proof, and the price lookups trust those pairs.
+            // Не запам'ятовується як Ref міста: назва — не доказ, а пошук цін довіряє цим парам.
             if (count($found) === 1) {
                 return [(int)$found[0]->id, null];
             }

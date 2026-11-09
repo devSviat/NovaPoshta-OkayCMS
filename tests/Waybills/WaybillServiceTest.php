@@ -116,7 +116,10 @@ class WaybillServiceTest extends TestCase
         self::assertCount(2, $this->http->requests());
     }
 
-    /** NP may have made the waybill: the order stays blocked until the manager checks, so no second one is made. */
+    /**
+     * НП могла створити накладну: замовлення лишається заблокованим, доки менеджер не перевірить, тож другу не буде
+     * створено.
+     */
     public function testTransportErrorOnSaveKeepsTheOrderForACheck(): void
     {
         $this->http->push(new TransportException('timeout'));
@@ -178,7 +181,7 @@ class WaybillServiceTest extends TestCase
         self::assertSame([], $this->http->requests());
     }
 
-    /** A request that died midway may have made the waybill too: checked first, never replaced blindly. */
+    /** Запит, що впав посередині, теж міг створити накладну: її спершу перевіряють, ніколи не замінюють наосліп. */
     public function testStaleAttemptNeedsACheck(): void
     {
         $this->rows->reserve(self::ORDER);
@@ -233,7 +236,10 @@ class WaybillServiceTest extends TestCase
         self::assertNull($this->rows->forOrder(self::ORDER), 'a new waybill can be made now');
     }
 
-    /** A shipment made through the new API reaches the document list with a delay: "none" right away is not yet an answer. */
+    /**
+     * Відправлення, створене через новий API, потрапляє до списку документів із затримкою: "none" одразу — ще не
+     * відповідь.
+     */
     public function testLookupTooSoonKeepsTheBlock(): void
     {
         $this->rows->reserve(self::ORDER);
@@ -377,7 +383,7 @@ class WaybillServiceTest extends TestCase
         self::assertNull($this->rows->forOrder(self::ORDER)->ref);
     }
 
-    /** Two managers attach one number at once: the database lets one through; the other is told where it went. */
+    /** Два менеджери одночасно прив'язують один номер: база пропускає одного; іншому кажуть, куди номер пішов. */
     public function testAttachLostToAnotherOrderSaysWhere(): void
     {
         $this->statusAnswer('status_cod');
@@ -391,7 +397,10 @@ class WaybillServiceTest extends TestCase
         self::assertNull($this->rows->forOrder(self::ORDER));
     }
 
-    /** NP made the waybill, but its number is already another order's: the shop learns the number, the reservation goes. */
+    /**
+     * НП створила накладну, але її номер уже належить іншому замовленню: магазин дізнається номер, резервування
+     * знімається.
+     */
     public function testCreatedNumberTakenByAnotherOrder(): void
     {
         $this->rows->add(77, W::fixture('old_save_ok')['data'][0]['IntDocNumber'], null, 'attached', []);
@@ -433,7 +442,7 @@ class WaybillServiceTest extends TestCase
         self::assertSame([], $this->rows->rows);
     }
 
-    /** As the old module: only a waybill not yet handed over is deleted; NP refuses the rest anyway. */
+    /** Як у старому модулі: видаляється лише накладна, ще не передана до НП; решту НП однаково відхиляє. */
     public function testRemoveOnlyBeforeHandOver(): void
     {
         $this->rows->add(2, '20450000000002', 'ref-2', 'old', []);

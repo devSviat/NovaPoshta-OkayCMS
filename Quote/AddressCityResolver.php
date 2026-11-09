@@ -7,10 +7,10 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 
 /**
- * Old API city Ref for address delivery. A settlement with points uses the point-number bridge;
- * one without points is found by name, region and district in `searchSettlements` (the district
- * tells namesakes apart; an empty `DeliveryCity` means Nova Poshta does not deliver there by
- * address — checked live 06.11.2026). Anything not unique is left to the manager, never guessed.
+ * Ref міста старого API для адресної доставки. Населений пункт із пунктами видачі йде через місток
+ * за номером пункту; без пунктів — шукається за назвою, областю й районом у `searchSettlements` (район
+ * розрізняє тезок; порожній `DeliveryCity` означає, що Нова Пошта не доставляє туди за адресою —
+ * перевірено наживо 06.11.2026). Усе неоднозначне лишається менеджеру, ніколи не вгадується.
  */
 final class AddressCityResolver
 {
@@ -33,8 +33,8 @@ final class AddressCityResolver
     }
 
     /**
-     * @param object $settlement row with id, name_uk, district_uk, area_uk
-     * @throws CityRefUnavailable when Nova Poshta does not answer and nothing is known yet
+     * @param object $settlement рядок з id, name_uk, district_uk, area_uk
+     * @throws CityRefUnavailable коли Нова Пошта не відповідає, а нічого ще не відомо
      */
     public function forSettlement(object $settlement): ?string
     {
@@ -54,7 +54,7 @@ final class AddressCityResolver
         $name = self::plainName((string)$settlement->name_uk);
         $rows = [];
         $complete = false;
-        // A namesake in the same district may sit on a later page: uniqueness is judged on the whole answer.
+        // Тезка в тому самому районі може бути на наступній сторінці: унікальність оцінюється за всією відповіддю.
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
             try {
                 $data = $this->api->quick(self::TIMEOUT_SECONDS)->call('Address', 'searchSettlements', ['CityName' => $name, 'Limit' => (string)self::PAGE_SIZE, 'Page' => (string)$page]);

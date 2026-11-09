@@ -120,7 +120,9 @@ class UpdatersTest extends TestCase
         self::assertCount(2, $this->store->tables['divisions']);
     }
 
-    /** The CDN base holds only working points open to customers; a delta also carries the rest (live CDN, 09.11.2026). */
+    /**
+     * База CDN містить лише робочі пункти видачі, відкриті для покупців; дельта несе й решту (live CDN, 09.11.2026).
+     */
     public function testFullSkipsPointsClosedToCustomers(): void
     {
         $this->divisions()->full($this->gz([self::division(1), self::division(2, ['customerServiceAvailable' => false]), self::division(3, ['status' => 'NotWorking'])]), null, 10);

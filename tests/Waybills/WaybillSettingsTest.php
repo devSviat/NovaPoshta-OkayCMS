@@ -25,7 +25,10 @@ class WaybillSettingsTest extends TestCase
         self::assertSame('skus', $config->extraInfo, 'as the old module: SKUs of the order');
     }
 
-    /** 'auto' was the default before 1.0.0: it reads as the recipient, the drafts still switch when needed. */
+    /**
+     * 'auto' було значенням за замовчуванням до 1.0.0: воно читається як отримувач, чернетки й далі перемикаються за
+     * потреби.
+     */
     public function testStoredAutoPayerReadsAsRecipient(): void
     {
         self::assertSame('Recipient', WaybillSettings::parse(['payer_type' => 'auto'])->payerType);
@@ -61,7 +64,9 @@ class WaybillSettingsTest extends TestCase
         self::assertSame('Documents', WaybillSettings::parse(['cargo_type' => 'Documents'])->cargoType);
     }
 
-    /** Nothing stored yet (a new install or an update from before the setting): all three types are on. */
+    /**
+     * Ще нічого не збережено (нова установка або оновлення з версії без цього налаштування): усі три типи увімкнені.
+     */
     public function testCargoTypesDefaultToParcelCargoDocuments(): void
     {
         self::assertSame(['Parcel', 'Cargo', 'Documents'], WaybillSettings::parse([])->cargoTypes);

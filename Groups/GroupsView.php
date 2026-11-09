@@ -2,12 +2,12 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Groups;
 
-/** Template data for the groups block; says plainly which categories customers will not see. */
+/** Дані шаблону для блоку груп; прямо каже, яких категорій покупці не побачать. */
 final class GroupsView
 {
     /**
-     * @param list<object> $groups rows of GroupEntity
-     * @param array<string, int> $counts working points per category
+     * @param list<object> $groups рядки GroupEntity
+     * @param array<string, int> $counts робочі пункти видачі за категоріями
      */
     public static function vars(array $groups, array $counts): array
     {

@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
-/** Counts per step and the rows that need the manager; kept in the module state between ticks. */
+/** Лічильники по кроках і рядки, що потребують менеджера; зберігаються в стані модуля між тіками. */
 final class LegacyReport
 {
     public const int FAILS_MAX = 200;
@@ -21,9 +21,9 @@ final class LegacyReport
     }
 
     /**
-     * Counted as failed; the row itself may still be carried over with its names.
+     * Рахується як невдача; сам рядок усе одно може бути перенесений зі своїми назвами.
      *
-     * @param ?int $record id of the old module's row, for a failure the shop has no order to link
+     * @param ?int $record id рядка старого модуля — для невдачі, яку магазин не може прив'язати до замовлення
      */
     public function fail(string $step, ?int $orderId, string $key, ?string $name = null, ?int $record = null): void
     {

@@ -46,7 +46,7 @@ class BackendExtender implements ExtensionInterface
     ) {
     }
 
-    /** ChainExtension of BackendPaymentsRequest::postPayment: the core stores the field with the rest of the payment. */
+    /** ChainExtension для BackendPaymentsRequest::postPayment: ядро зберігає поле разом з рештою даних оплати. */
     public function paymentPost($paymentMethod)
     {
         if (is_object($paymentMethod)) {
@@ -63,7 +63,7 @@ class BackendExtender implements ExtensionInterface
         return $paymentMethod;
     }
 
-    /** QueueExtension of BackendPaymentsHelper::getPaymentMethod: what payment_cod.tpl shows. */
+    /** QueueExtension для BackendPaymentsHelper::getPaymentMethod: те, що показує payment_cod.tpl. */
     public function assignPaymentCod($payment, $id = null)
     {
         $this->design->assign('np_codpay', [
@@ -72,7 +72,10 @@ class BackendExtender implements ExtensionInterface
         ]);
     }
 
-    /** ChainExtension of BackendDeliveriesHelper::getDelivery: a mode stored by NovaposhtaCost or an older version stays selected. */
+    /**
+     * ChainExtension для BackendDeliveriesHelper::getDelivery: режим, збережений NovaposhtaCost або старішою версією,
+     * лишається вибраним.
+     */
     public function offeredMode($delivery, $id = null)
     {
         if (is_object($delivery) && !empty($delivery->module_id) && is_array($delivery->delivery_settings ?? null)
@@ -83,27 +86,30 @@ class BackendExtender implements ExtensionInterface
         return $delivery;
     }
 
-    /** Queue extender of BackendDeliveriesHelper::getDelivery: the method page warns when the core makes it free for every cart. */
+    /**
+     * Queue extender для BackendDeliveriesHelper::getDelivery: сторінка способу доставки попереджає, коли ядро робить
+     * його безкоштовним для будь-якого кошика.
+     */
     public function deliveryWarning($delivery, $id = null): void
     {
         $ours = is_object($delivery) && DeliveryWarnings::freeForAll([$delivery], (int)$this->module->getModuleIdByNamespace(__CLASS__)) !== [];
         $this->design->assign('np_delivery_free_for_all', $ours);
     }
 
-    /** Queue extender of BackendOrdersHelper::delete (runs before the core deletes the orders). */
+    /** Queue extender для BackendOrdersHelper::delete (виконується до того, як ядро видалить замовлення). */
     public function deleteOrders($result, $ids): void
     {
         $this->orderRows->forOrders((array)$ids);
     }
 
-    /** QueueExtension of BackendOrdersHelper::findOrder: the order page shows where the parcel goes. */
+    /** QueueExtension для BackendOrdersHelper::findOrder: сторінка замовлення показує, куди йде посилка. */
     public function assignOrderDelivery($order, $orderId = null)
     {
         $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
         $point = is_object($order) && !empty($order->id) ? $this->pointEditor($order, $row) : null;
         $showWaybill = $point === null ? $row !== null : $point['showWaybill'];
         if ($point !== null && $point['needsChoice']) {
-            // The saved point is of the other mode (delivery method changed) or there is none yet.
+            // Збережений пункт видачі належить іншому режиму (спосіб доставки змінився) або його ще немає.
             $row = null;
         }
         $this->design->assign('np_order_point', $point);
@@ -121,7 +127,7 @@ class BackendExtender implements ExtensionInterface
         $this->design->assign('np_waybill', $showWaybill ? $this->waybills->forOrder((int)$order->id) : null);
     }
 
-    /** Texts the point/address editor script shows; keys of Backend/lang without the prefix. */
+    /** Тексти, які показує скрипт редактора пункту видачі/адреси; ключі Backend/lang без префікса. */
     private const array EDITOR_TEXTS = [
         'op_city', 'op_city_placeholder', 'op_point_search', 'op_point_search_placeholder', 'op_street', 'op_house', 'op_flat', 'op_entrance',
         'op_note', 'op_lifting', 'op_floor', 'op_elevator', 'op_save', 'op_cancel', 'op_saving', 'op_no_points', 'op_shown_of', 'op_all_day',
@@ -129,7 +135,9 @@ class BackendExtender implements ExtensionInterface
         'op_price_keep', 'op_price_same', 'op_price_free', 'op_price_show', 'op_price_auto', 'op_price_offer', 'op_price_apply', 'op_price_applied', 'op_street_typed', 'op_change',
     ];
 
-    /** What the point/address editor needs; null when the order's delivery method is not this module's. */
+    /**
+     * Те, що потрібно редактору пункту видачі/адреси; null, коли спосіб доставки замовлення не належить цьому модулю.
+     */
     private function pointEditor(object $order, ?object $snapshot): ?array
     {
         $delivery = $this->entityFactory->get(DeliveriesEntity::class)->get((int)($order->delivery_id ?? 0));
@@ -145,7 +153,7 @@ class BackendExtender implements ExtensionInterface
             'mode' => $mode->value,
             'settlementId' => $snapshot && $snapshot->mode === $mode->value ? (int)$snapshot->settlement_id : null,
             'settlementName' => $snapshot && $snapshot->mode === $mode->value ? (string)$snapshot->settlement_name : null,
-            // Shown as a line, not an editable field: the type before the bold title, the region below.
+            // Показується рядком, а не полем для редагування: тип перед жирною назвою, область нижче.
             'settlementType' => $snapshot && $snapshot->mode === $mode->value ? \Okay\Modules\Sviat\NovaPoshta\Cart\SettlementName::split((string)$snapshot->settlement_name)[0] : null,
             'settlementTitle' => $snapshot && $snapshot->mode === $mode->value ? \Okay\Modules\Sviat\NovaPoshta\Cart\SettlementName::split((string)$snapshot->settlement_name)[1] : null,
             'settlementArea' => $snapshot && $snapshot->mode === $mode->value ? (string)($snapshot->area_name ?? '') : null,
@@ -157,8 +165,8 @@ class BackendExtender implements ExtensionInterface
     }
 
     /**
-     * ChainExtension of BackendOrdersHelper::buildFilter: NP status group, a keyword that is a waybill
-     * number, and the list action «create waybills» (the core runs its own actions just before this).
+     * ChainExtension для BackendOrdersHelper::buildFilter: група статусів НП, ключове слово, що є номером
+     * накладної, і дія списку «створити накладні» (ядро виконує свої дії безпосередньо перед цим).
      */
     public function listFilter($filter)
     {
@@ -177,7 +185,7 @@ class BackendExtender implements ExtensionInterface
             is_string($keyword) ? $keyword : null,
             fn(string $number): array => $this->waybillRows->ordersOfNumber($number),
         );
-        // The core shows the search text only while it stays in the filter; a waybill number was taken out.
+        // Ядро показує текст пошуку, лише поки він лишається у фільтрі; номер накладної звідти вилучено.
         if (isset($filter['keyword']) && !isset($applied['keyword'])) {
             $this->design->assign('keyword', $filter['keyword']);
         }
@@ -201,7 +209,7 @@ class BackendExtender implements ExtensionInterface
         ));
     }
 
-    /** ChainExtension of BackendOrdersHelper::buildCountStatusesFilter: the status counters follow the NP filter. */
+    /** ChainExtension для BackendOrdersHelper::buildCountStatusesFilter: лічильники статусів враховують фільтр НП. */
     public function countFilter($countFilter, $filter = [])
     {
         if (is_array($countFilter) && is_array($filter)) {
@@ -218,7 +226,7 @@ class BackendExtender implements ExtensionInterface
         return $countFilter;
     }
 
-    /** QueueExtension of BackendOrdersHelper::findOrders: one query for the waybills of the page. */
+    /** QueueExtension для BackendOrdersHelper::findOrders: один запит на накладні всієї сторінки. */
     public function listOrders($orders, $filter = [])
     {
         if (!is_array($orders) || $orders === []) {
@@ -242,7 +250,10 @@ class BackendExtender implements ExtensionInterface
         }
     }
 
-    /** ChainExtension of BackendProductsRequest::postVariants: the volume column is decimal, text must not reach it. */
+    /**
+     * ChainExtension для BackendProductsRequest::postVariants: колонка об'єму має тип decimal, текст не повинен туди
+     * потрапити.
+     */
     public function cleanVariantVolumes($variants)
     {
         if (!is_array($variants)) {

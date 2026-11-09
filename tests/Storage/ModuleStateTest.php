@@ -7,7 +7,7 @@ use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateEntity;
 use PHPUnit\Framework\TestCase;
 
-/** The database side is checked on the stands; here — that set() upserts by name. */
+/** Бік бази даних перевіряється на стендах; тут — що set() робить upsert за назвою. */
 class ModuleStateTest extends TestCase
 {
     /** @var array<string, object> */

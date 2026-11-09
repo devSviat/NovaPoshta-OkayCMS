@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
-/** The waybill form as posted: known fields only, text cut to its limit; WaybillDraft::withInput checks the rest. */
+/** Форма накладної, як її надіслано: лише відомі поля, текст обрізано до ліміту; решту перевіряє WaybillDraft::withInput. */
 final class WaybillInput
 {
     private const array TEXT = [
@@ -35,7 +35,7 @@ final class WaybillInput
         foreach (self::NUMBERS as $name) {
             if (is_string($post[$name] ?? null)) {
                 $raw = str_replace(',', '.', trim($post[$name]));
-                // Not a number stays text, so the draft reports the field instead of keeping its old value.
+                // Не число лишається текстом, щоб чернетка повідомила про поле, а не зберегла старе значення.
                 $input[$name] = is_numeric($raw) ? (float)$raw : mb_substr($raw, 0, 20);
             }
         }

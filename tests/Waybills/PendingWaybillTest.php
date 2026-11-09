@@ -5,7 +5,7 @@ namespace Modules\Sviat\NovaPoshta\Waybills;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill;
 use PHPUnit\Framework\TestCase;
 
-/** A waybill being made at NP has no number yet: that, not a value of `api`, is what "pending" means. */
+/** Накладна, що створюється в НП, ще не має номера: саме це, а не значення `api`, означає "pending". */
 class PendingWaybillTest extends TestCase
 {
     public function testNoNumberMeansBeingMade(): void

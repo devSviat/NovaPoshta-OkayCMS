@@ -39,8 +39,8 @@ final class DbCityRefStore implements CityRefStore
 
     public function bridgeNumbers(int $settlementId, int $limit): array
     {
-        // A number repeated inside one settlement (3 such pairs in Ukraine) may lead the old API
-        // to another record; such numbers are not used as a bridge.
+        // Номер, що повторюється в одному населеному пункті (таких пар в Україні 3), може привести старий API
+        // до іншого запису; такі номери не використовуються як місток.
         $select = $this->queryFactory->newSelect()->cols(['d.number'])
             ->from(DivisionEntity::getTable() . ' AS d')
             ->where('d.settlement_id = :id')

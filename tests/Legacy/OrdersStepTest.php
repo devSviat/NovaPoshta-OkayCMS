@@ -116,7 +116,7 @@ class OrdersStepTest extends TestCase
         self::assertSame('migrated', $row['legacy']);
     }
 
-    /** A big city has village namesakes and old address rows carry no region: the City Ref decides. */
+    /** Велике місто має сіл-тезок, а старі рядки адрес не містять області: вирішує City Ref. */
     public function testAddressCityIsMatchedByItsRef(): void
     {
         $this->places->settlements[] = (object)['id' => 4, 'name_uk' => 'село Київ', 'area_uk' => 'Миколаївська область', 'district_uk' => 'Вознесенський район', 'has_pickup' => 0];
@@ -164,7 +164,7 @@ class OrdersStepTest extends TestCase
 
         self::assertSame([], $this->orders->rows);
         self::assertSame(2, $report->counts('orders')['failed']);
-        // The shop has no such order: the report names the old record, not a link to nothing.
+        // У магазині немає такого замовлення: звіт називає старий запис, а не посилання в нікуди.
         self::assertSame(['step' => 'orders', 'order' => null, 'key' => 'legacy_fail_no_order_id', 'name' => null, 'record' => 1], $report->fails()[0]);
         self::assertSame(['step' => 'orders', 'order' => null, 'key' => 'legacy_fail_no_order', 'name' => '999', 'record' => 2], $report->fails()[1]);
     }

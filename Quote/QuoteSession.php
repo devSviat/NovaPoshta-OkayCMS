@@ -3,8 +3,8 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
 /**
- * Quotes and the customer's last choice, kept in the PHP session (`$bag` is the module's slot
- * in it). Plain arrays only: a session must not hold module objects that may change shape.
+ * Розрахунки ціни й останній вибір покупця, що зберігаються в PHP-сесії (`$bag` — місце модуля
+ * в ній). Лише прості масиви: сесія не повинна тримати об'єкти модуля, форма яких може змінитися.
  */
 final class QuoteSession
 {
@@ -12,8 +12,8 @@ final class QuoteSession
     private const int MAX_QUOTES = 10;
 
     /**
-     * @param ?int $retryUnreachableAfter seconds after which an "unreachable" answer counts as missing, so the
-     *     cart asks Nova Poshta again; checkout passes null and keeps what the cart showed.
+     * @param ?int $retryUnreachableAfter секунди, після яких відповідь "unreachable" вважається відсутньою, тож
+     *     кошик знову запитує Нову Пошту; оформлення замовлення передає null і лишає те, що показав кошик.
      */
     public static function get(array $bag, string $key, int $now, ?int $retryUnreachableAfter = null): ?DeliveryQuote
     {
@@ -45,7 +45,7 @@ final class QuoteSession
         $bag['quotes'] = array_slice($quotes, -self::MAX_QUOTES, null, true);
     }
 
-    /** @param string $target "d:<division id>" or "a:<settlement id>" */
+    /** @param string $target "d:<division id>" або "a:<settlement id>" */
     public static function choose(array &$bag, int $deliveryId, string $target, bool $cod, bool $lifting = false, ?int $floor = null, bool $elevator = false): void
     {
         $chosen = is_array($bag['chosen'] ?? null) ? $bag['chosen'] : [];
@@ -70,7 +70,7 @@ final class QuoteSession
         ];
     }
 
-    /** @return array{division_id?: int, settlement_id?: int} the ids a "d:" or "a:" target names */
+    /** @return array{division_id?: int, settlement_id?: int} id, які називає ціль "d:" чи "a:" */
     public static function targetIds(string $target): array
     {
         if (!preg_match('/^([da]):(\d+)$/', $target, $m) || (int)$m[2] <= 0) {

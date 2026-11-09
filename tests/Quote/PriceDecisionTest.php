@@ -43,8 +43,8 @@ class PriceDecisionTest extends TestCase
 
     public function testStaleOrForeignQuoteIsRecalculated(): void
     {
-        // The caller asks CartQuotes with the order's own point, payment and cart; a quote made for
-        // anything else has another key and is never found — the decision only sees the fresh one.
+        // Викликач питає CartQuotes з власними пунктом видачі, оплатою й кошиком замовлення; розрахунок
+        // для чогось іншого має інший ключ і ніколи не знаходиться — рішення бачить лише свіжий.
         $fresh = new DeliveryQuote(99.0, null, 'new', null);
 
         self::assertSame(99.0, PriceDecision::forOrder($fresh, self::CORE)['info']['delivery_price']);
@@ -52,7 +52,7 @@ class PriceDecisionTest extends TestCase
 
     public function testPriceSetByAnotherModuleIsKept(): void
     {
-        // e.g. a promo's free shipping: the core alone would give 70, the chain already gave 0.
+        // напр. безкоштовна доставка акції: саме ядро дало б 70, ланцюжок уже дав 0.
         $promo = ['delivery_price' => 0, 'separate_delivery' => 0];
 
         self::assertSame(['info' => $promo, 'source' => 'external'], PriceDecision::forOrder(new DeliveryQuote(172.0, null, 'new', null), $promo, coreDefault: 70.0));

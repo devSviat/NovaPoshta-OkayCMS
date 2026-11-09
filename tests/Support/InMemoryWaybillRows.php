@@ -7,13 +7,13 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillRows;
 
 final class InMemoryWaybillRows implements WaybillRows
 {
-    /** @var array<int, object> by order id */
+    /** @var array<int, object> за id замовлення */
     public array $rows = [];
-    /** Another request took the order between the check and the reservation. */
+    /** Інший запит забрав замовлення між перевіркою і резервуванням. */
     public bool $failReserve = false;
-    /** The database refused the write after Nova Poshta made the waybill. */
+    /** База відхилила запис після того, як Нова Пошта створила накладну. */
     public bool $failComplete = false;
-    /** Runs just before add(): another request writing between the service's checks and its insert. */
+    /** Виконується безпосередньо перед add(): інший запит пише між перевірками сервісу і його вставкою. */
     public ?\Closure $beforeAdd = null;
     public int $now = 1_900_000_000;
 
@@ -40,7 +40,7 @@ final class InMemoryWaybillRows implements WaybillRows
             $this->beforeAdd = null;
             $race($this);
         }
-        // Both are unique in the table; NULL numbers (waybills being made) repeat freely.
+        // Обидва унікальні в таблиці; NULL-номери (накладні, що створюються) вільно повторюються.
         if (isset($this->rows[$orderId]) || ($number !== null && $this->orderOfNumber($number) !== null)) {
             return false;
         }

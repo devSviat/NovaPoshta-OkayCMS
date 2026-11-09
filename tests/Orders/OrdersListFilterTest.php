@@ -25,11 +25,11 @@ class OrdersListFilterTest extends TestCase
 
     public function testUnknownWaybillLeavesTheCoreSearch(): void
     {
-        // Not a waybill of this shop: the core search keeps it (a barcode in a product name, digits in an email).
+        // Не накладна цього магазину: пошук ядра її лишає (штрихкод у назві товару, цифри в email).
         self::assertSame(['keyword' => '20459999999999'], self::apply(['keyword' => '20459999999999'], null, '20459999999999'));
     }
 
-    /** A status group is a subquery in SQL, not the ids of every matching order (tens of thousands in time). */
+    /** Група статусів — це підзапит у SQL, а не id кожного відповідного замовлення (з часом їх десятки тисяч). */
     public function testStatusGroupIsAnEntityFilter(): void
     {
         self::assertSame(['status' => 1, 'np_status_codes' => [7, 8]], self::apply(['status' => 1], 'arrived', null));

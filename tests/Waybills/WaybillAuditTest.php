@@ -30,7 +30,7 @@ class WaybillAuditTest extends TestCase
         self::assertSame([], $audit->findings);
     }
 
-    /** For 10–20 s after creation Nova Poshta reports the default payer, Sender (live 09.11.2026). */
+    /** Протягом 10–20 s після створення Нова Пошта повідомляє платника за замовчуванням, Sender (live 09.11.2026). */
     public function testRecipientPayerIsNotYetReported(): void
     {
         $audit = WaybillAudit::compare(self::codPoint(['codPayer' => 'Recipient']), W::fixture('status_cod'));

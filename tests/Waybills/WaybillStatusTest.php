@@ -6,7 +6,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-/** Ported from NovaPoshtaTracking NovaPoshtaStatusHelperTest. */
+/** Перенесено з NovaPoshtaTracking NovaPoshtaStatusHelperTest. */
 class WaybillStatusTest extends TestCase
 {
     #[DataProvider('known')]

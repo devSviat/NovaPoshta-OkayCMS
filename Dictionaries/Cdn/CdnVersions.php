@@ -2,10 +2,10 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries\Cdn;
 
-/** What the CDN offers for one dictionary and language: a full base and daily deltas. */
+/** Що CDN пропонує для одного довідника й мови: повну базу та щоденні дельти. */
 final readonly class CdnVersions
 {
-    /** @param list<array{from:int, till:int, url:string}> $deltas oldest first */
+    /** @param list<array{from:int, till:int, url:string}> $deltas найстаріші спершу */
     public function __construct(
         public int $baseTime,
         public string $baseUrl,
@@ -32,7 +32,7 @@ final readonly class CdnVersions
         return new self($base['unix_time'], $base['url'], $deltas);
     }
 
-    /** `{"unix_time","base_version":{"unix_time"},"urls":[base]}`: settlements come as a base only. */
+    /** `{"unix_time","base_version":{"unix_time"},"urls":[base]}`: населені пункти приходять лише як база. */
     public static function fromSettlements(array $json): ?self
     {
         $time = $json['base_version']['unix_time'] ?? null;

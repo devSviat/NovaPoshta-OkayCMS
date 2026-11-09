@@ -2,10 +2,10 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
-/** The date a waybill is issued for: the shop's last pickup of the day decides today or tomorrow. */
+/** Дата, на яку оформлюється накладна: останній за день забір у магазину вирішує — сьогодні чи завтра. */
 final class ShipDate
 {
-    /** @param string $cutoff HH:MM; empty means every waybill is for tomorrow */
+    /** @param string $cutoff HH:MM; порожнє означає, що кожна накладна — на завтра */
     public static function for(\DateTimeImmutable $now, string $cutoff): string
     {
         $today = preg_match('/^(\d{1,2}):(\d{2})$/', $cutoff, $m)

@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Entities;
 
 use Okay\Core\Entity\Entity;
 
-/** What the customer chose for an order, with names copied: later dictionary changes must not rewrite history. */
+/** Що покупець обрав для замовлення, з копіями назв: пізніші зміни довідника не повинні переписувати історію. */
 class OrderDeliveryEntity extends Entity
 {
     protected static $fields = [

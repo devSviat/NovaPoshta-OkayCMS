@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
-/** The shop's orders and the module's own rows, as the migration writes them. */
+/** Замовлення магазину й власні рядки модуля — у тому вигляді, як їх пише перенесення. */
 interface LegacyOrders
 {
     /** @return object|null id, delivery_id, delivery_price, payment_method_id */
@@ -10,14 +10,14 @@ interface LegacyOrders
 
     public function hasDelivery(int $orderId): bool;
 
-    /** @return bool false when the order already has a row */
+    /** @return bool false, коли замовлення вже має рядок */
     public function importDelivery(int $orderId, int $deliveryId, array $values): bool;
 
     public function hasWaybill(int $orderId): bool;
 
-    /** The order a waybill number already belongs to: a number is unique in the module's table. */
+    /** Замовлення, якому вже належить номер накладної: номер унікальний у таблиці модуля. */
     public function waybillOwner(string $number): ?int;
 
-    /** @return bool false when the order already has a waybill */
+    /** @return bool false, коли замовлення вже має накладну */
     public function importWaybill(int $orderId, array $values): bool;
 }

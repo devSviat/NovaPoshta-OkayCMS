@@ -38,7 +38,10 @@ class InvoicePaymentDataTest extends TestCase
         self::assertSame(['edrpou' => '12345678', 'company' => 'ТОВ «Приклад»'], InvoicePaymentData::read(self::payment(), (object)['edrpou' => ' 12345678 ', 'company_name' => ' ТОВ «Приклад» ']));
     }
 
-    /** Its files may stay without its table: an order paid otherwise does not query it (no SQL error in the log). */
+    /**
+     * Його файли можуть лишитися без його таблиці: замовлення з іншою оплатою не робить до неї запиту (жодної
+     * SQL-помилки в лозі).
+     */
     public function testOtherPaymentDoesNotQueryInvoiceTable(): void
     {
         $asked = [];

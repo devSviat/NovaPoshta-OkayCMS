@@ -5,9 +5,9 @@ namespace Okay\Modules\Sviat\NovaPoshta\Api\Http;
 interface Downloader
 {
     /**
-     * Saves the body of $url to $toPath without holding it in memory.
+     * Зберігає тіло $url у $toPath, не тримаючи його в пам'яті.
      *
-     * @throws TransportException not 200, network error, or fewer bytes than announced
+     * @throws TransportException не 200, помилка мережі або менше байтів, ніж заявлено
      */
     public function download(string $url, string $toPath, int $timeoutSeconds): void;
 }

@@ -7,8 +7,8 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 
 /**
- * The new API reports errors as HTTP status + {"errors": {field: text}}, without codes
- * (measured 06.11.2026: auth 422 "API key expired", data 401 "Invalid token").
+ * Новий API повідомляє про помилки як HTTP-статус + {"errors": {field: text}}, без кодів
+ * (виміряно 06.11.2026: auth 422 "API key expired", data 401 "Invalid token").
  */
 final class NewApiErrors
 {

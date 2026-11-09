@@ -26,8 +26,8 @@ use Okay\Core\FrontTranslations;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
 
 /**
- * Public cart endpoints. They read only the Nova Poshta dictionary and the visitor's own
- * cart: no orders, no personal data.
+ * Публічні endpoints кошика. Вони читають лише довідник Нової Пошти і власний кошик
+ * відвідувача: жодних замовлень, жодних персональних даних.
  */
 class CartController
 {
@@ -58,9 +58,9 @@ class CartController
     }
 
     /**
-     * Price and term for the chosen point (`ajax/novaposhta/quote?delivery_id=&division_id=&payment_id=`).
-     * The method's numbers come from the core's own cart list, so every module extending it
-     * (a promo's free shipping) shapes the answer exactly as it shapes the page.
+     * Ціна й термін для обраного пункту видачі (`ajax/novaposhta/quote?delivery_id=&division_id=&payment_id=`).
+     * Числа способу доставки беруться з власного списку кошика ядра, тож кожен модуль, що його розширює
+     * (безкоштовна доставка промо), формує відповідь так само, як формує сторінку.
      */
     public function quote(Request $request, Response $response, CartQuotes $quotes, Cart $cart, UserHelper $userHelper, EntityFactory $entityFactory, Money $money, DeliveriesHelper $deliveriesHelper, ShippingSettings $shipping, FrontTranslations $translations)
     {
@@ -96,7 +96,7 @@ class CartController
         }
 
         $answer = ['price' => null, 'unpriced' => false, 'priceText' => null, 'totalWithDelivery' => null, 'free' => false, 'codFee' => null, 'codFeeText' => null, 'term' => $quote->term?->format('Y-m-d'), 'problem' => $quote->problem, 'liftingOffered' => false, 'liftingFeeText' => null];
-        // Lifting is offered only when it costs extra, or when the weight of some goods is unknown.
+        // Підйом пропонується лише тоді, коли він коштує додатково, або коли вага якихось товарів невідома.
         if ($request->get('mode') === 'address' && $shipping->read()->showLifting && !$quote->liftingRefused
             && ($quote->liftingFee !== null || CartMetrics::fromCart($cartData)->weightUnknown)) {
             $answer['liftingOffered'] = true;
@@ -106,7 +106,7 @@ class CartController
         }
         $payments = $entityFactory->get(PaymentsEntity::class)->mappedBy('id')->find(['enabled' => 1]);
         $item = $deliveriesHelper->getCartDeliveriesList($cartData, $payments)[$deliveryId] ?? null;
-        // An unreachable Nova Poshta is not kept in the session, so the list above may still carry the admin price.
+        // Недоступність Нової Пошти не зберігається в сесії, тож список вище ще може містити ціну з адмінки.
         if ($item && $quote->unpriced()) {
             DeliveryPriceView::unpriced($item, (float)$cartData->total_price, $translations->getTranslation('sviat__novaposhta__cart_price_by_manager'));
         }
@@ -124,7 +124,7 @@ class CartController
         $this->json($response, $answer);
     }
 
-    /** Street suggestions for address delivery (`ajax/novaposhta/streets?settlement_id=&q=`). */
+    /** Підказки вулиць для адресної доставки (`ajax/novaposhta/streets?settlement_id=&q=`). */
     public function streets(Request $request, Response $response, StreetSearch $streets, CartQuotes $quotes, Cart $cart, UserHelper $userHelper, EntityFactory $entityFactory)
     {
         $settlementId = (int)$request->get('settlement_id', 'integer');
@@ -159,8 +159,8 @@ class CartController
     }
 
     /**
-     * The search text as typed. Request::get() HTML-encodes by default, which turns "Кам'янець" into
-     * "Кам&#039;янець" and finds nothing; the value is only bound into queries and sent back as JSON.
+     * Текст пошуку як введено. Request::get() типово кодує HTML, що перетворює "Кам'янець" на
+     * "Кам&#039;янець" і нічого не знаходить; значення лише підставляється в запити й повертається як JSON.
      */
     private static function typed(Request $request): mixed
     {
@@ -168,8 +168,8 @@ class CartController
     }
 
     /**
-     * The visitor's cart as the cart page sees it. These endpoints skip the core's AbstractController,
-     * whose mergeCart(true) is what loads a signed-in customer's cart: Cart::init() leaves it empty.
+     * Кошик відвідувача так, як його бачить сторінка кошика. Ці endpoints оминають AbstractController ядра,
+     * чий mergeCart(true) і завантажує кошик авторизованого покупця: Cart::init() лишає його порожнім.
      */
     private static function visitorCart(Cart $cart, UserHelper $userHelper): Cart
     {

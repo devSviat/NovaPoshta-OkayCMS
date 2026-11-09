@@ -8,7 +8,7 @@
 .np-wb .form-control.np-wb__invalid { border-color: #c0392b; }
 .np-wb__line { margin: 4px 0; }
 .np-wb__form .np-wb__line { margin: 2px 0 6px; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
-/* Group headings of the waybill form, styled as the card's «ДОДАТКОВІ ПОСЛУГИ». */
+/* Заголовки груп форми накладної, оформлені як «ДОДАТКОВІ ПОСЛУГИ» в картці. */
 .np-wb__group { display: block; margin: 16px 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); }
 .np-wb__group--first { margin-top: 4px; }
 .np-wb__actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
@@ -32,7 +32,7 @@
 .np-op__error { display: block; color: #c0392b; font-size: 12px; }
 .np-op__error:empty { display: none; }
 .np-op__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 0 8px; align-items: end; }
-/* House, flat, entrance, floor: short values, one row as in the cart. */
+/* Будинок, квартира, під'їзд, поверх: короткі значення, один рядок, як у кошику. */
 .np-op__row { margin-bottom: 8px; color: var(--ok-ink, #212529); font-size: 14px; line-height: 1.35; }
 .np-op__label { display: block; margin-bottom: 1px; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
 .fn_np_order_point.is-editing > .np-op__row { display: none; }
@@ -72,7 +72,7 @@
 .np-wb__section { margin-top: 10px; padding-top: 8px; border-top: 1px solid #eef0f2; }
 .np-wb__label { display: block; font-size: 12px; color: #676e75; }
 .np-wb__status { margin: 6px 0; color: #545b62; }
-/* As the old tracking module drew it: a quiet grey button at the footer's left. */
+/* Як у старому модулі трекінгу: стримана сіра кнопка ліворуч у футері. */
 .np-wb__more-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 0; border-radius: 4px; background: #f5f5f5; color: #757575; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color .2s; }
 .np-wb__more-toggle:hover { background: #e7e7e7; }
 .np-wb__more-toggle svg { transition: transform .3s ease; }
@@ -83,7 +83,7 @@
 .np-wb__link { background: none; border: 0; padding: 0; color: #2a76c6; text-decoration: underline; cursor: pointer; font: inherit; }
 .np-list-status { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; }
 .np-list-status__logo { flex: none; }
-/* Outranks the core list rule .okay_list .okay_list_boding a:not(.btn). */
+/* Переважає правило списку ядра .okay_list .okay_list_boding a:not(.btn). */
 .okay_list .np-list-status a.np-list-status__number:not(.btn) { color: #646464; white-space: nowrap; text-decoration: none; }
 .okay_list .np-list-status a.np-list-status__number:not(.btn):hover { color: var(--ok-accent, #135c94); }
 .np-list-status .np-wb__badge { margin-left: 4px; padding: 3px 6px; font-size: 10px; line-height: 1; white-space: nowrap; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .1); }
@@ -110,21 +110,21 @@
 .np-wb__switch .switch { margin: 0; flex: none; }
 
 .np-codpay__kinds{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-/* The core centres the switches of a row; with the COD kinds open, the neighbours would slide down. */
+/* Ядро центрує перемикачі рядка; з відкритими видами післяплати сусідні з'їхали б донизу. */
 .activity_of_switch:has(> .np-codpay){align-items:flex-start}
 .np-codpay__kinds .okay_type_radio_wrap{margin:0}
-/* The core radio is a flex item: a long label would squeeze its circle. */
+/* Радіокнопка ядра — flex-елемент: довгий підпис стиснув би її кружечок. */
 .np-codpay .okay_type_radio::before{flex:none}
 .np-codpay .okay_type_radio{gap:6px;padding:6px 0}
 .np-codpay .np_tip[data-hint]:after{width:max-content;max-width:300px;white-space:normal;font-weight:400;font-size:13px;line-height:1.35;text-align:left}
 
-/* The waybill card in the main column, laid out as the old tracking module's card. */
+/* Картка накладної в основній колонці, розкладена як картка старого модуля трекінгу. */
 .np-wb:has(> .np-wb__card) { margin-top: 0; padding-top: 0; border-top: 0; }
 .np-wb__card { border: 1px solid var(--ok-line, #e4e6e9); border-radius: 10px; background: var(--ok-surface, #fff); }
 .np-wb__card .np-wb__label { display: block; margin: 0 0 2px; font-size: 13px; color: var(--ok-ink-muted, #676e75); }
-/* One four-column grid for the top, body and payment rows, as in the old card: the description, the recipient and the payer start on the same lines. */
+/* Одна сітка на чотири колонки для верхнього рядка, тіла й рядка оплати, як у старій картці: опис, отримувач і платник починаються на тих самих лініях. */
 .np-wb__top .np-wb__num { grid-column: span 2; }
-/* The description stays one line beside the declared value; a long one ends in «…», the hint holds it whole. */
+/* Опис лишається в один рядок поруч з оголошеною вартістю; довгий закінчується «…», підказка містить його повністю. */
 .np-wb__oneline { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 400; }
 .np-wb__top { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; align-items: end; padding: 16px 20px; border-bottom: 1px solid var(--ok-line, #e4e6e9); }
 .np-wb__num { display: flex; flex-direction: column; gap: 2px; }
@@ -170,9 +170,9 @@
     .np-wb__card .np-wb__number { font-size: 22px; }
 }
 
-/* Create and attach side by side; the attach row opens below them. */
+/* Створення й прив'язка поруч; рядок прив'язки відкривається під ними. */
 .np-wb__actions--form { align-items: center; }
 .np-wb__field .bootstrap-select { width: 100% !important; }
-/* Full-size buttons side by side, as in the old module. */
+/* Повнорозмірні кнопки поруч, як у старому модулі. */
 .np-wb__actions--form { gap: 8px; }
 .np-wb__actions > .btn { white-space: nowrap; }

@@ -4,20 +4,20 @@ namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
 
-/** What the cart says about the parcel, as far as it is known. */
+/** Що кошик каже про посилку, наскільки це відомо. */
 final readonly class CartMetrics
 {
     public function __construct(
-        /** Sum of weights of the goods that have one: the parcel weighs at least this much. */
+        /** Сума ваг товарів, у яких вона є: посилка важить щонайменше стільки. */
         public float $knownWeight,
-        /** Some goods have no weight: the real parcel may be heavier. */
+        /** Деякі товари без ваги: справжня посилка може бути важчою. */
         public bool $weightUnknown,
         public float $total,
-        /** Sum of volumes (m³) of the goods that have one: a lower bound like the weight. */
+        /** Сума об'ємів (m³) товарів, у яких він є: нижня межа, як і вага. */
         public float $knownVolume = 0.0,
         public int $unitsWithoutWeight = 0,
         public int $unitsWithoutVolume = 0,
-        /** The cart total in hryvnias, for Nova Poshta's limits; null when there is no UAH currency. */
+        /** Сума кошика в гривнях, для лімітів Нової Пошти; null, коли валюти UAH немає. */
         public ?float $totalUah = null,
     ) {
     }
@@ -33,7 +33,7 @@ final readonly class CartMetrics
         return self::fromPurchases((array)($cart->purchases ?? []), is_numeric($cart->total_price ?? null) ? (float)$cart->total_price : 0.0);
     }
 
-    /** @param iterable<object> $purchases each with `amount` and `variant` (weight, volume) */
+    /** @param iterable<object> $purchases кожен з `amount` і `variant` (weight, volume) */
     public static function fromPurchases(iterable $purchases, float $total): self
     {
         $weight = 0.0;

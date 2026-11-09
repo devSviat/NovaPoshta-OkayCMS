@@ -9,15 +9,15 @@ use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 
 /**
- * Creates, attaches and removes the waybill of an order. A create or delete is sent exactly once:
- * after a broken connection Nova Poshta may already have done it.
+ * Створює, прив'язує й видаляє накладну замовлення. Створення чи видалення надсилається рівно один раз:
+ * після обриву з'єднання Нова Пошта могла вже це зробити.
  */
 final class WaybillService
 {
     private const int TIMEOUT_SECONDS = 30;
-    /** A reservation older than this belongs to a request that died (NP calls time out at 30 s). */
+    /** Резервація, старша за це, належить запиту, що помер (виклики НП обриваються по таймауту за 30 с). */
     private const int PENDING_STALE_SECONDS = 120;
-    /** A new-API shipment shows up in the old API's document list only after a while; until then "none" proves nothing. */
+    /** Відправлення нового API з'являється в списку документів старого API лише згодом; доти «немає» нічого не доводить. */
     private const int LOOKUP_SETTLE_SECONDS = 600;
     private const string UNCERTAIN = 'uncertain';
 
@@ -41,15 +41,15 @@ final class WaybillService
         $this->now = $now ?? time(...);
     }
 
-    /** A reservation of a request still running; a stale one is not. */
+    /** Резервація запиту, що ще виконується; застаріла — ні. */
     public static function isPending(?object $row, int $now): bool
     {
         return PendingWaybill::is($row) && !self::needsCheck($row, $now);
     }
 
     /**
-     * A reservation whose request may have made a waybill at NP: NP did not answer it, or the request
-     * died midway. Nothing new is made for the order until lookup() has asked NP.
+     * Резервація, запит якої міг створити накладну в НП: НП на нього не відповіла, або запит
+     * помер посередині. Для замовлення нічого нового не створюється, доки lookup() не запитав НП.
      */
     public static function needsCheck(?object $row, int $now): bool
     {
@@ -109,7 +109,7 @@ final class WaybillService
 
                 return WaybillOutcome::failed(WaybillIssues::explain('waybill_uncertain'));
             }
-            // NP answered with a refusal: nothing was made.
+            // НП відповіла відмовою: нічого не створено.
             $this->rows->release($orderId);
 
             return WaybillOutcome::failed(WaybillIssues::explain($e));
@@ -148,7 +148,7 @@ final class WaybillService
         $audit = WaybillAudit::compare($draft, $status ?? []);
         $this->rows->saveAudit($orderId, $audit);
         if ($status !== null) {
-            // The same answer fills the card: no second request.
+            // Та сама відповідь заповнює картку: другого запиту немає.
             $this->rows->saveTracking($orderId, $status);
         }
 
@@ -182,12 +182,12 @@ final class WaybillService
         if (!is_array($status) || in_array((string)($status['StatusCode'] ?? ''), ['', '3'], true)) {
             return WaybillOutcome::refused('waybill_not_found');
         }
-        // Code 2: deleted in the NP account; the number still answers but nothing will be sent.
+        // Код 2: видалено в кабінеті НП; номер ще відповідає, але нічого не буде відправлено.
         if ((string)$status['StatusCode'] === '2') {
             return WaybillOutcome::refused('waybill_deleted');
         }
         if (!$this->rows->add($orderId, $number, null, 'attached', [])) {
-            // The number is unique: another request may have attached it to another order meanwhile.
+            // Номер унікальний: тим часом інший запит міг прив'язати його до іншого замовлення.
             $owner = $this->rows->orderOfNumber($number);
 
             return $owner !== null && $owner !== $orderId
@@ -209,8 +209,8 @@ final class WaybillService
         if ($row->api !== 'attached' && $code !== null && !in_array($code, WaybillStatus::DELETABLE, true)) {
             return WaybillOutcome::refused('waybill_not_deletable');
         }
-        // A waybill attached by number was made elsewhere: it is only unlinked from the order; one NP
-        // already deleted is only forgotten.
+        // Накладну, прив'язану за номером, створено деінде: її лише відв'язують від замовлення; ту, яку НП
+        // уже видалила, лише забувають.
         if ($row->api !== 'attached' && $ref !== '' && $code !== 2) {
             try {
                 if ($row->api === 'new') {
@@ -228,8 +228,8 @@ final class WaybillService
     }
 
     /**
-     * Forgets the order's waybill without asking Nova Poshta: for one NP will not delete (already
-     * deleted in its account, or accepted for delivery). It stays in the NP account.
+     * Забуває накладну замовлення, не питаючи Нову Пошту: для тієї, яку НП не видалить (уже
+     * видалена в кабінеті або прийнята до доставки). У кабінеті НП вона лишається.
      */
     public function unlink(int $orderId): WaybillOutcome
     {
@@ -243,9 +243,9 @@ final class WaybillService
     }
 
     /**
-     * Address by refs when every lookup succeeds; otherwise as text (NP account shows it without fields).
+     * Адреса за refs, коли кожен пошук вдався; інакше текстом (кабінет НП показує її без полів).
      *
-     * @return array{0: array, 1: ?string} the save properties and the notice for a text address
+     * @return array{0: array, 1: ?string} властивості для save і повідомлення для текстової адреси
      */
     private function addressRequest(WaybillDraft $draft, SenderParty $sender): array
     {
@@ -277,11 +277,11 @@ final class WaybillService
     }
 
     /**
-     * An organization's address. Its counterparty comes by EDRPOU first: a code NP does not know
-     * stops here (thrown), and its ownership form is what NP needs for an address as text.
+     * Адреса організації. Її контрагента спершу шукають за ЄДРПОУ: на коді, якого НП не знає, усе зупиняється
+     * (виняток), а його форма власності — те, що потрібно НП для адреси текстом.
      *
-     * @return array{0: array, 1: ?string} the save properties and the notice for a text address
-     * @throws NpApiException when NP does not accept the organization
+     * @return array{0: array, 1: ?string} властивості для save і повідомлення для текстової адреси
+     * @throws NpApiException коли НП не приймає організацію
      */
     private function organizationAddressRequest(WaybillDraft $draft, SenderParty $sender): array
     {
@@ -332,9 +332,9 @@ final class WaybillService
     }
 
     /**
-     * After an unanswered create: asks NP for the order's waybill among the account's documents of
-     * the days around the attempt (both APIs file the order id as InfoRegClientBarcodes; deleted
-     * ones are not listed). Found — it is the order's waybill; not found once LOOKUP_SETTLE_SECONDS have passed — the order is free again.
+     * Після створення без відповіді: шукає в НП накладну замовлення серед документів кабінету за
+     * дні навколо спроби (обидва API записують id замовлення як InfoRegClientBarcodes; видалені
+     * не показуються). Знайдено — це накладна замовлення; не знайдено після LOOKUP_SETTLE_SECONDS — замовлення знову вільне.
      */
     public function lookup(int $orderId, ?string $phone): WaybillOutcome
     {
@@ -376,7 +376,7 @@ final class WaybillService
         return new WaybillOutcome(true, null, [], ['waybill_lookup_none']);
     }
 
-    /** The waybill as NP shows it to its recipient; null when NP does not answer. */
+    /** Накладна, як НП показує її отримувачу; null, коли НП не відповідає. */
     private function status(string $number, ?string $phone): ?array
     {
         try {
@@ -388,7 +388,7 @@ final class WaybillService
         return is_array($row) ? $row : null;
     }
 
-    /** After these the waybill may exist at Nova Poshta: the manager checks the account before retrying. */
+    /** Після цих накладна може існувати в Новій Пошті: менеджер перевіряє кабінет перед повтором. */
     private static function uncertain(NpApiException $e): bool
     {
         return $e->kind === NpErrorKind::Unavailable || $e->kind === NpErrorKind::Malformed;

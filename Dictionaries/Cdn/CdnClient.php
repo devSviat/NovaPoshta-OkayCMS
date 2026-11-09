@@ -9,7 +9,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\Http\TransportException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 
-/** Public Nova Poshta dictionary files; no API key needed. */
+/** Публічні файли довідників Нової Пошти; ключ API не потрібен. */
 final class CdnClient
 {
     public const string BASE = 'https://api-cdn.novapost.com/dictionary';
@@ -17,7 +17,7 @@ final class CdnClient
     private const array LANGUAGES = ['uk', 'en'];
     private const int DOWNLOAD_TIMEOUT = 600;
     private const string TEMP_PREFIX = 'np-dict-';
-    /** Longer than the scheduler task timeout (3600 s): an older file belongs to a killed run. */
+    /** Довше за тайм-аут завдання планувальника (3600 s): старіший файл належить до вбитого запуску. */
     private const int STALE_AFTER = 7200;
 
     public function __construct(
@@ -40,7 +40,7 @@ final class CdnClient
         return $this->checked(CdnVersions::fromSettlements($json));
     }
 
-    /** @return string path of a temp file the caller deletes */
+    /** @return string шлях до тимчасового файлу, який видаляє викликач */
     public function download(string $url): string
     {
         self::assertCdnUrl($url);
@@ -56,7 +56,7 @@ final class CdnClient
         return $path;
     }
 
-    /** A run killed by the scheduler timeout cannot delete its ~35 MB files itself. */
+    /** Запуск, убитий тайм-аутом планувальника, не може сам видалити свої файли по ~35 MB. */
     private static function removeStaleDownloads(): void
     {
         foreach (glob(sys_get_temp_dir() . '/' . self::TEMP_PREFIX . '*') ?: [] as $file) {
@@ -93,7 +93,7 @@ final class CdnClient
         return $versions;
     }
 
-    /** versions.json decides what is downloaded, so only the CDN itself, over https, is accepted. */
+    /** versions.json вирішує, що завантажується, тож приймається лише сам CDN і лише через https. */
     private static function assertCdnUrl(string $url): void
     {
         if (!str_starts_with($url, self::BASE . '/')) {

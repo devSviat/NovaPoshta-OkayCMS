@@ -3,22 +3,22 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 /**
- * Creates waybills for the orders selected in the list, one after another in this request, each
- * exactly as the form would with its defaults.
+ * Створює накладні для вибраних у списку замовлень, одну за одною в цьому запиті, кожну
+ * так само, як форма зі своїми значеннями за замовчуванням.
  */
 final class MassWaybills
 {
-    /** Each order is one or more Nova Poshta calls of up to 30 s; the page waits for all of them. */
+    /** Кожне замовлення — один або кілька викликів Нової Пошти до 30 с; сторінка чекає на всі. */
     public const int LIMIT = 20;
     /**
-     * No new order is started after this. nginx gives PHP 60 s by default, and the order started last
-     * still needs its own few seconds; a slower NP leaves the rest for the next run.
+     * Після цього нове замовлення не починається. nginx за замовчуванням дає PHP 60 с, а останньому
+     * розпочатому замовленню ще потрібні власні кілька секунд; повільніша НП лишає решту на наступний запуск.
      */
     public const float BUDGET_SECONDS = 45.0;
 
     private readonly \Closure $clock;
 
-    /** @param ?\Closure(): float $clock seconds */
+    /** @param ?\Closure(): float $clock секунди */
     public function __construct(
         private readonly WaybillService $service,
         private readonly WaybillRows $rows,
@@ -28,7 +28,7 @@ final class MassWaybills
         $this->clock = $clock ?? static fn(): float => microtime(true);
     }
 
-    /** @param array<mixed> $rawIds the posted `check[]` */
+    /** @param array<mixed> $rawIds надісланий `check[]` */
     public function run(array $rawIds): MassReport
     {
         $ids = self::ids($rawIds);
@@ -44,7 +44,7 @@ final class MassWaybills
             try {
                 $rows[] = ['orderId' => $orderId] + $this->one($orderId);
             } catch (\Throwable) {
-                // One broken order must not cost the report of the others.
+                // Одне зламане замовлення не має позбавити звіту решту.
                 $rows[] = ['orderId' => $orderId, 'kind' => 'failed', 'key' => 'waybill_advice_generic', 'value' => null];
             }
         }
@@ -60,7 +60,7 @@ final class MassWaybills
             return $skip('mass_not_np');
         }
         $existing = $this->rows->forOrder($orderId);
-        // A reservation is judged by create(): refused while fresh, and once stale until the manager checks NP.
+        // Резервацію оцінює create(): відмова, поки свіжа, а коли застаріла — доки менеджер не перевірить НП.
         if ($existing !== null && !PendingWaybill::is($existing)) {
             return $skip('mass_has_waybill', (string)$existing->number);
         }
@@ -91,7 +91,7 @@ final class MassWaybills
         return ['kind' => 'failed', 'key' => $first['advice'], 'value' => $first['message']];
     }
 
-    /** @return list<int> positive, unique, in the posted order */
+    /** @return list<int> додатні, унікальні, у надісланому порядку */
     private static function ids(array $raw): array
     {
         $ids = [];

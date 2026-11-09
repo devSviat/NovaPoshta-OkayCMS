@@ -11,7 +11,7 @@ final readonly class KeyCheckResult
     ) {
     }
 
-    /** The module needs both APIs: one of them alone is not enough. */
+    /** Модулю потрібні обидва API: одного з них недостатньо. */
     public function isUsable(): bool
     {
         return $this->newApi === KeyAccess::Ok && $this->oldApi === KeyAccess::Ok;

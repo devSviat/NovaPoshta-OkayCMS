@@ -6,8 +6,8 @@ use Okay\Modules\Sviat\NovaPoshta\Api\ApiKey;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
 /**
- * Nova Poshta refused the saved key while the module worked (cart, tracking, waybills): the key
- * block shows it at once. NP gives no expiry date, so this is the first sign of an expired key.
+ * Нова Пошта відхилила збережений ключ під час роботи модуля (кошик, трекінг, накладні): блок
+ * ключа одразу це показує. НП не дає дати закінчення дії, тож це перша ознака простроченого ключа.
  */
 final class KeyRejections
 {

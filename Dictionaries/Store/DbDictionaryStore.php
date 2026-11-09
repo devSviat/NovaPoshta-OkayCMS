@@ -9,8 +9,8 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 
 /**
- * Bulk writes through QueryFactory: per-row Entity writes made the old NP import take
- * ~13 minutes for 55k branches.
+ * Масові записи через QueryFactory: порядкові записи через Entity розтягували старий імпорт НП до
+ * ~13 хвилин на 55k відділень.
  */
 final class DbDictionaryStore implements DictionaryStore
 {
@@ -98,7 +98,7 @@ final class DbDictionaryStore implements DictionaryStore
         }
     }
 
-    /** Database::query() logs and swallows SQL errors; a dictionary run must stop instead. */
+    /** Database::query() логує й ковтає помилки SQL; запуск довідників натомість мусить зупинитися. */
     private function run(QueryInterface $query): void
     {
         if ($this->db->query($query) === false) {

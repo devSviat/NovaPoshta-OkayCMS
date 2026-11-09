@@ -21,7 +21,7 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteRequest;
 use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteService;
 use PHPUnit\Framework\TestCase;
 
-/** Calculations only, nothing is created at Nova Poshta; runs only with NP_TEST_API_KEY (a test key). */
+/** Лише розрахунки, у Новій Пошті нічого не створюється; запускається лише з NP_TEST_API_KEY (тестовий ключ). */
 class LiveQuoteTest extends TestCase
 {
     private QuoteService $service;

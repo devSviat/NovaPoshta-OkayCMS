@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 class LegacyMigrationTest extends TestCase
 {
-    /** A step over ids 1..$last that takes one call per row and stops when calls run out. */
+    /** Крок по id 1..$last, що робить один виклик на рядок і зупиняється, коли виклики закінчуються. */
     private static function step(string $name, int $last, array &$seen): LegacyStep
     {
         $record = static function (string $row) use (&$seen): void {
@@ -63,7 +63,7 @@ class LegacyMigrationTest extends TestCase
 
     public function testTickTakesNothingFromTheScheduler(): void
     {
-        // The core scheduler builds typed arguments with `new Type` and never uses defaults.
+        // Планувальник ядра будує типізовані аргументи через `new Type` і ніколи не бере значень за замовчуванням.
         self::assertSame(0, new \ReflectionMethod(LegacyMigration::class, 'tick')->getNumberOfParameters());
     }
 

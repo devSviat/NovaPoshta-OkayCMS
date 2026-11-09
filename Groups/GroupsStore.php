@@ -5,7 +5,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Groups;
 use Okay\Core\EntityFactory;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 
-/** Group names are written in the content language selected in the admin, like other OkayCMS content. */
+/** Назви груп записуються мовою контенту, обраною в адмінці, як і інший контент OkayCMS. */
 final class GroupsStore
 {
     public function __construct(private readonly EntityFactory $entityFactory)
@@ -18,7 +18,7 @@ final class GroupsStore
         return array_values($this->entity()->find());
     }
 
-    /** @param list<array{id:?int, name:string, enabled:bool, position:int, delete:bool, categories:array<string,bool>}> $groups from GroupsInput */
+    /** @param list<array{id:?int, name:string, enabled:bool, position:int, delete:bool, categories:array<string,bool>}> $groups з GroupsInput */
     public function save(array $groups): void
     {
         $entity = $this->entity();

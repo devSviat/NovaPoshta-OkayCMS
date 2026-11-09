@@ -37,7 +37,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
 
 class FrontExtender implements ExtensionInterface
 {
-    /** Texts the cart script needs; keys of design/lang/*.php without the prefix. */
+    /** Тексти, потрібні скрипту кошика; ключі design/lang/*.php без префікса. */
     private const array SCRIPT_TEXTS = [
         'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_all_day', 'cart_up_to_kg', 'cart_weekdays', 'cart_day_off', 'cart_change', 'cart_change_city', 'cart_schedule',
         'cart_too_heavy', 'cart_too_expensive', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
@@ -66,12 +66,12 @@ class FrontExtender implements ExtensionInterface
     ) {
     }
 
-    /** How the order was priced, kept from prepareDeliveryPriceInfo to the snapshot (same request). */
+    /** Як розраховано ціну замовлення; зберігається від prepareDeliveryPriceInfo до знімка (той самий запит). */
     private ?array $pricing = null;
 
     /**
-     * ChainExtension of DeliveriesHelper::getCartDeliveriesList: a method priced for the visitor's
-     * point shows that price, also after the theme reloads the cart by AJAX.
+     * ChainExtension для DeliveriesHelper::getCartDeliveriesList: спосіб доставки з ціною, розрахованою
+     * для пункту видачі відвідувача, показує цю ціну, також після того, як тема перезавантажить кошик через AJAX.
      */
     public function applyQuotes($deliveries, $cart)
     {
@@ -83,7 +83,7 @@ class FrontExtender implements ExtensionInterface
             if (!is_object($delivery)) {
                 continue;
             }
-            // Already free (free_from, or a promo's free shipping earlier in the chain): left as it is.
+            // Уже безкоштовна (free_from або безкоштовна доставка акції раніше в ланцюжку): лишається як є.
             $quote = empty($delivery->is_free_delivery) ? $this->quotes->cachedForChoice($delivery, $cart) : null;
             $own = $this->quotes->isOwnMethod($delivery);
             $total = (float)$cart->total_price;
@@ -107,7 +107,10 @@ class FrontExtender implements ExtensionInterface
         return $deliveries;
     }
 
-    /** ChainExtension of DeliveriesHelper::prepareDeliveryPriceInfo: the order's delivery price comes from the server's calculation. */
+    /**
+     * ChainExtension для DeliveriesHelper::prepareDeliveryPriceInfo: ціна доставки замовлення береться з розрахунку
+     * на сервері.
+     */
     public function orderPrice($info, $delivery, $order)
     {
         if (!is_array($info) || !is_object($delivery) || !is_object($order) || !$this->quotes->isOwnMethod($delivery)) {
@@ -121,7 +124,8 @@ class FrontExtender implements ExtensionInterface
             $quote = $this->quotes->quote($delivery, $divisionId, $paymentId, $cart, forOrder: true);
         } elseif ($address !== null) {
             $quote = $this->quotes->quoteAddress($delivery, $this->selection->settlement, $address->lifting, $address->floor, $address->elevator, $paymentId, $cart, forOrder: true);
-            // Lifting Nova Poshta refuses (too heavy) was not priced, so it is not part of the order either.
+            // Підйом на поверх, від якого Нова Пошта відмовляється (надто важко), не розраховано, тож у замовлення
+            // він теж не входить.
             if ($address->lifting && $quote?->liftingRefused) {
                 $this->selection = new CartSelection($this->selection->delivery, $this->selection->settlement, null, new AddressFields(
                     $address->settlementId, $address->street, $address->streetRef, $address->house, $address->flat,
@@ -138,7 +142,8 @@ class FrontExtender implements ExtensionInterface
             'price_source' => $decision['source'],
             'delivery_term' => $quote->term?->format('Y-m-d'),
             'cod' => $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0)) ? 1 : 0,
-            // Kept for card orders too: the customer may switch to COD on the order page.
+            // Зберігається й для замовлень з оплатою карткою: покупець може перейти на післяплату на сторінці
+            // замовлення.
             'cod_fee' => $quote->codFee,
         ];
 
@@ -160,10 +165,10 @@ class FrontExtender implements ExtensionInterface
         );
     }
 
-    /** The choice checked by getCartValidateError, saved once the order exists (same request). */
+    /** Вибір, перевірений getCartValidateError; зберігається, щойно замовлення створено (той самий запит). */
     private ?CartSelection $selection = null;
 
-    /** ChainExtension of ValidateHelper::getCartValidateError: the cart form is checked on the server. */
+    /** ChainExtension для ValidateHelper::getCartValidateError: форма кошика перевіряється на сервері. */
     public function getCartValidateError($error, $order)
     {
         if ($error !== null || !is_object($order)) {
@@ -178,7 +183,7 @@ class FrontExtender implements ExtensionInterface
         return null;
     }
 
-    /** QueueExtension of OrdersHelper::finalCreateOrderProcedure. */
+    /** QueueExtension для OrdersHelper::finalCreateOrderProcedure. */
     public function saveOrderDelivery($result, $order)
     {
         if (!is_object($order) || empty($order->id)) {
@@ -191,9 +196,9 @@ class FrontExtender implements ExtensionInterface
     }
 
     /**
-     * QueueExtension of OrdersHelper::getOrderPaymentMethodsList and NotifyHelper::finalEmailOrderUser/Admin:
-     * the order page and both emails show the saved point. Assigned as null for other orders, because
-     * one request can render several orders' emails with the same Design.
+     * QueueExtension для OrdersHelper::getOrderPaymentMethodsList і NotifyHelper::finalEmailOrderUser/Admin:
+     * сторінка замовлення й обидва листи показують збережений пункт видачі. Для інших замовлень
+     * присвоюється null, бо один запит може рендерити листи кількох замовлень з тим самим Design.
      */
     public function assignOrderDelivery($result, $order)
     {
@@ -213,7 +218,7 @@ class FrontExtender implements ExtensionInterface
         $this->design->assign('np_order_family', ThemeClasses::for((string)$this->settings->get('theme'))['family']);
     }
 
-    /** Hands the cart template what its Nova Poshta blocks need; only for this module's delivery methods. */
+    /** Передає шаблону кошика те, що потрібно його блокам Нової Пошти; лише для способів доставки цього модуля. */
     public function getCartDeliveriesList($deliveries, $cart)
     {
         $moduleId = (int)$this->module->getModuleIdByNamespace(__CLASS__);
@@ -232,7 +237,7 @@ class FrontExtender implements ExtensionInterface
         $this->design->assign('np_unavailable', !$this->settlements->hasAny());
         $this->design->assign('np_theme', ThemeClasses::for((string)$this->settings->get('theme')));
         $this->design->assign('np_popular', $this->popularCities->buttons($lang));
-        // JSON is built here: Smarty 5 does not allow PHP functions such as json_encode as modifiers.
+        // JSON будується тут: Smarty 5 не дозволяє PHP-функції на кшталт json_encode як модифікатори.
         $this->design->assign('np_texts_json', json_encode($texts, JSON_UNESCAPED_UNICODE));
         $this->design->assign('np_modes', array_map(static fn($d): string => DeliveryMode::fromServiceType($d->settings['service_type'] ?? null) === DeliveryMode::Address ? 'address' : 'points', $own));
         $this->design->assign('np_prefill', $this->prefill($own, is_object($cart) ? $cart : (object)[], $lang));
@@ -240,15 +245,15 @@ class FrontExtender implements ExtensionInterface
     }
 
     /**
-     * The choice the customer already made, shown again when the cart page comes back with an error.
+     * Вибір, який покупець уже зробив; показується знову, коли сторінка кошика повертається з помилкою.
      *
-     * @param array<object> $deliveries this module's methods
+     * @param array<object> $deliveries способи доставки цього модуля
      * @return array<int, array{settlement:?array, division:?array}>
      */
     private function prefill(array $deliveries, object $cart, string $lang): array
     {
         $posted = $this->request->post('novaposhta');
-        // Without a posted form, the customer's previous order offers its point again.
+        // Без надісланої форми попереднє замовлення покупця знову пропонує свій пункт видачі.
         $user = $this->design->getVar('user');
         $last = !is_array($posted) && is_object($user) ? $this->orders->lastForUser((int)($user->id ?? 0)) : null;
         $prefill = [];
@@ -268,8 +273,8 @@ class FrontExtender implements ExtensionInterface
     }
 
     /**
-     * The posted form, else the choice priced in this session, else the last order. The session keeps
-     * only the city for an address, so in the last order's city its street and house come back too.
+     * Надіслана форма, інакше вибір, розрахований у цій сесії, інакше останнє замовлення. Для адреси сесія
+     * зберігає лише місто, тож у місті останнього замовлення повертаються також його вулиця й будинок.
      */
     public static function prefillChoice(?array $posted, array $session, ?object $last): array
     {
@@ -297,7 +302,7 @@ class FrontExtender implements ExtensionInterface
         return $ids;
     }
 
-    /** Address fields of the previous order's snapshot, under the names the cart posts. */
+    /** Адресні поля знімка попереднього замовлення під іменами, які надсилає кошик. */
     private static function lastAddress(object $last): array
     {
         if (($last->mode ?? null) !== 'address') {
@@ -316,7 +321,7 @@ class FrontExtender implements ExtensionInterface
         ], static fn($v): bool => $v !== null && $v !== '');
     }
 
-    /** @return array<string, string> only plain strings go back into the form; the template escapes them */
+    /** @return array<string, string> у форму повертаються лише прості рядки; шаблон їх екранує */
     private static function addressPrefill(array $choice): array
     {
         $out = [];
@@ -335,7 +340,7 @@ class FrontExtender implements ExtensionInterface
         $english = $lang === 'en';
         $settlement = $settlementId > 0 ? $this->entityFactory->get(SettlementEntity::class)->get($settlementId) : null;
         $division = $settlement && $divisionId > 0 ? $this->entityFactory->get(DivisionEntity::class)->get($divisionId) : null;
-        // A point the order would refuse now goes back to the list, where its problem is shown.
+        // Пункт видачі, який замовлення зараз відхилило б, повертається до списку, де показано його проблему.
         $division = $division ? $this->validator->restorable($delivery, $settlement, $division, $cart) : null;
 
         return [

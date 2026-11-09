@@ -7,7 +7,7 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderParty;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDraft;
 
-/** Drafts and a sender with the values the request and audit tests check against. */
+/** Чернетки й відправник зі значеннями, з якими звіряються тести запиту й аудиту. */
 final class WaybillFixtures
 {
     public static function point(array $override = []): WaybillDraft

@@ -8,20 +8,20 @@ use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
 /**
- * Statuses of waybills. The scheduler asks the new API about unfinished waybills in
- * batches; the card's full data comes from the old getStatusDocuments, which the new API lacks.
+ * Статуси накладних. Планувальник запитує новий API про незавершені накладні
+ * пакетами; повні дані для картки беруться зі старого getStatusDocuments, якого новий API не має.
  */
 final class WaybillTracking
 {
-    /** The new API takes at most 100 numbers per request (101 → 422, measured 05.11.2026). */
+    /** Новий API приймає щонайбільше 100 номерів за запит (101 → 422, виміряно 05.11.2026). */
     private const int BATCH = 100;
     private const int BATCHES_PER_RUN = 10;
     private const string RUNNING = 'tracking_running';
-    /** Stock 4.5.3 ignores the scheduler lock; a run older than this died and is not waited for. */
+    /** Сток 4.5.3 ігнорує блокування планувальника; запуск, старший за це, помер, і на нього не чекають. */
     private const int RUNNING_FOR = 600;
     private const int NOT_FOUND_AFTER_DAYS = 30;
 
-    /** A parcel still moving after two months is stuck (never handed over, endless return); asking again only slows the queue. */
+    /** Посилка, що все ще в русі через два місяці, застрягла (так і не передана, нескінченне повернення); повторні запити лише гальмують чергу. */
     private const int TRACK_FOR_DAYS = 60;
     private const int TIMEOUT_SECONDS = 30;
 
@@ -49,7 +49,7 @@ final class WaybillTracking
         }
         $this->state->set(self::RUNNING, (string)$now);
         try {
-            // Taken once: rows checked during the run move to the end of the queue.
+            // Береться один раз: рядки, перевірені під час запуску, переходять у кінець черги.
             $due = $this->rows->due(self::BATCH * self::BATCHES_PER_RUN, 1, date('Y-m-d H:i:s', $now - self::TRACK_FOR_DAYS * 86400));
             foreach (array_chunk($due, self::BATCH) as $batch) {
                 $result['requests']++;
@@ -60,7 +60,7 @@ final class WaybillTracking
                 try {
                     $answer = $this->newApi->quick(self::TIMEOUT_SECONDS)->get('/shipments/tracking?' . implode('&', array_map(static fn(string $n): string => 'numbers%5B%5D=' . rawurlencode($n), array_keys($byNumber))));
                 } catch (NpApiException) {
-                    // Nothing is written: the next run asks again.
+                    // Нічого не записується: наступний запуск запитає знову.
                     break;
                 }
                 foreach ((array)($answer['items'] ?? []) as $item) {
@@ -70,7 +70,7 @@ final class WaybillTracking
                         continue;
                     }
                     if ((int)$status['statusCode'] === WaybillStatus::NOT_FOUND) {
-                        // Not known yet; only the 30-day rule below gives up on it.
+                        // Поки невідомо; відмовитися від нього може лише 30-денне правило нижче.
                         continue;
                     }
                     $this->rows->saveStatus((int)$row->order_id, (int)$status['statusCode'], (string)($status['status'] ?? ''), self::date($status['statusDate'] ?? null), self::date($status['scheduledDate'] ?? null));
@@ -95,8 +95,8 @@ final class WaybillTracking
     }
 
     /**
-     * The full document for the card; without the recipient's phone NP hides part of it. The phone
-     * the waybill was made for wins over the order's: the manager may have changed it in the form.
+     * Повний документ для картки; без телефону отримувача НП приховує частину. Телефон, на який
+     * створено накладну, має перевагу над телефоном замовлення: менеджер міг змінити його у формі.
      */
     public function refresh(int $orderId, ?string $phone): WaybillOutcome
     {
@@ -119,7 +119,7 @@ final class WaybillTracking
         return new WaybillOutcome(true, (string)$row->number, [], $phone === null ? ['waybill_tracking_no_phone'] : []);
     }
 
-    /** NP's ISO time in the shop's time zone; its "0001-01-01" means none. */
+    /** ISO-час НП у часовому поясі магазину; її "0001-01-01" означає відсутність. */
     private static function date(mixed $value): ?string
     {
         if (!is_string($value) || $value === '' || str_starts_with($value, '0001-')) {

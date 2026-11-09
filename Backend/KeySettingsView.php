@@ -6,7 +6,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\ApiKey;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyAccess;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyCheckResult;
 
-/** Template data for the key block; the key itself only ever leaves here masked. */
+/** Дані шаблону для блоку ключа; сам ключ виходить звідси лише замаскованим. */
 final class KeySettingsView
 {
     public static function vars(
@@ -42,7 +42,7 @@ final class KeySettingsView
         }
         $access = [$result->newApi, $result->oldApi];
 
-        // The worst finding decides: an invalid key tells more than an unanswered request.
+        // Вирішує найгірший результат: недійсний ключ каже більше, ніж запит без відповіді.
         return match (true) {
             in_array(KeyAccess::InvalidKey, $access, true) => 'invalid',
             $result->newApi === KeyAccess::Denied => 'denied',

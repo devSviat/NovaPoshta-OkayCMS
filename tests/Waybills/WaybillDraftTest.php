@@ -149,7 +149,10 @@ class WaybillDraftTest extends TestCase
         self::assertSame(50, mb_strlen($long->addressNote));
     }
 
-    /** Without paid lifting NP has no floor field: the courier reads it in the note (live 09.11.2026: the floor was lost). */
+    /**
+     * Без платного підйому на поверх НП не має поля поверху: кур'єр читає його в примітці (live 09.11.2026: поверх
+     * загубився).
+     */
     public function testFloorGoesToTheNoteWithoutLifting(): void
     {
         $address = (object)[
@@ -179,7 +182,7 @@ class WaybillDraftTest extends TestCase
         self::assertFalse(self::build()->locker);
     }
 
-    /** Parcel-locker cell limits the old module checked: 60 × 40 × 30 cm and 20 kg. */
+    /** Обмеження комірки поштомата, які перевіряв старий модуль: 60 × 40 × 30 cm і 20 kg. */
     public function testLockerSeatInput(): void
     {
         $locker = self::build(division: (object)(['category' => 'Postomat'] + (array)self::division()));
@@ -201,7 +204,7 @@ class WaybillDraftTest extends TestCase
         self::assertSame(['cod_amount', 'phone', 'recipient_name', 'weight'], $fields);
     }
 
-    /** NP takes the money transfer in whole hryvnias (1234.50 → 1235, checked 08.11.2026): 0.4 would be 0. */
+    /** НП приймає грошовий переказ у цілих гривнях (1234.50 → 1235, перевірено 08.11.2026): 0.4 стало б 0. */
     public function testCodAmountRoundingToNothingIsRefused(): void
     {
         $errors = self::build(cod: CodKind::Money)->withInput(['cod' => '1', 'cod_amount' => '0.4']);
@@ -271,7 +274,7 @@ class WaybillDraftTest extends TestCase
         self::assertNull(self::build()->organizationIssue());
     }
 
-    /** Delivery is inside the order total: the shop already took it, so NP must not charge the recipient again. */
+    /** Доставка входить у суму замовлення: магазин уже її взяв, тож НП не повинна знову стягувати її з отримувача. */
     public function testAutoPayerIsTheSenderWhenDeliveryIsInTheTotal(): void
     {
         $draft = self::build(cod: CodKind::Money);
@@ -289,7 +292,7 @@ class WaybillDraftTest extends TestCase
         self::assertSame('Recipient', self::build(self::order(['delivery_price' => 0]))->payerType, 'unpriced: the manager settles delivery with the customer');
     }
 
-    /** The cart said "free": NP must not charge the customer at pickup. */
+    /** Кошик сказав "безкоштовно": НП не повинна стягувати з покупця при отриманні. */
     public function testAutoPayerIsTheSenderWhenTheShopPromisedFreeDelivery(): void
     {
         $order = self::order(['delivery_price' => 0, 'total_price' => 1200.0]);
@@ -298,7 +301,7 @@ class WaybillDraftTest extends TestCase
         self::assertSame('free', self::build($order, promisedFree: true)->senderPaysBecause);
     }
 
-    /** The setting is only where the form starts: a set «Recipient» never charges delivery twice. */
+    /** Налаштування — лише те, з чого стартує форма: заданий «Recipient» ніколи не стягує за доставку двічі. */
     public function testSenderPaysWhateverTheSettingWhenTheShopAlreadyTookDelivery(): void
     {
         $recipient = new WaybillConfig(null, null, payerType: 'Recipient');
@@ -316,7 +319,7 @@ class WaybillDraftTest extends TestCase
         self::assertSame('Запчастини', self::build(config: new WaybillConfig(null, null, descriptionMode: 'text', description: 'Запчастини'))->description);
     }
 
-    /** As the old module: SKUs (a name where there is none), «(2 шт)» for several, cut to NP's 100 characters. */
+    /** Як у старому модулі: артикули (назва, де артикула немає), «(2 шт)» для кількох, обрізано до 100 символів НП. */
     public function testExtraInfoListsTheGoods(): void
     {
         $purchases = [
@@ -337,7 +340,10 @@ class WaybillDraftTest extends TestCase
         self::assertSame([['field' => 'extra_info', 'key' => 'waybill_error_extra_info']], self::build()->withInput(['extra_info' => str_repeat('я', 101)]));
     }
 
-    /** Another module (a prepayment) lowers what NP collects; nothing or less than nothing left is no COD at all (audit: «RedeliveryString '0'/'-10'»). */
+    /**
+     * Інший модуль (передоплата) зменшує суму, яку збирає НП; якщо лишилося нуль або менше, післяплати немає взагалі
+     * (аудит: «RedeliveryString '0'/'-10'»).
+     */
     public function testNothingLeftToCollectTurnsCodOff(): void
     {
         foreach ([0.0, -10.0] as $due) {
@@ -351,7 +357,10 @@ class WaybillDraftTest extends TestCase
         self::assertSame(round((float)self::order()->total_price - 100), $draft->codAmount);
     }
 
-    /** NP takes up to 60 characters of a name and refuses a cut word as an abbreviation (live 09.11.2026); a mass run has no form. */
+    /**
+     * НП приймає до 60 символів назви й відхиляє обрізане слово як скорочення (live 09.11.2026); у масовому запуску
+     * форми немає.
+     */
     public function testLongNameIsCutAtAWordForNovaPoshta(): void
     {
         $draft = self::build(self::order(['last_name' => 'Довгоприходько-Святополк-Мирська', 'name' => 'Олександра-Вікторія Іванівна']));
@@ -361,7 +370,10 @@ class WaybillDraftTest extends TestCase
         self::assertSame(60, mb_strlen(self::build(self::order(['last_name' => str_repeat('я', 70), 'name' => '']))->recipientName), 'one endless word: cut at the limit');
     }
 
-    /** An online payment not made yet: NP collects nothing on pickup. A COD order, or one paid, does not wait. */
+    /**
+     * Онлайн-оплату ще не здійснено: НП нічого не збирає при отриманні. Замовлення з післяплатою або вже оплачене не
+     * чекає.
+     */
     public function testDraftKnowsTheOrderAwaitsPayment(): void
     {
         self::assertTrue(self::build(self::order(['paid' => 0]))->awaitsPayment);
@@ -370,7 +382,7 @@ class WaybillDraftTest extends TestCase
         self::assertFalse(self::build(self::order(['paid' => 0]), cod: CodKind::Money, amountDue: static fn(float $total): float => 0.0)->awaitsPayment, 'prepaid in full by another module');
     }
 
-    /** The form offers the types the settings turn on, and always the draft's own one. */
+    /** Форма пропонує типи, увімкнені в налаштуваннях, і завжди власний тип чернетки. */
     public function testFormTakesTheTypesTurnedOn(): void
     {
         $draft = self::build(config: new WaybillConfig(null, null, cargoTypes: ['Parcel', 'Documents']));
@@ -382,7 +394,7 @@ class WaybillDraftTest extends TestCase
         self::assertSame('Cargo', $own->withInput(['cargo_type' => 'Cargo'])->cargoType, 'a type turned off later still fits a draft that has it');
     }
 
-    /** NP refuses documents over 1 kg (live 09.11.2026: «Weight is not allowed for Documents»). */
+    /** НП відхиляє документи понад 1 kg (live 09.11.2026: «Weight is not allowed for Documents»). */
     public function testDocumentsWeighOneKilogramAtMost(): void
     {
         self::assertSame([['field' => 'weight', 'key' => 'waybill_error_documents_weight']], self::build()->withInput(['cargo_type' => 'Documents', 'weight' => '1.5']));
@@ -390,7 +402,7 @@ class WaybillDraftTest extends TestCase
         self::assertSame(1.5, self::build()->withInput(['cargo_type' => 'Parcel', 'weight' => '1.5'])->weightKg);
     }
 
-    /** NP takes no «Вантаж» to a parcel locker (api-docs-ua «ЕН на поштомат»: Parcel, Documents). */
+    /** НП не приймає «Вантаж» до поштомата (api-docs-ua «ЕН на поштомат»: Parcel, Documents). */
     public function testLockerTakesNoCargo(): void
     {
         $locker = self::build(division: (object)(['category' => 'Postomat'] + (array)self::division()), config: new WaybillConfig(null, null, cargoType: 'Cargo'));

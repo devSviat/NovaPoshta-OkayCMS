@@ -5,7 +5,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 use Okay\Core\EntityFactory;
 use Okay\Entities\PaymentsEntity;
 
-/** The organization an order was invoiced to by Sviat/InvoicePayment, which may be absent (it is not on the fork). */
+/** Організація, на яку Sviat/InvoicePayment виставив рахунок замовлення; модуля може не бути (на форку його немає). */
 final class InvoicePaymentData
 {
     public const string ENTITY = 'Okay\\Modules\\Sviat\\InvoicePayment\\Entities\\InvoicePaymentDataEntity';
@@ -30,7 +30,7 @@ final class InvoicePaymentData
         try {
             $row = $this->entityFactory->get($this->entityClass)->findOne(['order_id' => (int)$order->id]);
         } catch (\Throwable) {
-            // The module's table may be gone while its files stay.
+            // Таблиці модуля може вже не бути, хоча його файли лишились.
             return null;
         }
 

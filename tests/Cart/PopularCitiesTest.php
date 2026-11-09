@@ -48,7 +48,7 @@ class PopularCitiesTest extends TestCase
         self::assertSame('Біла Церква', PopularCities::label('Біла Церква'));
     }
 
-    /** The button stays short; the chosen-city line shows the type, as for a city found by search. */
+    /** Кнопка лишається короткою; рядок вибраного міста показує тип, як і для міста, знайденого пошуком. */
     public function testButtonCarriesTheType(): void
     {
         self::assertSame(['id' => 7, 'label' => 'Київ', 'type' => 'місто'], PopularCities::button(['id' => 7, 'name' => 'місто Київ']));

@@ -6,15 +6,15 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
 /**
- * One scheduler task does all dictionary work, the admin button included: the button only
- * leaves a request, so two runs never overlap and the browser never pages through files.
+ * Одне завдання планувальника виконує всю роботу з довідниками, кнопку в адмінці включно: кнопка лише
+ * залишає запит, тож два запуски ніколи не перетинаються, а браузер ніколи не гортає файли.
  */
 final class DictionaryRunner
 {
     private const int DAILY = 20 * 3600;
     private const int RETRY_AFTER_FAILURE = 3600;
     private const int BOOST_EVERY = 7 * 86400;
-    /** The scheduler task timeout: a run "in progress" for longer was killed. */
+    /** Тайм-аут завдання планувальника: запуск, що "в процесі" довше, було вбито. */
     public const int TASK_TIMEOUT = 3600;
 
     private readonly \Closure $now;
@@ -34,19 +34,19 @@ final class DictionaryRunner
         $status->save($this->state);
     }
 
-    /** Called by the scheduler every few minutes; runs only when something is due. */
+    /** Викликається планувальником кожні кілька хвилин; працює, лише коли щось пора виконати. */
     public function tick(): void
     {
         $now = ($this->now)();
         $status = DictionaryStatus::load($this->state);
         if ($status->runningSince !== null) {
-            // Stock 4.5.3 ignores the scheduler lock result, so a run may still be going:
-            // two full runs at once would delete each other's rows.
+            // Сток 4.5.3 ігнорує результат блокування планувальника, тож запуск може ще тривати:
+            // два повні запуски одночасно видаляли б рядки один одного.
             if ($now - $status->runningSince < self::TASK_TIMEOUT) {
                 return;
             }
-            // Killed (timeout, out of memory): no `finally` ran, record it as a failure so
-            // the retry waits an hour instead of starting every 5 minutes.
+            // Убитий (тайм-аут, брак пам'яті): жоден `finally` не виконався, записуємо це як збій, щоб
+            // повтор чекав годину, а не стартував кожні 5 хвилин.
             $status->lastRun = [
                 'started' => $status->runningSince, 'finished' => $status->runningSince + self::TASK_TIMEOUT,
                 'ok' => false, 'kind' => 'delta', 'counts' => [], 'error' => 'interrupted', 'boost_error' => null,
@@ -78,7 +78,7 @@ final class DictionaryRunner
             $run['finished'] = ($this->now)();
             $status->lastRun = $run;
             $status->runningSince = null;
-            // A button press during the run asks for another one.
+            // Натискання кнопки під час запуску замовляє ще один.
             $status->requestedAt = DictionaryStatus::load($this->state)->requestedAt;
             $status->save($this->state);
         }
@@ -90,7 +90,7 @@ final class DictionaryRunner
             return true;
         }
         $complete = $status->divisionsTill !== null && $status->settlementsTime !== null;
-        // A run killed mid-way (scheduler timeout) records nothing: missing data is retried soon.
+        // Запуск, убитий посередині (тайм-аут планувальника), нічого не записує: відсутні дані скоро запитуються повторно.
         $wait = $status->lastRun['ok'] && $complete ? self::DAILY : self::RETRY_AFTER_FAILURE;
 
         return $now - (int)$status->lastRun['finished'] >= $wait;
@@ -113,8 +113,8 @@ final class DictionaryRunner
         $en = $english ? $this->steps->divisionVersions('en') : null;
 
         $oldestFrom = $uk->deltas[0]['from'] ?? $uk->baseTime;
-        // A gap between what is stored and the oldest delta the CDN still keeps can only be
-        // closed by the base.
+        // Розрив між збереженим і найстарішою дельтою, яку CDN ще тримає, можна
+        // закрити лише базою.
         if ($status->divisionsTill === null || $status->divisionsTill < $oldestFrom || $languageChanged) {
             $result['kind'] = 'full';
             $result['counts']['divisions'] = $this->steps->fullDivisions($uk->baseUrl, $en?->baseUrl, $run)->toArray();
@@ -135,7 +135,7 @@ final class DictionaryRunner
         }
     }
 
-    /** Popularity needs the API key; without it the rest of the run is still useful. */
+    /** Популярність потребує ключа API; без нього решта запуску все одно корисна. */
     private function boost(DictionaryStatus $status, int $now, array &$result): void
     {
         if ($status->boostAt !== null && $now - $status->boostAt < self::BOOST_EVERY) {

@@ -4,7 +4,7 @@ namespace Modules\Sviat\NovaPoshta\Support;
 
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyPlaces;
 
-/** Our dictionary in arrays; `indexOfCity` stands for Address.getWarehouses and counts its calls. */
+/** Наш довідник у масивах; `indexOfCity` заміняє Address.getWarehouses і рахує його виклики. */
 final class FakeLegacyPlaces implements LegacyPlaces
 {
     /** @var list<object> id, name_uk, area_uk, district_uk, has_pickup */
@@ -13,7 +13,7 @@ final class FakeLegacyPlaces implements LegacyPlaces
     public array $divisions = [];
     /** @var array<string, int> */
     public array $cityRefs = [];
-    /** @var array<string, string> city ref => a WarehouseIndex in that city */
+    /** @var array<string, string> ref міста => WarehouseIndex у цьому місті */
     public array $indexOfCity = [];
     public int $apiCalls = 0;
 

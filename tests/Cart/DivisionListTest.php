@@ -6,7 +6,7 @@ use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DivisionList;
 use PHPUnit\Framework\TestCase;
 
-/** The pure part: groups with counts, the chosen group's page of points, fit problems. */
+/** Чиста частина: групи з кількостями, сторінка пунктів видачі вибраної групи, проблеми вміщення. */
 class DivisionListTest extends TestCase
 {
     private static function groupRows(): array
@@ -62,7 +62,8 @@ class DivisionListTest extends TestCase
 
     public function testSearchedNumberComesBeforeAddressMatches(): void
     {
-        // "13": branch №13 first, then numbers starting with 13, then "вул. Слобожанська, 13" (author, 06.11.2026).
+        // "13": спершу відділення №13, потім номери, що починаються з 13, потім "вул. Слобожанська, 13"
+        // (автор, 06.11.2026).
         $light = [
             (object)['id' => 1, 'max_weight' => '30', 'max_declared_cost' => '0', 'match_rank' => 2],
             (object)['id' => 3, 'max_weight' => '30', 'max_declared_cost' => '0', 'match_rank' => 2],

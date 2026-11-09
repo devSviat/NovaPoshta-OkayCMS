@@ -6,9 +6,9 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillNumber;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus;
 
 /**
- * The orders list filter with this module's parts: the NP status group, and a keyword that is a
- * waybill number. A module cannot extend the core `keyword` filter (a module filter replaces it
- * whole), so a waybill number becomes a list of order ids instead.
+ * Фільтр списку замовлень із частинами цього модуля: група статусів НП і ключове слово, яке є
+ * номером накладної. Модуль не може розширити фільтр ядра `keyword` (фільтр модуля замінює його
+ * повністю), тому номер накладної перетворюється на список id замовлень.
  */
 final class OrdersListFilter
 {
@@ -17,7 +17,7 @@ final class OrdersListFilter
     {
         $number = is_string($keyword) && preg_match('/^[\d\s\-]+$/', trim($keyword)) ? WaybillNumber::normalize(trim($keyword)) : null;
         $byNumber = $number !== null ? $ordersOfNumber($number) : [];
-        // Not a waybill of this shop: the core search keeps it (a barcode in a product name, digits in an email).
+        // Не накладна цього магазину: пошук ядра лишає його (штрихкод у назві товару, цифри в email).
         if ($byNumber !== []) {
             unset($filter['keyword']);
             $filter = self::narrow($filter, $byNumber);
@@ -25,7 +25,7 @@ final class OrdersListFilter
         if ($group === 'none') {
             $filter['np_without_waybill'] = 1;
         } elseif ($group !== null && $group !== '' && isset(WaybillStatus::FILTER_GROUPS[$group])) {
-            // A subquery (OrdersEntityFilters), not the ids of every order in the group.
+            // Підзапит (OrdersEntityFilters), а не id кожного замовлення групи.
             $filter['np_status_codes'] = WaybillStatus::FILTER_GROUPS[$group];
         }
 
@@ -38,7 +38,7 @@ final class OrdersListFilter
         if (isset($filter['id'])) {
             $ids = array_values(array_intersect($ids, array_map('intval', (array)$filter['id'])));
         }
-        // An empty list would mean "no condition" to the core filter: [0] matches nothing.
+        // Порожній список означав би для фільтра ядра "без умови": [0] не збігається ні з чим.
         $filter['id'] = $ids === [] ? [0] : array_values(array_unique($ids));
 
         return $filter;

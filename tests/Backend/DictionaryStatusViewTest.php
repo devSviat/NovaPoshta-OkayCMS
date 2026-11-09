@@ -69,7 +69,7 @@ class DictionaryStatusViewTest extends TestCase
 
         self::assertSame(55137, $vars['figures']['divisions']);
         self::assertTrue($vars['has_data']);
-        // Grouped by a no-break space, as Ukrainian writes large numbers.
+        // Розряди розділено нерозривним пробілом, як пишуть великі числа українською.
         self::assertSame("55\u{00A0}137", $vars['shown']['divisions']);
         self::assertSame("1\u{00A0}384", $vars['shown']['boosted']);
     }

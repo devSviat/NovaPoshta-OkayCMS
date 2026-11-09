@@ -7,7 +7,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\Http\HttpResponse;
 use Okay\Modules\Sviat\NovaPoshta\Api\Http\HttpTransport;
 use Okay\Modules\Sviat\NovaPoshta\Api\Http\TransportException;
 
-/** Answers from a prepared queue and records every request, so no test talks to Nova Poshta. */
+/** Відповідає з підготовленої черги й записує кожен запит, тож жоден тест не звертається до Нової Пошти. */
 final class FakeTransport implements HttpTransport
 {
     /** @var list<HttpResponse|TransportException> */

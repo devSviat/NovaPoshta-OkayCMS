@@ -8,14 +8,14 @@ use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Stream\JsonItemStream;
 
 final class DivisionsUpdater
 {
-    /** The CDN divisions files hold every country: only Ukraine is decoded. */
+    /** Файли пунктів на CDN містять усі країни: декодується лише Україна. */
     private const string UKRAINE = '"countryCode":"UA"';
 
     public function __construct(private readonly DictionaryStore $store)
     {
     }
 
-    /** Whole base: rows absent from it are deleted, but only after the file was read to the end. */
+    /** Повна база: рядки, яких у ній немає, видаляються, але лише після того, як файл прочитано до кінця. */
     public function full(string $ukFile, ?string $enFile, int $run): UpdateCounts
     {
         $english = $this->english($enFile);
@@ -34,7 +34,7 @@ final class DivisionsUpdater
         return new UpdateCounts($counts->added, $counts->changed, $deleted, $counts->unchanged);
     }
 
-    /** A daily delta: what the base would not hold (deleted, closed, not open to customers) goes, the rest is written. */
+    /** Щоденна дельта: те, чого не було б у базі (видалене, закрите, недоступне покупцям), прибирається, решта записується. */
     public function delta(string $ukFile, ?string $enFile, int $run): UpdateCounts
     {
         $english = $this->english($enFile);
@@ -57,8 +57,8 @@ final class DivisionsUpdater
     }
 
     /**
-     * The base holds only working points open to customers, and the API knows no others; a delta
-     * also carries the rest, which would sit in the cart as points no waybill can be made to.
+     * База містить лише робочі пункти, відкриті для покупців, а інших API не знає; дельта
+     * несе й решту, які висіли б у кошику як пункти, на які не можна створити накладну.
      */
     private static function open(array $item): bool
     {
@@ -75,7 +75,7 @@ final class DivisionsUpdater
         }
     }
 
-    /** @return array<int, array{name:?string, shortName:?string, address:?string}> only what a row takes */
+    /** @return array<int, array{name:?string, shortName:?string, address:?string}> лише те, що бере рядок */
     private function english(?string $file): array
     {
         $english = [];

@@ -9,7 +9,7 @@ use Okay\Entities\PurchasesEntity;
 use Okay\Entities\VariantsEntity;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
 
-/** An order's goods as the parcel: what the cart's metrics are for the cart, for an order in the admin. */
+/** Товари замовлення як посилка: те саме, що метрики кошика для кошика, — для замовлення в адмінці. */
 final class OrderParcel
 {
     public function __construct(
@@ -18,7 +18,7 @@ final class OrderParcel
     ) {
     }
 
-    /** @return list<object> purchases, each with its `variant` (weight, volume) */
+    /** @return list<object> покупки, кожна зі своїм `variant` (weight, volume) */
     public function purchases(int $orderId): array
     {
         $purchases = array_values($this->entityFactory->get(PurchasesEntity::class)->find(['order_id' => $orderId]));
@@ -31,7 +31,7 @@ final class OrderParcel
         return $purchases;
     }
 
-    /** Hryvnias per unit of the shop's main currency (order sums are in it); 1.0 without a UAH currency. */
+    /** Гривень за одиницю основної валюти магазину (суми замовлення в ній); 1.0, якщо валюти UAH немає. */
     public function uahRate(): float
     {
         $uah = $this->entityFactory->get(CurrenciesEntity::class)->findOne(['code' => 'UAH']);
@@ -49,7 +49,7 @@ final class OrderParcel
         return CartMetrics::fromPurchases($purchases, $total)->inUah(round($total * $uahRate, 2));
     }
 
-    /** The order in the shape CartQuotes prices a cart in: like a cart's, its total is the goods without delivery. */
+    /** Замовлення у формі, у якій CartQuotes рахує ціну кошика: як і в кошика, його сума — товари без доставки. */
     public static function asCart(object $order, array $purchases): object
     {
         $total = (float)($order->total_price ?? 0);

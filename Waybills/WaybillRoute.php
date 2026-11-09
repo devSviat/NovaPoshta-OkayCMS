@@ -5,9 +5,9 @@ namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 
 /**
- * Which API makes the waybill. The new API makes a point waybill only: it silently
- * drops cash on delivery and payment control, ignores non-cash payment and has no ship date
- * (live checks 05.11 and 07.11.2026) and takes no EDRPOU; the old API does everything.
+ * Який API створює накладну. Новий API створює лише накладну на пункт видачі: він мовчки
+ * відкидає післяплату й контроль оплати, ігнорує безготівкову оплату, не має дати відправлення
+ * (живі перевірки 05.11 і 07.11.2026) і не приймає ЄДРПОУ; старий API вміє все.
  */
 final class WaybillRoute
 {

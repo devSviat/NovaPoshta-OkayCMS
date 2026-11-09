@@ -2,13 +2,13 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Orders;
 
-/** The answer to the manager's change of an order's point or address. */
+/** Відповідь на зміну менеджером пункту видачі чи адреси замовлення. */
 final readonly class OrderPointResult
 {
     /**
-     * @param ?string $error language key (without the module prefix) of why nothing was saved
-     * @param ?string $warning language key of what the manager should know about a saved point
-     * @param ?array{action: string, price: ?float} $price what happened to the delivery price
+     * @param ?string $error мовний ключ (без префікса модуля) причини, чому нічого не збережено
+     * @param ?string $warning мовний ключ того, що менеджер має знати про збережений пункт
+     * @param ?array{action: string, price: ?float} $price що сталося з ціною доставки
      */
     public function __construct(
         public bool $ok,

@@ -5,19 +5,19 @@ namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
 /**
- * The "carry over from the old modules" run: the button queues it, the scheduler tick moves it on
- * step by step from the saved cursor, so a big shop is done in portions and a crash resumes.
+ * Запуск «перенести зі старих модулів»: кнопка ставить його в чергу, тік планувальника просуває його
+ * крок за кроком від збереженого курсора, тож великий магазин переноситься частинами, а після збою запуск продовжується.
  */
 final class LegacyMigration
 {
     public const string STATE = 'legacy_migration';
     private const float TICK_SECONDS = 40.0;
     private const int TICK_CALLS = 60;
-    /** A run that has not moved for this long may be started again (an outage or a bad key held it). */
+    /** Запуск, що не рухався стільки часу, можна почати знову (його тримала недоступність сервісу або хибний ключ). */
     private const int STALL_SECONDS = 3600;
     /**
-     * Carried only by the first finished run: a re-run must not switch cash on delivery back on,
-     * or refill settings the manager has changed since.
+     * Переноситься лише першим завершеним запуском: повторний запуск не має знову вмикати післяплату
+     * чи заповнювати налаштування, які менеджер відтоді змінив.
      */
     private const array ONCE = ['payments', 'settings'];
 
@@ -29,7 +29,7 @@ final class LegacyMigration
         $this->steps = array_values($steps);
     }
 
-    /** @return bool false while not ready, or while a run is queued or going and not stalled */
+    /** @return bool false, поки не готово, або поки запуск у черзі чи йде і не завис */
     public function request(?int $now = null): bool
     {
         $now ??= time();
@@ -46,7 +46,7 @@ final class LegacyMigration
         return true;
     }
 
-    /** The scheduler's entry: it builds typed arguments itself, so this one takes none. */
+    /** Точка входу планувальника: він сам будує типізовані аргументи, тож цей метод їх не приймає. */
     public function tick(): void
     {
         $this->run(LegacyBudget::forTick(self::TICK_SECONDS, self::TICK_CALLS));
@@ -70,7 +70,7 @@ final class LegacyMigration
                 $state['step']++;
                 $state['cursor'] = 0;
             } elseif ($cursor === $state['cursor']) {
-                // The step waits for calls or time; the next tick goes on from here.
+                // Крок чекає на виклики чи час; наступний тік продовжить звідси.
                 break;
             } else {
                 $state['cursor'] = $cursor;
@@ -121,7 +121,7 @@ final class LegacyMigration
         ];
     }
 
-    /** @return list<string> step names in run order */
+    /** @return list<string> назви кроків у порядку виконання */
     public function stepNames(): array
     {
         return array_map(static fn(LegacyStep $step): string => $step->name(), $this->steps);

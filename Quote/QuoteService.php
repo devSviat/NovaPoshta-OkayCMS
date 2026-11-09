@@ -8,10 +8,10 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 
 /**
- * Delivery price and term for the cart. The new calculator prices branch to
- * branch without services; the old one is needed when the customer pays a COD commission or the
- * shop hands parcels to a courier. The term only comes from the old API: the new one returns
- * no date (checked live 06.11.2026).
+ * Ціна й термін доставки для кошика. Новий калькулятор рахує ціну від відділення до
+ * відділення без послуг; старий потрібен, коли покупець платить комісію післяплати або
+ * магазин передає посилки кур'єру. Термін доставки дає лише старий API: новий не повертає
+ * дати (перевірено наживо 06.11.2026).
  */
 final class QuoteService
 {
@@ -42,8 +42,8 @@ final class QuoteService
             $useNew = $request->address === null && str_starts_with($request->serviceType, 'Warehouse') && (!$request->cod || $request->codKind === CodKind::Control);
             try {
                 if ($request->address?->offerLifting) {
-                    // NP has no "lifting price" method: the extra is the difference of two calculations,
-                    // so the weight limit for lifting stays NP's, not ours.
+                    // У НП немає методу "ціна підйому": додаткова вартість — різниця двох розрахунків,
+                    // тож ліміт ваги для підйому на поверх лишається НП, а не нашим.
                     $base = $this->oldPrice($request, false);
                     try {
                         $lifted = $this->oldPrice($request, true);
@@ -51,7 +51,7 @@ final class QuoteService
                         if ($e->getMessage() !== 'rejected' && $request->address->lifting) {
                             throw $e;
                         }
-                        // Too heavy to lift, or the second call failed: the delivery is still priced, lifting is not offered.
+                        // Надто важко піднімати або другий виклик не вдався: доставку все одно оцінено, підйом не пропонується.
                         $lifted = null;
                         $liftingRefused = true;
                     }
@@ -104,7 +104,7 @@ final class QuoteService
         return round((float)array_sum($costs), 2);
     }
 
-    /** @return array{0: float, 1: ?float} delivery price and, apart from it, the COD commission */
+    /** @return array{0: float, 1: ?float} ціна доставки і, окремо від неї, комісія післяплати */
     private function oldPrice(QuoteRequest $request, bool $lifting): array
     {
         $properties = $this->cities($request) + [

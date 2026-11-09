@@ -9,10 +9,10 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Groups\DivisionCategory;
 
-/** Figures for the admin: what customers can actually choose from (working points only). */
+/** Цифри для адмінки: з чого покупці реально можуть обирати (лише робочі пункти видачі). */
 final class DictionaryCounts
 {
-    /** @var array<string, int>|null the settings page and the legacy check both ask within one request */
+    /** @var array<string, int>|null сторінка налаштувань і перевірка перенесення зі старих модулів обидві запитують у межах одного запиту */
     private ?array $byCategory = null;
 
     public function __construct(
@@ -22,7 +22,7 @@ final class DictionaryCounts
     ) {
     }
 
-    /** @return array<string, int> working points per category; one pass over the table, not one per category */
+    /** @return array<string, int> робочі пункти видачі за категоріями; один прохід по таблиці, а не по одному на категорію */
     public function byCategory(): array
     {
         if ($this->byCategory !== null) {
@@ -39,7 +39,7 @@ final class DictionaryCounts
 
     /**
      * @param iterable<object{category: string, n: int|string}> $rows
-     * @return array<string, int> every category, zero where no row
+     * @return array<string, int> кожна категорія, нуль, де немає рядка
      */
     public static function fromRows(iterable $rows): array
     {

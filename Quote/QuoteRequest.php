@@ -5,11 +5,11 @@ namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 final readonly class QuoteRequest
 {
     public function __construct(
-        /** The delivery method's NP technology, e.g. WarehouseWarehouse (settings.xml). */
+        /** Технологія НП для способу доставки, напр. WarehouseWarehouse (settings.xml). */
         public string $serviceType,
-        /** Division rows: id, settlement_id. */
+        /** Рядки пунктів видачі: id, settlement_id. */
         public object $sender,
-        /** Division row (id, settlement_id); null for address delivery. */
+        /** Рядок пункту видачі (id, settlement_id); null для адресної доставки. */
         public ?object $recipient,
         public Parcel $parcel,
         public bool $cod,

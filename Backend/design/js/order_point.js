@@ -1,5 +1,5 @@
-/* The point/address editor of the order page's Nova Poshta block. Its fields carry no
-   name: they sit inside the order's form and are posted to OrderPointAdmin on their own. */
+/* Редактор пункту видачі/адреси в блоці Нової Пошти на сторінці замовлення. Його поля не мають
+   name: вони всередині форми замовлення й надсилаються в OrderPointAdmin окремо. */
 (function () {
     'use strict';
 
@@ -53,7 +53,7 @@
         return node;
     }
 
-    /** [[from, to, hours], …] (0 = Monday) or true, as the cart shows it. */
+    /** [[from, to, hours], …] (0 = понеділок) або true, як це показує кошик. */
     function scheduleText(schedule, texts) {
         if (schedule === true) {
             return texts.op_all_day;
@@ -68,7 +68,7 @@
         }).join(', ');
     }
 
-    /** «смт Калинівка» with the district and region below: namesakes share a region more than once. */
+    /** «смт Калинівка» з районом і областю нижче: тезки не раз бувають в одній області. */
     function settlementLabel(s) {
         var box = document.createDocumentFragment();
         if (s.type) {
@@ -118,7 +118,7 @@
         this.citySuggest.hidden = true;
         var cityField = field(t.op_city, this.city, 'settlement_id');
         cityField.appendChild(this.citySuggest);
-        // A chosen city is a line with «change», not text to edit: names of namesakes differ only by type and region.
+        // Обране місто — це рядок із «змінити», а не текст для редагування: назви тезок відрізняються лише типом і областю.
         this.cityChosen = el('div', 'np-op__chosen');
         this.cityName = el('span', 'np-op__chosen-name');
         var change = el('button', 'np-op__link', t.op_change || '');
@@ -169,7 +169,7 @@
         }
         this.box.appendChild(actions);
         this.box.hidden = false;
-        // The editor holds the same city and address: the summary above would only repeat it.
+        // Редактор містить те саме місто й адресу: зведення вище лише повторило б їх.
         this.root.classList.add('is-editing');
     };
 
@@ -181,7 +181,7 @@
             node.value = value;
             return node;
         };
-        // The editor starts from the address the order has: the manager corrects a part, not retypes it all.
+        // Редактор стартує з адреси замовлення: менеджер виправляє частину, а не набирає все заново.
         var current = function (name) { return self.root.getAttribute('data-' + name) || ''; };
         this.street = filled(current('street'), 100);
         this.streetRef = current('street-ref');
@@ -191,7 +191,7 @@
         streetField.appendChild(this.streetSuggest);
         this.box.appendChild(streetField);
         this.street.addEventListener('input', function () {
-            // A typed street has no Ref: the waybill then goes as a text address.
+            // Введена вручну вулиця не має Ref: тоді накладна йде з текстовою адресою.
             self.streetRef = '';
             self.debounce('street', function () { self.findStreets(); });
         });
@@ -199,7 +199,7 @@
         this.house = filled(current('house'), 10);
         this.flat = filled(current('flat'), 10);
         this.entrance = filled(current('entrance'), 5);
-        // Always offered, as in the cart: the courier needs it whether or not lifting is paid for.
+        // Пропонується завжди, як у кошику: кур'єру поверх потрібен незалежно від того, чи оплачено підйом.
         this.floor = filled(current('floor'), 3);
         this.floor.inputMode = 'numeric';
         row.appendChild(field(t.op_house, this.house, 'house'));
@@ -229,7 +229,7 @@
         }
     };
 
-    /** The chosen city as a line: the type plain, the title bold, the region muted. */
+    /** Обране місто одним рядком: тип звичайним, назва жирним, область приглушено. */
     Editor.prototype.showCity = function () {
         var s = this.settlement;
         this.cityName.textContent = '';
@@ -426,7 +426,7 @@
         box.appendChild(alert);
     }
 
-    /** The core's order form posts delivery_price on save: it must hold the price written here. */
+    /** Форма замовлення ядра надсилає delivery_price під час збереження: там має бути ціна, записана тут. */
     function syncOrderForm(price) {
         var priceInput = document.querySelector('form [name="delivery_price"]');
         if (priceInput && price !== null && price !== undefined) {

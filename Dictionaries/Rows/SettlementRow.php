@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries\Rows;
 
-/** A CDN settlement record as a table row. `boost` is not here: it comes from the API and survives reloads. */
+/** Запис населеного пункту з CDN як рядок таблиці. `boost` тут немає: він приходить з API і переживає перезавантаження. */
 final class SettlementRow
 {
     public static function fromNp(array $uk, ?array $en): array
@@ -28,10 +28,10 @@ final class SettlementRow
     }
 
     /**
-     * `region` is the district and `region.parent` the oblast; a city of regional significance
-     * has no parent and its `region` is the oblast itself.
+     * `region` — це район, а `region.parent` — область; місто обласного значення
+     * не має parent, і його `region` — це сама область.
      *
-     * @return array{0: ?string, 1: ?string} district, oblast
+     * @return array{0: ?string, 1: ?string} район, область
      */
     private static function regions(mixed $region): array
     {

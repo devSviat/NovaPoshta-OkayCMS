@@ -13,7 +13,7 @@ use Okay\Modules\Sviat\NovaPoshta\Init\Init;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use PHPUnit\Framework\TestCase;
 
-/** A deleted order takes its delivery choice and waybill row with it; Nova Poshta is not asked. */
+/** Видалене замовлення забирає з собою свій вибір доставки й рядок накладної; Нову Пошту не питають. */
 class OrderRowsCleanupTest extends TestCase
 {
     public function testRowsOfDeletedOrdersGo(): void
@@ -43,7 +43,10 @@ class OrderRowsCleanupTest extends TestCase
         self::assertSame([8], $deleted[WaybillEntity::class]);
     }
 
-    /** Orders deleted while the module was off keep their rows: once a day they go, and tracking stops asking NP about them. */
+    /**
+     * Замовлення, видалені, поки модуль був вимкнений, зберігають свої рядки: раз на день їх прибирають, і трекінг
+     * перестає питати про них НП.
+     */
     public function testRowsWithoutAnOrderGoOnceADay(): void
     {
         $deleted = [];

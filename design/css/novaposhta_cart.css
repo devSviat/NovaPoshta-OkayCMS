@@ -1,5 +1,5 @@
-/* Layout only: fields and chips take the theme's classes; colours come from the theme (variables,
-   or read from the theme's own button by the script where a theme has no variables). */
+/* Лише розкладка: поля й чіпи беруть класи теми; кольори дає тема (змінні або, якщо тема
+   змінних не має, скрипт зчитує їх із власної кнопки теми). */
 .np-cart {
     --np-accent: var(--okay-basic-company, var(--broken-basic-company, var(--vs-accent, #00afee)));
     --np-border: var(--okay-border-color, var(--broken-border-color, var(--vs-border, #dbdbdb)));
@@ -80,7 +80,7 @@
 .np-cart__choice { margin: 0; padding: 8px 12px; border-left: 3px solid var(--np-accent); background: rgba(0, 0, 0, .03); }
 .np-cart--loading .np-cart__list { opacity: .5; }
 
-/* okay_shop-derived themes have no chip component. */
+/* Теми на основі okay_shop не мають компонента чіпа. */
 .np-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .np-chip {
     min-height: 34px;
@@ -111,7 +111,7 @@
 .np-cart__address-row input { min-width: 0; width: 100%; box-sizing: border-box; }
 @media (max-width: 600px) { .np-cart__address-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .np-cart .np-cart__check { margin: 0; }
-/* vibe_shop has no checkbox component; same structure as okay_shop's `.checkbox`, theme colours. */
+/* vibe_shop не має компонента чекбокса; та сама структура, що й `.checkbox` в okay_shop, кольори теми. */
 .np-check { display: flex; align-items: flex-start; gap: 8px; position: relative; cursor: pointer; line-height: 1.4; }
 .np-check__input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
 .np-check__icon { flex: 0 0 22px; width: 22px; height: 22px; box-sizing: border-box; border: 1px solid var(--np-border, #dbdbdb); border-radius: 4px; background: #fff; }
@@ -127,11 +127,11 @@
 .np-cart__lifting { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--np-border, #dbdbdb); border-radius: 4px; }
 .np-cart__lifting[hidden], .np-cart__lifting [hidden] { display: none; }
 .np-cart__lifting .np-cart__check { min-height: 22px; line-height: 22px; }
-/* Same indent as the checkbox text (theme .checkbox / np-check: 22 px box + gap). */
+/* Той самий відступ, що й у тексту чекбокса (тема .checkbox / np-check: квадрат 22 px + проміжок). */
 .np-cart__lifting-note { margin: 0 0 0 30px; font-size: 13px; line-height: 1.4; opacity: .8; }
 .np-cart__lifting .np-cart__elevator-check { margin-left: 30px; }
 
-/* The theme pads the block's box; a gap is needed only under a delivery description above the block. */
+/* Тема сама задає внутрішні відступи блоку; проміжок потрібен лише під описом доставки над блоком. */
 * + .fn_delivery_module_html .np-cart { margin-top: 10px; }
 
 .np-cart__city-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
@@ -154,15 +154,17 @@
 .np-cart__chosen-schedule .np-cart__schedule { opacity: 1; }
 .np-cart__day { white-space: nowrap; }
 .np-cart__option-schedule { display: block; margin-top: 2px; }
-/* Narrower sides let "Відділення 652 | Поштомат 7389" fit one line on a 390 px phone; longer names wrap. */
+/* Вужчі бічні поля дають "Відділення 652 | Поштомат 7389" вміститися в рядок на телефоні 390 px; довші назви
+   переносяться. */
 .np-cart__groups > * { padding-left: 10px; padding-right: 10px; white-space: nowrap; }
 
-/* Inside the theme's payment label (outside .np-cart): the module's colour variables are not set there. */
+/* Усередині label оплати теми (поза .np-cart): змінні кольорів модуля там не задані. */
 .np-cod-line { display: block; margin-top: 2px; font-size: 11px; font-style: normal; font-weight: 400; line-height: 1.35; color: #a35a00; }
 .np-cod-line--described { margin-top: 6px; font-size: inherit; }
 .np-cod-line[hidden] { display: none; }
 
-/* Visible to jQuery Validate (it skips :hidden), not to people: the "choose a point" message hangs off it. */
+/* Видимий для jQuery Validate (він пропускає :hidden), але не для людей: до нього чіпляється повідомлення
+   "виберіть пункт видачі". */
 .np-cart__points { position: relative; }
 .np-cart__point-check { position: absolute; width: 1px; height: 1px; padding: 0; margin: 0; border: 0; opacity: 0; pointer-events: none; }
 

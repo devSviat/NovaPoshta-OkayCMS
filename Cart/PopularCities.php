@@ -6,7 +6,7 @@ use Okay\Core\EntityFactory;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
-/** City buttons above the cart's city field: chosen and ordered by the manager only. */
+/** Кнопки міст над полем міста в кошику: їх обирає й упорядковує лише менеджер. */
 final class PopularCities
 {
     public const int MAX = 20;
@@ -19,7 +19,7 @@ final class PopularCities
     ) {
     }
 
-    /** @param list<int|string> $ids in the order the manager put them */
+    /** @param list<int|string> $ids у порядку, який задав менеджер */
     public function save(array $ids): void
     {
         $wanted = array_values(array_filter(array_map('intval', $ids), static fn(int $id): bool => $id > 0));
@@ -55,7 +55,7 @@ final class PopularCities
         return $list;
     }
 
-    /** @return list<array{id:int, label:string, type:string}> buttons for the cart */
+    /** @return list<array{id:int, label:string, type:string}> кнопки для кошика */
     public function buttons(string $lang): array
     {
         return array_map(self::button(...), $this->list($lang));
@@ -102,7 +102,7 @@ final class PopularCities
         $state->set(self::STATE, json_encode(array_values($ids)));
     }
 
-    /** "місто Київ" → "Київ": a button is short, and namesakes are not offered as buttons anyway. */
+    /** "місто Київ" → "Київ": кнопка коротка, а тезок кнопками однаково не пропонують. */
     public static function label(string $name): string
     {
         $title = SettlementName::split($name)[1];

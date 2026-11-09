@@ -27,7 +27,9 @@ class DeliveryModeTest extends TestCase
         self::assertSame($mode, DeliveryMode::fromServiceType($serviceType));
     }
 
-    /** The module never orders a courier pickup: a stored Doors* (NovaposhtaCost) is priced from the branch. */
+    /**
+     * Модуль ніколи не замовляє забір кур'єром: ціну для збереженого Doors* (NovaposhtaCost) рахують від відділення.
+     */
     public function testPricedServiceTypeIsFromTheBranch(): void
     {
         self::assertSame('WarehouseWarehouse', DeliveryMode::fromServiceType('DoorsWarehouse')->serviceType());
@@ -35,7 +37,7 @@ class DeliveryModeTest extends TestCase
         self::assertSame('WarehouseDoors', DeliveryMode::Address->serviceType());
     }
 
-    /** Two modes the module ships: courier pickup from the shop (Doors*) is not ordered on its waybills. */
+    /** Модуль має два режими: забір кур'єром з магазину (Doors*) у його накладних не замовляється. */
     public function testSettingsFileOffersTheTwoModes(): void
     {
         $xml = simplexml_load_file(dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/settings.xml');
@@ -48,7 +50,7 @@ class DeliveryModeTest extends TestCase
         self::assertSame(['WarehouseWarehouse', 'WarehouseDoors'], $values);
     }
 
-    /** The core form selects an option only on an exact match: a stored Doors* would fall back to the first, points. */
+    /** Форма ядра вибирає опцію лише за точним збігом: збережений Doors* скотився б до першої — пунктів видачі. */
     public function testStoredSettingsShowAnOfferedMode(): void
     {
         self::assertSame(['service_type' => 'WarehouseDoors', 'x' => 1], DeliveryMode::offered(['service_type' => 'DoorsDoors', 'x' => 1]));

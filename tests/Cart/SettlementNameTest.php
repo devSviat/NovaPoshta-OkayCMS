@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class SettlementNameTest extends TestCase
 {
-    /** The type stands apart from the title for every kind of place, «смт» as people write it. */
+    /** Тип стоїть окремо від назви для будь-якого виду населеного пункту, «смт» — так, як пишуть люди. */
     public function testTypeAndTitle(): void
     {
         self::assertSame(['місто', 'Київ'], SettlementName::split('місто Київ'));

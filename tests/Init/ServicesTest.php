@@ -7,7 +7,7 @@ use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use PHPUnit\Framework\TestCase;
 
-/** The container passes arguments by position: a definition out of step with its constructor fails only at runtime. */
+/** Контейнер передає аргументи за позицією: визначення, що розійшлося з конструктором, падає лише під час виконання. */
 class ServicesTest extends TestCase
 {
     /** @return array<string, array{class: string, arguments?: list<mixed>}> */
@@ -37,7 +37,7 @@ class ServicesTest extends TestCase
         }
     }
 
-    /** Popular cities are a minute to set by hand; the move carries only what cannot be. */
+    /** Популярні міста вручну налаштовуються за хвилину; перенесення бере лише те, що так не налаштуєш. */
     public function testTheMoveHasNoPopularCitiesStep(): void
     {
         $steps = array_map(static fn(ServiceReference $r): string => $r->getName(), array_slice(self::services()[\Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigration::class]['arguments'], 2));

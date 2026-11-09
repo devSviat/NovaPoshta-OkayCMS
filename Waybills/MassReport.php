@@ -2,15 +2,15 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
-/** What the mass action did to each order; kept in the session until the list shows it. */
+/** Що масове створення зробило з кожним замовленням; зберігається в сесії, доки список його не покаже. */
 final readonly class MassReport
 {
     private const array KINDS = ['created', 'skipped', 'failed'];
 
     /**
      * @param list<array{orderId: int, kind: 'created'|'skipped'|'failed', key: ?string, value: ?string}> $rows
-     *     key: a language key without the module prefix; value: the waybill number or Nova Poshta's text
-     * @param int $untouched selected orders left for the next run (limit or time budget)
+     *     key: мовний ключ без префікса модуля; value: номер накладної або текст Нової Пошти
+     * @param int $untouched вибрані замовлення, лишені на наступний запуск (ліміт або бюджет часу)
      */
     public function __construct(
         public array $rows,
@@ -33,7 +33,7 @@ final readonly class MassReport
         return ['rows' => $this->rows, 'untouched' => $this->untouched];
     }
 
-    /** @return ?self null for anything this class did not write */
+    /** @return ?self null для всього, що записав не цей клас */
     public static function fromArray(mixed $data): ?self
     {
         if (!is_array($data) || !is_array($data['rows'] ?? null) || !is_int($data['untouched'] ?? null)) {

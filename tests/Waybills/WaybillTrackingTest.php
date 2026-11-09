@@ -81,7 +81,10 @@ class WaybillTrackingTest extends TestCase
         self::assertStringNotContainsString('204500000020', implode(' ', $urls));
     }
 
-    /** A waybill stuck for two months (made and never sent, an endless return) no longer slows the queue. */
+    /**
+     * Накладна, що застрягла на два місяці (створена й не відправлена, нескінченне повернення), більше не гальмує
+     * чергу.
+     */
     public function testOldUnfinishedWaybillsAreNoLongerAsked(): void
     {
         $this->waybill(7, 1, 61);

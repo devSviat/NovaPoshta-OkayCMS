@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Entities;
 
 use Okay\Core\Entity\Entity;
 
-/** Old API city Ref of a settlement, found through a point number (Quote\CityRefResolver). */
+/** Ref міста старого API для населеного пункту, знайдений через номер пункту видачі (Quote\CityRefResolver). */
 class CityRefEntity extends Entity
 {
     protected static $fields = [

@@ -6,8 +6,8 @@ use Okay\Modules\Sviat\NovaPoshta\Init\Init;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Admin and theme templates have no autoescape: every printed value needs |escape. Allowed without it:
- * a capture (its parts are escaped where captured) and |convert (a number formatted by the core).
+ * Шаблони адмінки й теми не мають autoescape: кожне виведене значення потребує |escape. Без нього дозволено:
+ * capture (його частини екрановано там, де їх захоплено) і |convert (число, відформатоване ядром).
  */
 class TemplateEscapeTest extends TestCase
 {

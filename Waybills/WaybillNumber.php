@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
-/** A Nova Poshta waybill number as people type it: spaces and dashes go, 14 digits stay. */
+/** Номер накладної Нової Пошти, як його вводять люди: пробіли й дефіси прибираються, 14 цифр лишаються. */
 final class WaybillNumber
 {
     public static function normalize(string $input): ?string
@@ -15,7 +15,7 @@ final class WaybillNumber
         return strlen($digits) === 14 ? $digits : null;
     }
 
-    /** The public tracking page; the site routes the number in the path. */
+    /** Публічна сторінка трекінгу; сайт приймає номер у шляху. */
     public static function trackingUrl(string $number): string
     {
         return 'https://novaposhta.ua/tracking/' . rawurlencode($number) . '/';

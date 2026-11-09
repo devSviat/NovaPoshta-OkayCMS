@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 use Okay\Core\Modules\Extender\ExtenderFacade;
 
-/** What Nova Poshta collects on delivery; prepayment modules lower it through the chain. */
+/** Що Нова Пошта стягує при доставці; модулі передоплати зменшують це через ланцюжок. */
 final class AmountDue
 {
     public function onPickup(object $order, float $totalUah): float

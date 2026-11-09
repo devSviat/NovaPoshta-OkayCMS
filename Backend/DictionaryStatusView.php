@@ -4,14 +4,14 @@ namespace Okay\Modules\Sviat\NovaPoshta\Backend;
 
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryStatus;
 
-/** Template data for the dictionaries block. */
+/** Дані шаблону для блоку довідників. */
 final class DictionaryStatusView
 {
-    /** The scheduler task runs every 5 minutes; a request older than this means it does not run. */
+    /** Завдання планувальника запускається кожні 5 хвилин; запит, старший за це, означає, що воно не працює. */
     private const int SCHEDULER_SILENT_AFTER = 15 * 60;
-    /** The scheduler task timeout: a run "in progress" for longer was killed. */
+    /** Тайм-аут завдання планувальника: запуск, що "в процесі" довше, було вбито. */
     private const int RUN_DEAD_AFTER = 3600;
-    /** Updates are daily; three days without one means the scheduler stopped. */
+    /** Оновлення щоденні; три дні без жодного означають, що планувальник зупинився. */
     private const int STALE_AFTER = 3 * 86400;
 
     /** @param array{divisions?:int, postomats?:int, settlements?:int, boosted?:int} $counts */
@@ -33,7 +33,7 @@ final class DictionaryStatusView
             'busy' => $state === 'queued' || $state === 'running',
             'has_data' => ($counts['divisions'] ?? 0) > 0,
             'figures' => $figures,
-            // Grouped by a no-break space, as Ukrainian writes large numbers.
+            // Розряди розділяються нерозривним пробілом, як пишуть великі числа українською.
             'shown' => array_map(static fn(int $n): string => number_format($n, 0, '', "\u{00A0}"), $figures),
             'updated_at' => isset($run['finished']) && $run['ok']
                 ? (new \DateTimeImmutable('@' . (int)$run['finished']))

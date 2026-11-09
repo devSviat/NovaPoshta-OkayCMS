@@ -70,7 +70,7 @@ class NpOrdersTest extends TestCase
         self::assertNull(NpOrders::address(null));
     }
 
-    /** The cron runs every ten minutes: received parcels are filtered by the database, without their tracking JSON. */
+    /** Cron запускається кожні десять хвилин: отримані посилки відсіює база, без їхнього JSON трекінгу. */
     public function testReceivedSinceAsksTheDatabaseForOrderIdsOnly(): void
     {
         $asked = [];
@@ -84,7 +84,7 @@ class NpOrdersTest extends TestCase
         $entity->method('find')->willReturnCallback(function (array $filter) use (&$asked) {
             $asked['filter'] = $filter;
 
-            // One column: the core entity returns the values themselves, not rows.
+            // Одна колонка: сутність ядра повертає самі значення, а не рядки.
             return ['7', '7', '8'];
         });
         $factory = $this->createStub(\Okay\Core\EntityFactory::class);
@@ -95,14 +95,14 @@ class NpOrdersTest extends TestCase
         self::assertSame(['received_since' => '2026-11-01 00:00:00'], $asked['filter']);
     }
 
-    /** Messaging polls unfinished parcels on every cron run: the tracking JSON and audit are not read. */
+    /** Messaging опитує незавершені посилки на кожному запуску cron: JSON трекінгу й аудит не читаються. */
     public function testShipmentsReadOnlyTheColumnsTheyUse(): void
     {
         /** @var \ArrayObject<string, array<mixed>> $asked */
         $asked = new \ArrayObject();
         $entity = function (string $class) use ($asked) {
             $entity = $this->createStub($class);
-            // mappedBy() is final in the core entity: it runs for real and returns the stub.
+            // mappedBy() у сутності ядра — final: він виконується по-справжньому й повертає заглушку.
             $entity->method('noLimit')->willReturnSelf();
             $entity->method('cols')->willReturnCallback(function (array $cols) use ($entity, $class, $asked) {
                 $asked[$class] = $cols;

@@ -6,10 +6,10 @@ use Okay\Core\Database;
 use Okay\Core\QueryFactory;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 
-/** City suggestions for the cart: from the module's own table, never a request to Nova Poshta. */
+/** Підказки міст для кошика: з власної таблиці модуля, ніколи не запитом до Нової Пошти. */
 final class SettlementSearch
 {
-    /** The cart asks once per delivery method on the same page. */
+    /** Кошик запитує один раз на кожен спосіб доставки на тій самій сторінці. */
     private ?bool $hasAny = null;
 
     public function __construct(
@@ -18,7 +18,7 @@ final class SettlementSearch
     ) {
     }
 
-    /** False until the dictionary run has loaded settlements that have pickup points. */
+    /** False, доки запуск довідника не завантажив населені пункти, у яких є пункти видачі. */
     public function hasAny(): bool
     {
         if ($this->hasAny !== null) {
@@ -30,7 +30,7 @@ final class SettlementSearch
     }
 
     /**
-     * @param bool $pickupOnly points mode: only places with pickup points; address mode: every settlement
+     * @param bool $pickupOnly режим пунктів видачі: лише місця з пунктами видачі; адресний режим: кожен населений пункт
      * @return list<array{id:int, name:string, type:string, title:string, district:?string, area:?string}>
      */
     public function find(string $raw, string $lang, int $limit = 10, bool $pickupOnly = true): array
@@ -46,13 +46,13 @@ final class SettlementSearch
             ->from(SettlementEntity::getTable() . ' AS s')
             ->limit($limit);
         if ($pickupOnly) {
-            // Only places a parcel can actually be picked up in (flag kept by the dictionary run).
+            // Лише місця, де посилку справді можна забрати (прапорець ставить запуск довідника).
             $select->where('s.has_pickup = 1');
         }
         foreach ($query->words as $i => $word) {
             $select->where("s.search_text LIKE :w{$i}")->bindValue("w{$i}", '%' . $word . '%');
         }
-        // search_text starts with the settlement's own name, so a prefix match there is a name match.
+        // search_text починається з власної назви населеного пункту, тож збіг за префіксом там — це збіг назви.
         $select->orderBy(['(s.search_text LIKE :prefix) DESC', 's.boost DESC', 'CHAR_LENGTH(s.name_uk)', 's.id'])
             ->bindValue('prefix', $query->prefix . '%');
 
@@ -67,7 +67,7 @@ final class SettlementSearch
             $found[] = [
                 'id' => (int)$row->id,
                 'name' => $name,
-                // Shown apart: the type plain, the title bold.
+                // Показуються окремо: тип звичайним шрифтом, назва жирним.
                 'type' => $type,
                 'title' => $title,
                 'district' => $english && $row->district_en ? $row->district_en : $row->district_uk,

@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
-/** Nova Poshta takes Ukrainian numbers only, as 380XXXXXXXXX. */
+/** Нова Пошта приймає лише українські номери, у вигляді 380XXXXXXXXX. */
 final class NpPhone
 {
     public static function normalize(string $input): ?string

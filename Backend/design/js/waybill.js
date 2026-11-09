@@ -1,5 +1,5 @@
-/* The waybill block of an order page. Its fields carry data-field (not name): they live inside the
-   order's form and must not be saved with it; they are posted to WaybillAdmin on their own. */
+/* Блок накладної на сторінці замовлення. Його поля мають data-field (не name): вони всередині
+   форми замовлення й не повинні зберігатися разом із нею; вони надсилаються в WaybillAdmin окремо. */
 (function () {
     'use strict';
 
@@ -7,7 +7,7 @@
         return el.closest('.fn_np_waybill');
     }
 
-    /** The recipient is the customer in the order's own fields above, as they are now (saved or not). */
+    /** Отримувач — це покупець із власних полів замовлення вище, такий, як зараз (збережений чи ні). */
     function syncRecipient(root) {
         var form = root.closest('form');
         var value = function (name) {
@@ -75,13 +75,13 @@
         return node;
     }
 
-    /** Field problems go under their field; the rest into the issues box, NP's code tucked away. */
+    /** Проблеми полів виводяться під своїм полем; решта — у блок проблем, код НП прихований. */
     function showIssues(root, issues, box, heading) {
         var target = box || root.querySelector('.np-wb__issues');
         issues.forEach(function (issue) {
             var span = issue.field ? root.querySelector('.np-wb__error[data-for="' + issue.field + '"]') : null;
             if (span) {
-                // The advice names the problem in the admin's language; NP's own text stays at hand on hover.
+                // Порада називає проблему мовою адмінки; власний текст НП доступний при наведенні.
                 span.textContent = issue.advice;
                 span.title = [issue.message, issue.details].filter(Boolean).join(' — ');
                 var input = root.querySelector('[data-field="' + issue.field + '"]');
@@ -141,7 +141,7 @@
         }
     }
 
-    /** Create, attach and remove reload the page: the toast waits in the session storage for the next load. */
+    /** Створення, прив'язка й видалення перезавантажують сторінку: тост чекає в session storage наступного завантаження. */
     function toastAfterReload(root, action) {
         try {
             window.sessionStorage.setItem(TOAST_KEY, JSON.stringify([root.getAttribute('data-done-' + action), root.getAttribute('data-toast-ok')]));
@@ -161,7 +161,7 @@
             return;
         }
         clearIssues(root);
-        // Icon buttons keep their SVG: the label is restored as markup.
+        // Кнопки-іконки зберігають свій SVG: підпис відновлюється як розмітка.
         var label = button.innerHTML;
         button.disabled = true;
         button.classList.add('is-busy');
@@ -172,7 +172,7 @@
         fetch(root.getAttribute('data-url'), { method: 'POST', body: body, credentials: 'same-origin' })
             .then(function (response) { return response.json(); })
             .then(function (answer) {
-                // The card lives in the main column, the form beside it: a new state reloads the page.
+                // Картка накладної — в основній колонці, форма — поруч: новий стан перезавантажує сторінку.
                 if (answer.ok && action !== 'refresh') {
                     toastAfterReload(root, action);
                     window.location.reload();
@@ -206,7 +206,7 @@
             });
     }
 
-    /** Nova Poshta would not delete it (gone from its account, or already accepted): the order can still let it go. */
+    /** Нова Пошта не видаляє її (зникла з її кабінету або вже прийнята): замовлення все одно може від неї відмовитися. */
     function offerUnlink(root) {
         var box = root.querySelector('.np-wb__issues');
         if (!box || box.querySelector('.fn_np_wb_unlink')) {
@@ -260,7 +260,7 @@
         }
     });
 
-    /** Delivery inside the order total plus the recipient paying NP for it again: say so before creating. */
+    /** Доставка в сумі замовлення плюс отримувач ще раз платить за неї НП: сказати про це до створення. */
     document.addEventListener('change', function (event) {
         var input = event.target;
         if (!input.matches || !input.matches('[data-field="payer_type"]')) {
@@ -274,7 +274,7 @@
         warning.hidden = input.value !== 'Recipient';
     });
 
-    // The core binds .fn_clipboard once on page load; cards re-rendered later need their own handler.
+    // Ядро прив'язує .fn_clipboard один раз під час завантаження сторінки; картки, перемальовані пізніше, потребують власного обробника.
     document.addEventListener('click', function (event) {
         var link = event.target.closest('.fn_np_wb_copy');
         if (!link) {

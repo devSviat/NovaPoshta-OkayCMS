@@ -3,17 +3,17 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
 /**
- * A point's week as the cart shows it: days with the same hours in one group ("Пн–Пт 08:00–21:00").
- * A day of the week rather than "today": the parcel is collected days after checkout.
+ * Тиждень пункту видачі так, як його показує кошик: дні з однаковими годинами в одній групі ("Пн–Пт 08:00–21:00").
+ * День тижня, а не "сьогодні": посилку забирають через кілька днів після оформлення замовлення.
  */
 final class WorkSchedule
 {
     private const array DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
     /**
-     * @param string $json `schedule` of the dictionary: Nova Poshta's workSchedule, [{day, from, to, …}]
-     * @return list<array{from:int, to:int, hours:?string}>|list<array{allDay:true}>|null days 0 = Monday … 6 = Sunday;
-     *         hours null is a day off; null when the schedule is missing or unreadable
+     * @param string $json `schedule` з довідника: workSchedule Нової Пошти, [{day, from, to, …}]
+     * @return list<array{from:int, to:int, hours:?string}>|list<array{allDay:true}>|null дні 0 = понеділок … 6 = неділя;
+     *         hours null — вихідний; null, коли розкладу немає або його не вдається прочитати
      */
     public static function groups(string $json): ?array
     {
@@ -26,7 +26,7 @@ final class WorkSchedule
             $index = is_array($row) ? array_search($row['day'] ?? null, self::DAYS, true) : false;
             $from = (string)($row['from'] ?? '');
             $to = (string)($row['to'] ?? '');
-            // Nova Poshta writes a closed day as "-".
+            // Нова Пошта записує вихідний день як "-".
             if ($index !== false && self::isTime($from) && self::isTime($to)) {
                 $hours[$index] = [$from, $to];
             }

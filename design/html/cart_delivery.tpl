@@ -39,7 +39,7 @@
         {if $np_theme.family == 'vibe'}
             <label class="{$np_theme.label|escape}" for="np_city_{$delivery->id|escape}">{$lang->sviat__novaposhta__cart_city|escape}*</label>
         {/if}
-        {* Named only for the theme's jQuery Validate (it skips nameless fields); the server ignores it. *}
+        {* Ім'я задано лише для jQuery Validate теми (він пропускає поля без імені); сервер його ігнорує. *}
         <input id="np_city_{$delivery->id|escape}" class="np-cart__city-input {$np_theme.input|escape}" type="text" autocomplete="off" name="novaposhta[{$delivery->id|escape}][city_q]"
                role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="np_city_list_{$delivery->id|escape}"
                value="{if $np_choice.settlement}{$np_choice.settlement.title|default:$np_choice.settlement.name|escape}{/if}"
@@ -50,7 +50,7 @@
         <ul id="np_city_list_{$delivery->id|escape}" class="np-cart__suggest" role="listbox" hidden></ul>
     </div>
 
-    {* Shown once a place is chosen, instead of the popular cities and the city field. *}
+    {* Показується, щойно населений пункт вибрано, замість популярних міст і поля міста. *}
     <div class="np-cart__city-line" hidden>
         <span class="np-cart__city-line-label">{$lang->sviat__novaposhta__cart_city|escape}:</span>
         <span class="np-cart__city-line-type"></span> <b class="np-cart__city-line-name"></b>
@@ -58,7 +58,7 @@
         <button type="button" class="np-cart__link np-cart__change-city">{$lang->sviat__novaposhta__cart_change_city|escape}</button>
     </div>
 
-    {* The chosen point replaces the list: nothing on the block repeats it. *}
+    {* Вибраний пункт видачі замінює список: ніщо в блоці його не повторює. *}
     <div class="np-cart__chosen" hidden>
         <div class="np-cart__chosen-text">
             <span class="np-cart__chosen-city"></span>
@@ -81,7 +81,7 @@
                 <span class="{$np_theme.label|escape}">{$lang->sviat__novaposhta__cart_search|escape}</span>
             {/if}
         </div>
-        {* Carries the "choose a point" rule of jQuery Validate, so its message stands above the list. *}
+        {* Несе правило "виберіть пункт видачі" з jQuery Validate, тож його повідомлення стоїть над списком. *}
         <input class="np-cart__point-check" type="text" name="novaposhta[{$delivery->id|escape}][point_check]" value="" tabindex="-1" aria-hidden="true" autocomplete="off">
         <div class="np-cart__list" role="listbox" aria-label="{$lang->sviat__novaposhta__cart_points|escape}"></div>
         <p class="np-cart__more" hidden></p>
@@ -114,7 +114,7 @@
                 <span><b class="np-cart__lifting-title">{$lang->sviat__novaposhta__cart_lifting|escape}</b> <span class="np-cart__lifting-fee"></span></span>
             </label>
             <p class="np-cart__lifting-note"></p>
-            {* The lift only matters to Nova Poshta together with lifting (getDocumentPrice, the shipment). *}
+            {* Ліфт важить для Нової Пошти лише разом із підйомом на поверх (getDocumentPrice, відправлення). *}
             <label class="{$np_check|escape} np-cart__check np-cart__elevator-check"{if empty($np_address.lifting)} hidden{/if}>
                 <input type="checkbox" class="{$np_check|escape}__input np-cart__elevator" name="{$np_name|escape}[elevator]" value="1"{if !empty($np_address.elevator)} checked{/if}>
                 <svg class="{$np_check|escape}__icon" viewBox="0 0 20 20" aria-hidden="true"><path class="{$np_check|escape}__mark" fill="none" d="M4 10 l5 4 8-8.5"></path></svg>

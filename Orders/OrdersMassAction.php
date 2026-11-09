@@ -6,9 +6,9 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\MassReport;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\MassWaybills;
 
 /**
- * «Create Nova Poshta waybills» of the orders list. The core passes list actions to no module,
- * so the posted action is taken from the list's own filter hook; the report waits in the session
- * for the page the browser is sent back to.
+ * «Create Nova Poshta waybills» у списку замовлень. Ядро не передає дії списку жодному модулю,
+ * тож надіслану дію беруть із хука фільтра самого списку; звіт чекає в сесії
+ * на сторінку, на яку повертають браузер.
  */
 final class OrdersMassAction
 {
@@ -20,15 +20,15 @@ final class OrdersMassAction
     }
 
     /**
-     * @param bool $sessionOk the admin's CSRF token matched: stock checks it only after the controller
-     * @return bool the action ran and the page must be reloaded by a redirect
+     * @param bool $sessionOk CSRF-токен адміна збігся: сток перевіряє його лише після контролера
+     * @return bool дію виконано, і сторінку треба перезавантажити редиректом
      */
     public function handle(array $post, bool $sessionOk, array &$session): bool
     {
         if (($post['action'] ?? null) !== self::ACTION || !is_array($post['check'] ?? null) || !$sessionOk) {
             return false;
         }
-        // A closed tab must not stop a request between the reservation and Nova Poshta's answer.
+        // Закрита вкладка не має обривати запит між резервацією і відповіддю Нової Пошти.
         ignore_user_abort(true);
         $session[self::SESSION_KEY] = $this->mass->run($post['check'])->toArray();
 
@@ -36,8 +36,8 @@ final class OrdersMassAction
     }
 
     /**
-     * handle() for the current request. Stock 4.5.3 checkSession() unsets $_POST on a bad token,
-     * so the post is read before the check.
+     * handle() для поточного запиту. Сток 4.5.3 checkSession() очищає $_POST за хибного токена,
+     * тому POST читається до перевірки.
      *
      * @param \Closure(): bool $checkSession
      */
@@ -60,7 +60,7 @@ final class OrdersMassAction
     }
 
     /**
-     * @param \Closure(string): string $text language key without the module prefix → text
+     * @param \Closure(string): string $text мовний ключ без префікса модуля → текст
      * @return array{title: string, rows: list<array{orderId: int, kind: string, text: string}>, untouched: ?string}
      */
     public static function view(MassReport $report, \Closure $text): array
@@ -85,7 +85,7 @@ final class OrdersMassAction
     {
         $value = (string)($row['value'] ?? '');
 
-        // Our advice already says what NP refused; its own (English) text only when we have none.
+        // Наша порада вже каже, що відхилила НП; її власний (англійський) текст — лише коли нашої немає.
         return $text('mass_failed') . ': ' . (self::specific($row['key']) || $value === ''
             ? $text((string)($row['key'] ?? 'waybill_advice_generic'))
             : rtrim($value, '. ') . '.');

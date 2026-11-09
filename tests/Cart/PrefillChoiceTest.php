@@ -5,7 +5,7 @@ namespace Modules\Sviat\NovaPoshta\Cart;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use PHPUnit\Framework\TestCase;
 
-/** What the cart opens with: the posted form, else the choice priced in this session, else the last order. */
+/** З чим відкривається кошик: надіслана форма, інакше вибір, розрахований у цій сесії, інакше останнє замовлення. */
 class PrefillChoiceTest extends TestCase
 {
     private static function last(): object
@@ -24,7 +24,10 @@ class PrefillChoiceTest extends TestCase
         self::assertSame([], FrontExtender::prefillChoice(null, [], null));
     }
 
-    /** The page prices the last order's address on load; a reload must not lose its street and house. */
+    /**
+     * Під час завантаження сторінка розраховує ціну для адреси останнього замовлення; перезавантаження не повинне
+     * губити її вулицю й будинок.
+     */
     public function testSessionInTheLastOrdersCityKeepsItsAddress(): void
     {
         self::assertSame(['settlement_id' => 118064, 'street' => 'вул. Тестова', 'house' => '5', 'flat' => '12'], FrontExtender::prefillChoice(null, ['settlement_id' => 118064], self::last()));

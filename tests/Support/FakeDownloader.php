@@ -7,7 +7,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\Http\TransportException;
 
 final class FakeDownloader implements Downloader
 {
-    /** @var array<string, string|TransportException> url → file content or failure */
+    /** @var array<string, string|TransportException> url → вміст файлу або збій */
     public array $files = [];
 
     /** @var list<array{url:string, path:string, timeout:int}> */
