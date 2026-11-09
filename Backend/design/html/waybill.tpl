@@ -13,7 +13,7 @@
 </details>
 {/function}
 {* The hint opens away from the screen edge: rightwards by default, leftwards for a field in the right-hand column. *}
-{function name=np_wb_tip side="left"}<i class="fn_tooltips np-wb__tip hint-bottom-{$side}-t-white-s-med-mobile hint-anim" data-hint="{$text|escape}" tabindex="0" role="img" aria-label="{$text|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>{/function}
+{function name=np_wb_tip side="left"}<i class="fn_tooltips np-wb__tip hint-bottom-{$side|escape}-t-white-s-med-mobile hint-anim" data-hint="{$text|escape}" tabindex="0" role="img" aria-label="{$text|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>{/function}
 {function name=np_wb_switch}
 <label class="np-wb__switch">
     <span class="switch switch-default"><input class="switch-input" type="checkbox" data-field="{$field|escape}" value="1" {if $on}checked{/if}><span class="switch-label"></span><span class="switch-handle"></span></span>
