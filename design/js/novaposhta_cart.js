@@ -154,17 +154,24 @@
     };
 
     /**
-     * One line inside the label of each "cash on delivery" payment: Nova Poshta's commission is paid
-     * at the branch and is not part of the total. Inside the label, not after it: themes show the
-     * payment's description only right after its label.
+     * The commission line of each "cash on delivery" payment: Nova Poshta takes it at the branch, apart
+     * from the total. The module puts the line into the payment's description box (front_cart_payment);
+     * a theme without that block gets it inside the label, as themes show the description only right
+     * after the label.
      */
     Block.prototype.showCodLines = function () {
         var self = this;
         var input = this.themeInput();
         var mine = input && input.length && input.is(':checked');
+        // Two methods may share one COD payment: a method hides only a line it filled.
         document.querySelectorAll('.np-cod-line[data-np-delivery="' + this.deliveryId + '"]').forEach(function (line) {
             if (!mine) {
-                line.remove();
+                if (line.hasAttribute('data-np-cod-payment')) {
+                    line.hidden = true;
+                    line.removeAttribute('data-np-delivery');
+                } else {
+                    line.remove();
+                }
             }
         });
         if (!mine) {
@@ -174,20 +181,24 @@
             ? format(this.texts.cart_cod_fee, { fee: this.codFeeText })
             : this.texts.cart_cod_fee_unknown || '';
         this.codPayments.forEach(function (id) {
-            var payment = document.getElementById('payment_' + id.replace(/[^0-9]/g, ''));
-            var label = payment ? (payment.closest('label') || document.querySelector('label[for="' + payment.id + '"]')) : null;
-            if (!label) {
-                return;
-            }
-            var host = label.querySelector('.vs-option-card__body') || label.querySelector('.delivery__name') || label;
-            // Two methods may share one COD payment: each keeps its own line.
-            var line = host.querySelector('.np-cod-line[data-np-delivery="' + self.deliveryId + '"]');
+            id = id.replace(/[^0-9]/g, '');
+            var line = document.querySelector('.np-cod-line[data-np-cod-payment="' + id + '"]');
             if (!line) {
-                line = el('span', 'np-cod-line');
-                line.setAttribute('data-np-delivery', self.deliveryId);
-                host.appendChild(line);
+                var payment = document.getElementById('payment_' + id);
+                var label = payment ? (payment.closest('label') || document.querySelector('label[for="' + payment.id + '"]')) : null;
+                if (!label) {
+                    return;
+                }
+                var host = label.querySelector('.vs-option-card__body') || label.querySelector('.delivery__name') || label;
+                line = host.querySelector('.np-cod-line[data-np-delivery="' + self.deliveryId + '"]');
+                if (!line) {
+                    line = el('span', 'np-cod-line');
+                    host.appendChild(line);
+                }
             }
+            line.setAttribute('data-np-delivery', self.deliveryId);
             line.textContent = text;
+            line.hidden = false;
         });
     };
 
