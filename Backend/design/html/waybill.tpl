@@ -214,7 +214,7 @@
             <input type="hidden" data-field="cod_kind" value="{$d->codKind->value|escape}">
             {if !$control}
                 <div class="np-wb__cod" {if !$d->cod}hidden{/if}>
-                    <div class="heading_label np-wb__label">{$btr->sviat__novaposhta__waybill_cod_payer|escape}</div>
+                    <div class="heading_label np-wb__label">{$btr->sviat__novaposhta__waybill_cod_fee_payer|escape}</div>
                     {np_wb_radios field='cod_payer' value=$d->codPayer options=['Sender' => $btr->sviat__novaposhta__waybill_sender_party, 'Recipient' => $btr->sviat__novaposhta__waybill_recipient]}
                 </div>
             {/if}
