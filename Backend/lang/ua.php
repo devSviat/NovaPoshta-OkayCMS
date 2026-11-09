@@ -261,6 +261,7 @@ $lang['sviat__novaposhta__waybill_error_declared_cost'] = 'Оголошена в
 $lang['sviat__novaposhta__waybill_error_cod_amount'] = 'Сума післяплати — число більше 0.';
 $lang['sviat__novaposhta__waybill_error_floor'] = 'Поверх — ціле число від 1 до 200.';
 $lang['sviat__novaposhta__waybill_point_unchecked'] = 'Пункт видачі Нова Пошта покаже трохи пізніше. Звірте його в кабінеті НП.';
+$lang['sviat__novaposhta__waybill_cod_payer_unchecked'] = 'Платника комісії за переказ Нова Пошта показує не одразу. Звірте його в кабінеті НП.';
 $lang['sviat__novaposhta__waybill_deleted'] = 'Цю накладну видалено в Новій Пошті, тож прив\'язувати нема чого. Створіть нову.';
 $lang['sviat__novaposhta__waybill_pending'] = 'Накладна саме створюється іншим запитом. Оновіть сторінку за хвилину.';
 $lang['sviat__novaposhta__waybill_not_saved'] = 'Нова Пошта створила накладну (номер вище), але сайт не зміг її зберегти. Прив\'яжіть її за номером, не створюйте нову.';

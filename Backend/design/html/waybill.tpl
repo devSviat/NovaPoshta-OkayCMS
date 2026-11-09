@@ -113,7 +113,7 @@
                     {/foreach}
                 {/if}
                 {foreach $r.audit.unchecked as $kind}
-                    <div class="text_grey">{if $kind == 'point'}{$btr->sviat__novaposhta__waybill_point_unchecked|escape}{else}{$btr->sviat__novaposhta__waybill_lifting_unchecked|escape}{/if}</div>
+                    <div class="text_grey">{if $kind == 'point'}{$btr->sviat__novaposhta__waybill_point_unchecked|escape}{elseif $kind == 'cod_payer'}{$btr->sviat__novaposhta__waybill_cod_payer_unchecked|escape}{else}{$btr->sviat__novaposhta__waybill_lifting_unchecked|escape}{/if}</div>
                 {/foreach}
                 </div>
             {/if}

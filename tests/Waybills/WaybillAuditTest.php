@@ -30,13 +30,23 @@ class WaybillAuditTest extends TestCase
         self::assertSame([], $audit->findings);
     }
 
-    public function testCodPayerChanged(): void
+    /** For 10–20 s after creation Nova Poshta reports the default payer, Sender (live 09.11.2026). */
+    public function testRecipientPayerIsNotYetReported(): void
     {
         $audit = WaybillAudit::compare(self::codPoint(['codPayer' => 'Recipient']), W::fixture('status_cod'));
 
+        self::assertSame('verified', $audit->status);
+        self::assertSame([], $audit->findings);
+        self::assertSame(['cod_payer'], $audit->unchecked);
+    }
+
+    public function testCodPayerChanged(): void
+    {
+        $audit = WaybillAudit::compare(self::codPoint(), ['RedeliveryPayer' => 'Recipient'] + W::fixture('status_cod'));
+
         self::assertSame('mismatch', $audit->status);
         self::assertSame(['cod_payer'], self::kinds($audit));
-        self::assertSame(['kind' => 'cod_payer', 'expected' => 'Recipient', 'actual' => 'Sender'], $audit->findings[0]);
+        self::assertSame(['kind' => 'cod_payer', 'expected' => 'Sender', 'actual' => 'Recipient'], $audit->findings[0]);
     }
 
     public function testCodAmountChanged(): void

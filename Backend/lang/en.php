@@ -261,6 +261,7 @@ $lang['sviat__novaposhta__waybill_error_declared_cost'] = 'Declared value must b
 $lang['sviat__novaposhta__waybill_error_cod_amount'] = 'Cash on delivery amount must be above 0.';
 $lang['sviat__novaposhta__waybill_error_floor'] = 'Floor must be a whole number from 1 to 200.';
 $lang['sviat__novaposhta__waybill_point_unchecked'] = 'Nova Poshta shows the pickup point a bit later — check it in the NP account.';
+$lang['sviat__novaposhta__waybill_cod_payer_unchecked'] = 'Nova Poshta does not show the transfer fee payer at once. Check it in the NP account.';
 $lang['sviat__novaposhta__waybill_deleted'] = 'This waybill was deleted at Nova Poshta — there is nothing to attach. Create a new one.';
 $lang['sviat__novaposhta__waybill_pending'] = 'Another request is creating the waybill right now. Reload the page in a minute.';
 $lang['sviat__novaposhta__waybill_not_saved'] = 'Nova Poshta created the waybill (number above), but the site could not save it. Attach it by number, do not create a new one.';
