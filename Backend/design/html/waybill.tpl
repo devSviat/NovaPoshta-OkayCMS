@@ -53,7 +53,7 @@
             <div class="np-wb__top">
                 <div class="np-wb__num">
                     {if $c.created}<span class="np-wb__muted">{$btr->sviat__novaposhta__card_created|escape} {$c.created|escape}</span>{/if}
-                    <a class="np-wb__number" href="{$c.link|escape}" target="_blank" rel="noopener noreferrer" title="{$btr->sviat__novaposhta__card_open_np|escape}">{$c.numberSpaced|escape}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg></a>
+                    <span class="np-wb__number"><a href="" class="np-wb__copy fn_clipboard fn_np_wb_copy hint-bottom-middle-t-info-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__card_copy|escape}" data-hint-copied="{$btr->sviat__novaposhta__card_copied|escape}" data-copy-string="{$c.number|escape}">{$c.numberSpaced|escape}</a><a class="np-wb__open" href="{$c.link|escape}" target="_blank" rel="noopener noreferrer" title="{$btr->sviat__novaposhta__card_open_np|escape}" aria-label="{$btr->sviat__novaposhta__card_open_np|escape}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg></a></span>
                 </div>
                 {if $c.description}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_description|escape}</span>{$c.description|escape}</div>{/if}
                 {if $c.announced}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_announced|escape}</span><b>{$c.announced|escape}</b></div>{/if}
@@ -61,7 +61,7 @@
             <div class="np-wb__body">
                 <div class="np-wb__route">
                     {if $c.route && $c.route.from}<div><b>{$btr->sviat__novaposhta__card_departure|escape}{if $c.route.departure}: {$c.route.departure|escape}{/if}</b><div class="np-wb__small">{$c.route.from|escape}</div></div>{/if}
-                    {if $c.statusKey}<span class="np-wb__badge np-wb__badge--{$c.statusGroup|escape}"{if $c.route && $c.route.status} title="{$c.route.status|escape}"{/if}>{if $c.route && $c.route.status}{$c.route.status|escape}{else}{$btr->getTranslation($c.statusKey)|escape}{/if}</span>{/if}
+                    {if $c.statusKey}<span class="np-wb__badge np-wb__badge--{$c.statusGroup|escape}{if $c.route && $c.route.status} hint-bottom-middle-t-info-s-small-mobile hint-anim{/if}"{if $c.route && $c.route.status} data-hint="{$c.route.status|escape}" tabindex="0"{/if}>{$btr->getTranslation($c.statusKey)|escape}</span>{/if}
                     {if $c.route && ($c.route.plan || $c.route.to)}<div><b>{$btr->sviat__novaposhta__card_plan_time|escape}{if $c.route.plan}: {$c.route.plan|escape}{/if}</b>{if $c.route.to}<div class="np-wb__small">{$c.route.to|escape}</div>{/if}</div>{/if}
                 </div>
                 {if $c.recipient}
@@ -95,13 +95,9 @@
                     {if $c.payment.method}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_method|escape}</span>{$btr->getTranslation($c.payment.method)|escape}</div>{/if}
                 </div>
             {/if}
-            {if $r.attached}
-                <div class="np-wb__note text_grey">{$btr->sviat__novaposhta__waybill_attached_note|escape}</div>
-            {elseif $r.audit}
+            {if !$r.attached && $r.audit && $r.audit.status != 'verified'}
                 <div class="np-wb__note">
-                {if $r.audit.status == 'verified'}
-                    <div class="np-wb__ok">{$btr->sviat__novaposhta__waybill_audit_ok|escape}</div>
-                {elseif $r.audit.status == 'unverified'}
+                {if $r.audit.status == 'unverified'}
                     <div class="alert alert--warning"><div class="alert__content"><p>{$btr->sviat__novaposhta__waybill_audit_unverified|escape}</p></div></div>
                 {else}
                     {foreach $r.audit.findings as $f}
@@ -112,14 +108,11 @@
                         </div></div>
                     {/foreach}
                 {/if}
-                {foreach $r.audit.unchecked as $kind}
-                    <div class="text_grey">{if $kind == 'point'}{$btr->sviat__novaposhta__waybill_point_unchecked|escape}{elseif $kind == 'cod_payer'}{$btr->sviat__novaposhta__waybill_cod_payer_unchecked|escape}{else}{$btr->sviat__novaposhta__waybill_lifting_unchecked|escape}{/if}</div>
-                {/foreach}
                 </div>
             {/if}
             {if $c.more}
-                <details class="np-wb__more">
-                    <summary class="np-wb__more-toggle">{$btr->sviat__novaposhta__card_more|escape}</summary>
+                <div class="np-wb__more" hidden><div class="np-wb__more-inner">
+                    <div class="np-wb__more-title">{$btr->sviat__novaposhta__card_details|escape}</div>
                     <div class="np-wb__more-body">
                         {if $c.more.type}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_type|escape}</span>{$btr->getTranslation($c.more.type)|escape}</div>{/if}
                         {if $c.more.weight}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_weight|escape}</span>{$c.more.weight|escape}</div>{/if}
@@ -129,12 +122,13 @@
                         {if $c.more.factualWeight}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_factual_weight|escape}</span>{$c.more.factualWeight|escape}</div>{/if}
                         {if $c.more.serviceType}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_service_type|escape}</span>{$btr->getTranslation($c.more.serviceType)|escape}</div>{/if}
                     </div>
-                </details>
+                </div></div>
             {/if}
             <div class="np-wb__issues" role="alert"></div>
             <div class="np-wb__footer">
-                <span class="np-wb__muted">{if $c.updated}{$btr->sviat__novaposhta__card_updated|escape} {$c.updated|escape}{else}{$btr->sviat__novaposhta__card_not_updated|escape}{/if}</span>
+                {if $c.more}<button type="button" class="np-wb__more-toggle fn_np_wb_more" aria-expanded="false" data-more="{$btr->sviat__novaposhta__card_more|escape}" data-less="{$btr->sviat__novaposhta__card_less|escape}"><span>{$btr->sviat__novaposhta__card_more|escape}</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>{/if}
                 <span class="np-wb__tools">
+                    <span class="np-wb__muted">{if $c.updated}{$btr->sviat__novaposhta__card_updated|escape} {$c.updated|escape}{else}{$btr->sviat__novaposhta__card_not_updated|escape}{/if}</span>
                     <button type="button" class="np-wb__icon fn_np_wb_refresh hint-bottom-middle-t-info-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__card_refresh|escape}" aria-label="{$btr->sviat__novaposhta__card_refresh|escape}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></button>
                     {if $r.attached}
                         <button type="button" class="np-wb__icon np-wb__icon--danger fn_np_wb_remove hint-bottom-right-t-info-s-small-mobile hint-anim" data-attached="1" data-hint="{$btr->sviat__novaposhta__waybill_unlink|escape}" aria-label="{$btr->sviat__novaposhta__waybill_unlink|escape}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 15l6 -6"/><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/><path d="M16 19h5"/></svg></button>

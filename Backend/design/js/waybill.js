@@ -246,6 +246,63 @@
         warning.hidden = !(recipient && recipient.checked);
     });
 
+    // The core binds .fn_clipboard once on page load; cards re-rendered later need their own handler.
+    document.addEventListener('click', function (event) {
+        var link = event.target.closest('.fn_np_wb_copy');
+        if (!link) {
+            return;
+        }
+        event.preventDefault();
+        var value = link.getAttribute('data-copy-string');
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(value);
+        } else {
+            var field = document.createElement('input');
+            field.value = value;
+            field.setAttribute('readonly', '');
+            field.style.position = 'absolute';
+            field.style.opacity = '0';
+            document.body.appendChild(field);
+            field.select();
+            document.execCommand('copy');
+            document.body.removeChild(field);
+        }
+        link.classList.add('is-copied');
+        setTimeout(function () { link.classList.remove('is-copied'); }, 1000);
+    });
+
+    document.addEventListener('click', function (event) {
+        var toggle = event.target.closest('.fn_np_wb_more');
+        var panel = toggle ? toggle.closest('.np-wb__card') && toggle.closest('.np-wb__card').querySelector('.np-wb__more') : null;
+        if (!panel) {
+            return;
+        }
+        var opening = toggle.getAttribute('aria-expanded') !== 'true';
+        if (event.detail > 0) {
+            toggle.blur();
+        }
+        toggle.setAttribute('aria-expanded', opening ? 'true' : 'false');
+        toggle.querySelector('span').textContent = toggle.getAttribute(opening ? 'data-less' : 'data-more');
+        if (panel.np_slide) {
+            panel.np_slide.cancel();
+        }
+        panel.hidden = false;
+        var height = panel.scrollHeight + 'px';
+        var still = !panel.animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (still) {
+            panel.hidden = !opening;
+            return;
+        }
+        panel.np_slide = panel.animate(
+            opening ? [{ height: '0px' }, { height: height }] : [{ height: height }, { height: '0px' }],
+            { duration: 200, easing: 'ease-in-out' }
+        );
+        panel.np_slide.onfinish = function () {
+            panel.np_slide = null;
+            panel.hidden = !opening;
+        };
+    });
+
     document.addEventListener('click', function (event) {
         var hide = event.target.closest('.fn_np_mass_hide');
         if (hide) {
