@@ -3,6 +3,7 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries;
 
 use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
+use Okay\Modules\Sviat\NovaPoshta\Storage\Mutex;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
 /**
@@ -23,6 +24,7 @@ final class DictionaryRunner
         private readonly DictionarySteps $steps,
         private readonly StateStorage $state,
         ?\Closure $now = null,
+        private readonly ?Mutex $mutex = null,
     ) {
         $this->now = $now ?? time(...);
     }
@@ -36,6 +38,19 @@ final class DictionaryRunner
 
     /** Викликається планувальником кожні кілька хвилин; працює, лише коли щось пора виконати. */
     public function tick(): void
+    {
+        // Перевірка runningSince і його запис — два кроки: два процеси, що стартували разом, пройшли б обидва.
+        if ($this->mutex !== null && !$this->mutex->acquire('dictionaries')) {
+            return;
+        }
+        try {
+            $this->tickLocked();
+        } finally {
+            $this->mutex?->release('dictionaries');
+        }
+    }
+
+    private function tickLocked(): void
     {
         $now = ($this->now)();
         $status = DictionaryStatus::load($this->state);

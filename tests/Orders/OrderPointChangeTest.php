@@ -66,14 +66,20 @@ class OrderPointChangeTest extends TestCase
     {
         $pending = (object)['api' => null, 'number' => null, 'created_at' => date('Y-m-d H:i:s', self::NOW - 20)];
 
-        self::assertSame('order_point_locked', self::select(self::points(), self::division(), [], $pending)['error']);
+        self::assertSame('order_point_locked_check', self::select(self::points(), self::division(), [], $pending)['error']);
     }
 
-    public function testStaleReservationDoesNotLock(): void
+    /** Завислий резерв чи «невідомо»: накладна в НП могла створитися на стару адресу, тож спершу перевірка в НП. */
+    public function testUnresolvedReservationLocks(): void
     {
         $stale = (object)['api' => null, 'number' => null, 'created_at' => date('Y-m-d H:i:s', self::NOW - 600)];
+        $uncertain = (object)['api' => null, 'number' => null, 'audit_status' => 'uncertain', 'created_at' => date('Y-m-d H:i:s', self::NOW - 20)];
 
-        self::assertNull(self::select(self::points(), self::division(), [], $stale)['error']);
+        // Видаляти тут нічого: менеджеру треба перевірити в НП, тож і текст про це.
+        self::assertSame('order_point_locked_check', self::select(self::points(), self::division(), [], $stale)['error']);
+        self::assertSame('order_point_locked_check', self::select(self::points(), self::division(), [], $uncertain)['error']);
+        self::assertTrue(OrderPointChange::editorState((object)['mode' => 'points'], 'points', $stale, self::NOW)['lockedPending']);
+        self::assertFalse(OrderPointChange::editorState((object)['mode' => 'points'], 'points', (object)['api' => 'old', 'number' => '20450000000001'], self::NOW)['lockedPending']);
     }
 
     public function testTermAndCommissionFollowTheNewPoint(): void

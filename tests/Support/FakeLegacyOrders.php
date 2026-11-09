@@ -12,6 +12,8 @@ final class FakeLegacyOrders implements LegacyOrders
     public array $rows = [];
     /** @var array<int, array> id замовлення => імпортована накладна */
     public array $waybills = [];
+    /** Імітує збій запису в базу. */
+    public bool $failWrites = false;
 
     public function order(int $orderId): ?object
     {
@@ -23,14 +25,17 @@ final class FakeLegacyOrders implements LegacyOrders
         return isset($this->rows[$orderId]);
     }
 
-    public function importDelivery(int $orderId, int $deliveryId, array $values): bool
+    public function importDelivery(int $orderId, int $deliveryId, array $values): string
     {
         if (isset($this->rows[$orderId])) {
-            return false;
+            return LegacyOrders::EXISTED;
+        }
+        if ($this->failWrites) {
+            return LegacyOrders::FAILED;
         }
         $this->rows[$orderId] = $values + ['delivery_id' => $deliveryId];
 
-        return true;
+        return LegacyOrders::DONE;
     }
 
     public function hasWaybill(int $orderId): bool
@@ -49,13 +54,16 @@ final class FakeLegacyOrders implements LegacyOrders
         return null;
     }
 
-    public function importWaybill(int $orderId, array $values): bool
+    public function importWaybill(int $orderId, array $values): string
     {
         if (isset($this->waybills[$orderId])) {
-            return false;
+            return LegacyOrders::EXISTED;
+        }
+        if ($this->failWrites) {
+            return LegacyOrders::FAILED;
         }
         $this->waybills[$orderId] = $values;
 
-        return true;
+        return LegacyOrders::DONE;
     }
 }

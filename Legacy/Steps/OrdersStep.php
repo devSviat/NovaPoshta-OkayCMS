@@ -84,8 +84,11 @@ final class OrdersStep implements LegacyStep
             'price_source' => 'legacy',
             'legacy' => $problem === null ? 'migrated' : 'unmatched',
         ];
-        if (!$this->orders->importDelivery($orderId, (int)$order->delivery_id, $values)) {
+        $written = $this->orders->importDelivery($orderId, (int)$order->delivery_id, $values);
+        if ($written === LegacyOrders::EXISTED) {
             $report->add(self::NAME, 'existed');
+        } elseif ($written === LegacyOrders::FAILED) {
+            $report->fail(self::NAME, $orderId, 'legacy_fail_write');
         } elseif ($problem !== null) {
             $report->fail(self::NAME, $orderId, $problem, $name);
         } else {

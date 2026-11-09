@@ -18,7 +18,6 @@ use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryQuote;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillRows;
-use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
 
 /** Менеджер змінює пункт видачі чи адресу замовлення в адмінці. */
 final class OrderPointChange
@@ -107,8 +106,8 @@ final class OrderPointChange
     public static function select(object $delivery, int $moduleId, ?object $settlement, ?object $division, array $groupRows, CartMetrics $metrics, ?object $waybill, array $input, bool $liftingOffered, int $now): array
     {
         $fail = static fn(string $error): array => ['selection' => null, 'error' => $error, 'warning' => null];
-        if (self::locks($waybill, $now)) {
-            return $fail('order_point_locked');
+        if (self::locks($waybill)) {
+            return $fail(PendingWaybill::is($waybill) ? 'order_point_locked_check' : 'order_point_locked');
         }
         if ((int)($delivery->module_id ?? 0) !== $moduleId || $moduleId === 0) {
             return $fail('order_point_foreign');
@@ -133,28 +132,31 @@ final class OrderPointChange
     }
 
     /**
-     * Створена чи прикріплена накладна блокує пункт видачі, як і та, що створюється саме зараз (її чернетка
-     * має старий пункт). Резервація, яку лишив запит, що обірвався, — ні.
+     * Будь-який рядок накладної блокує пункт видачі: створена чи прикріплена накладна, резерв запиту, що
+     * йде, і завислий чи «невідомий» резерв — накладна в НП могла створитися на стару адресу, тож його
+     * знімає лише перевірка в НП.
      */
-    public static function locks(?object $waybill, int $now): bool
+    public static function locks(?object $waybill): bool
     {
-        return $waybill !== null && (!PendingWaybill::is($waybill) || WaybillService::isPending($waybill, $now));
+        return $waybill !== null;
     }
 
     /**
      * Що показує блок сторінки замовлення для способу доставки замовлення `$mode`. Після зміни способу
      * накладна, створена для старого пункту, лишається видимою: її треба видалити звідти.
      *
-     * @return array{needsChoice: bool, locked: bool, open: bool, showWaybill: bool}
+     * @return array{needsChoice: bool, locked: bool, lockedPending: bool, open: bool, showWaybill: bool}
      */
     public static function editorState(?object $snapshot, string $mode, ?object $waybill, int $now): array
     {
         $needsChoice = $snapshot === null || $snapshot->mode !== $mode;
-        $locked = self::locks($waybill, $now);
+        $locked = self::locks($waybill);
 
         return [
             'needsChoice' => $needsChoice,
             'locked' => $locked,
+            // Накладна ще створюється або не з'ясовано, чи створилась: менеджеру треба «Перевірити», а не видаляти.
+            'lockedPending' => $locked && PendingWaybill::is($waybill),
             'open' => $needsChoice && !$locked,
             'showWaybill' => $snapshot !== null && (!$needsChoice || ($waybill !== null && !PendingWaybill::is($waybill))),
         ];

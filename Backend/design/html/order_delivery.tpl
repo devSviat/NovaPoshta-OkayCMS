@@ -38,7 +38,7 @@
     {/if}
     {/if}
     {if $p && $p.locked}
-        <div class="text_grey mb-h">{$btr->sviat__novaposhta__op_locked|escape}</div>
+        <div class="text_grey mb-h">{if $p.lockedPending}{$btr->sviat__novaposhta__op_locked_check|escape}{else}{$btr->sviat__novaposhta__op_locked|escape}{/if}</div>
     {/if}
     {if $p}
         <div class="np-op__message" role="status"></div>

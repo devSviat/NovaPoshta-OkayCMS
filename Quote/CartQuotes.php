@@ -6,6 +6,7 @@ use Okay\Core\EntityFactory;
 use Okay\Core\Modules\Module;
 use Okay\Core\Money;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
+use Okay\Modules\Sviat\NovaPoshta\Storage\Mutex;
 use Okay\Entities\CurrenciesEntity;
 use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
@@ -24,6 +25,12 @@ final class CartQuotes
     private const string SESSION_SLOT = 'sviat__novaposhta__quotes';
     private const int RETRY_UNREACHABLE_AFTER = 60;
 
+    /** Скільки секунд запит чекає, поки інший оновлює лічильник; запис займає мілісекунди. */
+    private const int BUDGET_LOCK_WAIT = 2;
+    private const int SEARCH_PER_SESSION = 300;
+    private const int SEARCH_BUDGET = 20000;
+    private const int SEARCH_PER_VISITOR = 300;
+
     public function __construct(
         private readonly QuoteService $service,
         private readonly ShippingSettings $shipping,
@@ -33,6 +40,7 @@ final class CartQuotes
         private readonly Money $money,
         private readonly ModuleState $state,
         private readonly AddressCityResolver $addressCities,
+        private readonly Mutex $mutex,
     ) {
     }
 
@@ -237,10 +245,47 @@ final class CartQuotes
         return new DeliveryQuote($convert($quote->price), $quote->term, $quote->source, $quote->problem, $quote->codFee === null ? null : $convert($quote->codFee), $quote->liftingFee === null ? null : $convert($quote->liftingFee), $quote->liftingRefused);
     }
 
-    private function takeBudget(int $now, string $name = 'quote_budget', int $limit = QuoteBudget::LIMIT): bool
+    private function takeBudget(int $now, string $name = 'quote_budget', int $limit = QuoteBudget::LIMIT, int $visitorLimit = QuoteBudget::VISITOR_LIMIT): bool
     {
-        [$allowed, $state] = QuoteBudget::take($this->state->get($name), $now, $limit);
-        $this->state->set($name, $state);
+        // Читання й запис лічильника — під блокуванням: паралельні запити інакше проскакують ліміт.
+        if (!$this->mutex->acquire($name, self::BUDGET_LOCK_WAIT)) {
+            return false;
+        }
+        try {
+            [$allowed, $state] = QuoteBudget::take($this->state->get($name), $now, $limit, self::cookielessVisitor(), $visitorLimit);
+            $this->state->set($name, $state);
+        } finally {
+            $this->mutex->release($name);
+        }
+
+        return $allowed;
+    }
+
+    /**
+     * Частку спільного ліміту рахуємо лише клієнту без cookie сесії: обмеження на сесію його не стримує.
+     * Покупець надсилає cookie (сторінка кошика відкрилась раніше за розрахунок), тож магазин за проксі
+     * чи CDN, де всі мають один IP, звичайних покупців цим не обмежує. IP зберігається лише хешем.
+     */
+    private static function cookielessVisitor(): ?string
+    {
+        if (isset($_COOKIE[session_name()]) || !is_string($_SERVER['REMOTE_ADDR'] ?? null)) {
+            return null;
+        }
+
+        return substr(sha1('sviat_np|' . $_SERVER['REMOTE_ADDR']), 0, 16);
+    }
+
+    /**
+     * Пошук міст і відділень іде по власній базі, без НП, тож межі широкі: лише проти зловживання.
+     * На сесію — як для вулиць; клієнт без cookie обмежений своєю часткою спільного ліміту.
+     */
+    public function allowSearch(): bool
+    {
+        $bag = $this->bag();
+        $now = time();
+        $allowed = QuoteThrottle::allow($bag, $now, 'search_calls', self::SEARCH_PER_SESSION)
+            && $this->takeBudget($now, 'search_budget', self::SEARCH_BUDGET, self::SEARCH_PER_VISITOR);
+        $this->store($bag);
 
         return $allowed;
     }

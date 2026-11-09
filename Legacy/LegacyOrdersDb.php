@@ -33,7 +33,7 @@ final class LegacyOrdersDb implements LegacyOrders
         return $this->deliveries->forOrder($orderId) !== null;
     }
 
-    public function importDelivery(int $orderId, int $deliveryId, array $values): bool
+    public function importDelivery(int $orderId, int $deliveryId, array $values): string
     {
         return $this->deliveries->importLegacy($orderId, $deliveryId, $values);
     }
@@ -48,7 +48,7 @@ final class LegacyOrdersDb implements LegacyOrders
         return $this->waybills->forOrder($orderId) !== null;
     }
 
-    public function importWaybill(int $orderId, array $values): bool
+    public function importWaybill(int $orderId, array $values): string
     {
         return $this->waybills->importLegacy($orderId, $values);
     }

@@ -17,6 +17,19 @@ class QuoteSessionTest extends TestCase
         return (object)['total_price' => $total, 'purchases' => array_map(static fn(array $l): object => (object)['variant_id' => $l[0], 'amount' => $l[1]], $lines)];
     }
 
+    /** Адміністратор змінив вагу чи об'єм товару: ціна з кешу сесії вже стара (ключ кешу живе до години). */
+    public function testKeyFollowsVariantWeightAndVolume(): void
+    {
+        $cart = static fn(float $weight, ?float $volume): object => (object)['total_price' => 300.0, 'purchases' => [
+            (object)['variant_id' => 1, 'amount' => 2, 'variant' => (object)['id' => 1, 'weight' => $weight, \Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume::FIELD => $volume]],
+        ]];
+        $key = QuoteKey::for(4, 'd:7162', false, $cart(1.5, 0.01));
+
+        self::assertSame($key, QuoteKey::for(4, 'd:7162', false, $cart(1.5, 0.01)));
+        self::assertNotSame($key, QuoteKey::for(4, 'd:7162', false, $cart(3.0, 0.01)), 'вага');
+        self::assertNotSame($key, QuoteKey::for(4, 'd:7162', false, $cart(1.5, 0.05)), "об'єм");
+    }
+
     public function testKeyFollowsEveryInputButNotTheOrderOfLines(): void
     {
         $cart = self::cart([[1, 2], [5, 1]], 300.0);
