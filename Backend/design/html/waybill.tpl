@@ -190,10 +190,10 @@
             {* Parcel, then who pays NP for delivery, then the money NP collects from the recipient. *}
             <div class="np-wb__pair">
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cargo|escape}</span><select class="selectpicker form-control" data-field="cargo_type">
-                    <option value="Parcel" {if $d->cargoType == 'Parcel'}selected{/if}>{$btr->sviat__novaposhta__waybill_cargo_parcel|escape}</option>
+                    {foreach $d->cargoChoices() as $np_cargo}
                     {* A parcel locker takes no «Вантаж» (api-docs-ua, «ЕН на поштомат»). *}
-                    <option value="Cargo" {if $d->cargoType == 'Cargo'}selected{/if}{if $d->locker} disabled{/if}>{$btr->sviat__novaposhta__waybill_cargo_cargo|escape}</option>
-                    <option value="Documents" {if $d->cargoType == 'Documents'}selected{/if}>{$btr->sviat__novaposhta__waybill_cargo_documents|escape}</option>
+                    <option value="{$np_cargo|escape}" {if $d->cargoType == $np_cargo}selected{/if}{if $d->locker && $np_cargo == 'Cargo'} disabled{/if}>{$btr->getTranslation('sviat__novaposhta__waybill_cargo_'|cat:($np_cargo|lower))|escape}</option>
+                {/foreach}
                 </select><span class="np-wb__error" data-for="cargo_type"></span></label>
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_declared_cost|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_declared_tip side="right"}</span><input class="form-control" inputmode="decimal" data-field="declared_cost" value="{$d->declaredCost|escape}"><span class="np-wb__error" data-for="declared_cost"></span></label>
             </div>

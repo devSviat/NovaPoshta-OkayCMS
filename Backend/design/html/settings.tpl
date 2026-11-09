@@ -440,6 +440,8 @@
                     {elseif $error == 'waybill_error_phone'}{$btr->sviat__novaposhta__waybill_error_phone|escape}
                     {elseif $error == 'waybill_error_cutoff'}{$btr->sviat__novaposhta__waybill_error_cutoff|escape}
                     {elseif $error == 'waybill_error_description'}{$btr->sviat__novaposhta__waybill_error_description|escape}
+                    {elseif $error == 'waybill_error_cargo_types'}{$btr->sviat__novaposhta__waybill_error_cargo_types|escape}
+                    {elseif $error == 'waybill_error_cargo_default'}{$btr->sviat__novaposhta__waybill_error_cargo_default|escape}
                     {else}{$btr->sviat__novaposhta__waybill_error_choice|escape}{/if}
                 </p>
             {/foreach}
@@ -487,7 +489,18 @@
     <div class="boxed mb-2">
         <div class="heading_box mb-1">{$btr->sviat__novaposhta__waybill_defaults_box|escape}</div>
         <p class="text_grey">{$btr->sviat__novaposhta__waybill_defaults_intro|escape}</p>
-        <div class="np_grid np_grid--two">
+        <div class="heading_label">{$btr->sviat__novaposhta__waybill_cargo_types|escape}</div>
+        {* The empty marker tells «no box ticked» apart from «not posted». *}
+        <input type="hidden" name="cargo_types[]" value="">
+        {foreach ['Parcel', 'Cargo', 'Documents'] as $np_cargo}
+            {$np_cargo_key = $np_cargo|lower}
+            <div class="np_check mb-h">
+                <input class="hidden_check" type="checkbox" id="np_cargo_{$np_cargo_key|escape}" name="cargo_types[]" value="{$np_cargo|escape}" {if in_array($np_cargo, $np_waybill.config->cargoTypes)}checked{/if}>
+                <label class="okay_ckeckbox" for="np_cargo_{$np_cargo_key|escape}"></label>
+                <label class="np_check__text" for="np_cargo_{$np_cargo_key|escape}"><b>{$btr->getTranslation('sviat__novaposhta__waybill_cargo_'|cat:$np_cargo_key)|escape}</b><br><span class="text_grey">{$btr->getTranslation('sviat__novaposhta__waybill_cargo_'|cat:$np_cargo_key|cat:'_about')|escape}</span></label>
+            </div>
+        {/foreach}
+        <div class="np_grid np_grid--two mt-1">
             <div>
                 <div class="heading_label"><label for="np_waybill_payer">{$btr->sviat__novaposhta__waybill_payer|escape}</label>
                     <i class="fn_tooltips np_tip hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__waybill_payer_tip|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__waybill_payer_tip|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>

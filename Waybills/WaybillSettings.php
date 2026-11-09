@@ -8,7 +8,7 @@ use Okay\Core\Settings;
 final class WaybillSettings
 {
     private const string PREFIX = 'sviat__novaposhta__waybill_';
-    private const array FIELDS = ['contact_ref', 'sender_phone', 'cutoff', 'payer_type', 'payment_method', 'cargo_type', 'cod_payer', 'description', 'description_mode', 'extra_info'];
+    private const array FIELDS = ['contact_ref', 'sender_phone', 'cutoff', 'payer_type', 'payment_method', 'cargo_type', 'cod_payer', 'description', 'description_mode', 'extra_info', 'cargo_types'];
     private const int DESCRIPTION_MAX = 100;
 
     public function __construct(private readonly Settings $settings)
@@ -48,6 +48,7 @@ final class WaybillSettings
             'description' => $config->description,
             'description_mode' => $config->descriptionMode,
             'extra_info' => $config->extraInfo,
+            'cargo_types' => implode(',', $config->cargoTypes),
         ] as $field => $value) {
             $this->settings->set(self::PREFIX . $field, $value ?? '');
         }
@@ -91,7 +92,12 @@ final class WaybillSettings
         // 'auto' was the default before 1.0.0; the drafts make the sender pay where needed anyway.
         $payer = $choice($text('payer_type') === 'auto' ? '' : $text('payer_type'), ['Recipient', 'Sender'], 'waybill_error_payer');
         $payment = $choice($text('payment_method'), ['Cash', 'NonCash'], 'waybill_error_payment');
-        $cargo = $choice($text('cargo_type'), ['Parcel', 'Cargo', 'Documents'], 'waybill_error_cargo');
+        $cargoTypes = self::cargoTypes($post['cargo_types'] ?? null, $errors);
+        $cargo = $choice($text('cargo_type'), $cargoTypes === [] ? WaybillConfig::CARGO_TYPES : $cargoTypes, 'waybill_error_cargo');
+        if ($cargoTypes !== [] && !in_array($cargo, $cargoTypes, true) && in_array($cargo, WaybillConfig::CARGO_TYPES, true)) {
+            array_pop($errors);
+            $errors[] = 'waybill_error_cargo_default';
+        }
         $codPayer = $choice($text('cod_payer'), ['Recipient', 'Sender'], 'waybill_error_cod_payer');
         $descriptionMode = $choice($text('description_mode'), ['order', 'text'], 'waybill_error_choice');
         $extraInfo = $choice($text('extra_info'), ['skus', 'names', 'none'], 'waybill_error_choice');
@@ -111,6 +117,35 @@ final class WaybillSettings
             $description,
             $descriptionMode,
             $extraInfo,
+            $cargoTypes,
         );
+    }
+
+    /**
+     * The form posts an empty marker plus the ticked boxes, so «none ticked» differs from «not posted»;
+     * storage keeps a comma list. Nothing at all means the defaults.
+     *
+     * @param list<string> $errors
+     * @return list<string> in WaybillConfig::CARGO_TYPES order; empty only alongside an error
+     */
+    private static function cargoTypes(mixed $raw, array &$errors): array
+    {
+        if ($raw === null || $raw === '') {
+            return WaybillConfig::CARGO_TYPES;
+        }
+        $given = array_values(array_filter(
+            is_array($raw) ? $raw : explode(',', is_string($raw) ? $raw : ''),
+            static fn(mixed $type): bool => is_string($type) && $type !== '',
+        ));
+        if (array_diff($given, WaybillConfig::CARGO_TYPES) !== []) {
+            $errors[] = 'waybill_error_cargo';
+
+            return [];
+        }
+        if ($given === []) {
+            $errors[] = 'waybill_error_cargo_types';
+        }
+
+        return array_values(array_intersect(WaybillConfig::CARGO_TYPES, $given));
     }
 }
