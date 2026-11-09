@@ -260,6 +260,36 @@
         }
     });
 
+    /** НП не приймає оголошену цінність, меншу за грошовий переказ: форма піднімає її одразу, як і НП. */
+    function raiseDeclared(root) {
+        var cod = root.querySelector('[data-field="cod"]');
+        var kind = root.querySelector('[data-field="cod_kind"]');
+        var amount = root.querySelector('[data-field="cod_amount"]');
+        var declared = root.querySelector('[data-field="declared_cost"]');
+        var note = root.querySelector('.np-wb__declared-note');
+        if (!cod || !amount || !declared || !kind || kind.value !== 'money' || !cod.checked) {
+            return;
+        }
+        var due = Math.round(parseFloat(String(amount.value).replace(',', '.')));
+        if (due > 0 && due > parseFloat(String(declared.value).replace(',', '.'))) {
+            declared.value = String(due);
+            if (note) {
+                note.hidden = false;
+            }
+        }
+    }
+
+    document.addEventListener('change', function (event) {
+        var input = event.target;
+        if (!input.matches || !input.matches('[data-field="cod_amount"], [data-field="cod"], [data-field="declared_cost"]')) {
+            return;
+        }
+        var root = rootOf(input);
+        if (root) {
+            raiseDeclared(root);
+        }
+    });
+
     /** Доставка в сумі замовлення плюс отримувач ще раз платить за неї НП: сказати про це до створення. */
     document.addEventListener('change', function (event) {
         var input = event.target;

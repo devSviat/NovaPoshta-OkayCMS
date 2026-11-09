@@ -7,6 +7,10 @@
 .np-wb__error:empty { display: none; }
 .np-wb .form-control.np-wb__invalid { border-color: #c0392b; }
 .np-wb__line { margin: 4px 0; }
+.np-wb__note-small { display: block; margin-top: 2px; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
+.np-wb__note-small[hidden] { display: none; }
+/* Пояснення під полем не зсуває сусіднє поле пари: обидва вирівнюються по верху. */
+.np-wb__pair:has(.np-wb__declared-note:not([hidden])) { align-items: start; }
 .np-wb__form .np-wb__line { margin: 2px 0 6px; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
 /* Заголовки груп форми накладної, оформлені як «ДОДАТКОВІ ПОСЛУГИ» в картці. */
 .np-wb__group { display: block; margin: 16px 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); }

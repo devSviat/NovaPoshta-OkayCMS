@@ -196,7 +196,7 @@
                     <option value="{$np_cargo|escape}" {if $d->cargoType == $np_cargo}selected{/if}{if $d->locker && $np_cargo == 'Cargo'} disabled{/if}>{$btr->getTranslation('sviat__novaposhta__waybill_cargo_'|cat:($np_cargo|lower))|escape}</option>
                 {/foreach}
                 </select><span class="np-wb__error" data-for="cargo_type"></span></label>
-                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_declared_cost|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_declared_tip side="right"}</span><input class="form-control" inputmode="decimal" data-field="declared_cost" value="{$d->declaredCost|escape}"><span class="np-wb__error" data-for="declared_cost"></span></label>
+                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_declared_cost|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_declared_tip side="right"}</span><input class="form-control" inputmode="decimal" data-field="declared_cost" value="{$d->declaredCost|escape}"><span class="np-wb__error" data-for="declared_cost"></span><span class="np-wb__note-small np-wb__declared-note" {if !($d->cod && $d->codKind->value == 'money' && $d->deliveryInTotal > 0 && $d->declaredCost == $d->codAmount)}hidden{/if}>{$btr->sviat__novaposhta__waybill_declared_raised|escape}</span></label>
             </div>
             <div class="np-wb__pair">
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_weight|escape}</span><input class="form-control" inputmode="decimal" data-field="weight" value="{$d->weightKg|escape}"><span class="np-wb__error" data-for="weight"></span></label>
@@ -246,7 +246,7 @@
                     <input class="switch-input" type="checkbox" data-field="cod" value="1" {if $d->cod}checked{/if} {if $w.paid}disabled{/if}>
                     <span class="switch-label"></span><span class="switch-handle"></span>
                 </label>
-                <span class="text_grey font_12">{if $w.paid}{$btr->sviat__novaposhta__waybill_cod_paid|escape}{elseif $w.codPayment}{$btr->sviat__novaposhta__waybill_cod_auto|escape}{else}{$btr->sviat__novaposhta__waybill_cod_manual|escape}{/if}</span>
+                <span class="text_grey font_12">{if $w.paid}{$btr->sviat__novaposhta__waybill_cod_paid|escape}{elseif $w.codPayment && !$d->cod && $d->codAmount <= 0}{$btr->sviat__novaposhta__waybill_cod_covered|escape}{elseif $w.codPayment}{$btr->sviat__novaposhta__waybill_cod_auto|escape}{else}{$btr->sviat__novaposhta__waybill_cod_manual|escape}{/if}</span>
             </div>
             <input type="hidden" data-field="cod_kind" value="{$d->codKind->value|escape}">
             <div class="np-wb__pair">
