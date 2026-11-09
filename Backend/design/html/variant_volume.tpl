@@ -14,7 +14,7 @@
     .np_variant_volume .heading_label { white-space: nowrap; }
     /* The volume takes room from the name; while edited, the name opens over the row instead of squeezing it. */
     @media (min-width: 992px) {
-        .variants_list_item .variants_item_name { flex: 0 1 180px; min-width: 0; max-width: none; position: relative; }
+        .variants_list_item .variants_item_name { flex: 1 1 180px; min-width: 0; max-width: none; position: relative; }
         .variants_list_item .variants_item_name:focus-within .variant_input { position: relative; z-index: 5; width: 560px; max-width: 60vw; box-shadow: 0 4px 14px rgba(0, 0, 0, .12); }
     }
 </style>
