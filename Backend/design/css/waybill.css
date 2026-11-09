@@ -115,7 +115,9 @@
 .np-wb:has(> .np-wb__card) { margin-top: 0; padding-top: 0; border-top: 0; }
 .np-wb__card { border: 1px solid var(--ok-line, #e4e6e9); border-radius: 10px; background: var(--ok-surface, #fff); }
 .np-wb__card .np-wb__label { display: block; margin: 0 0 2px; font-size: 13px; color: var(--ok-ink-muted, #676e75); }
-.np-wb__top { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: end; padding: 16px 20px; border-bottom: 1px solid var(--ok-line, #e4e6e9); }
+/* One four-column grid for the top, body and payment rows, as in the old card: the description, the recipient and the payer start on the same lines. */
+.np-wb__top .np-wb__num { grid-column: span 2; }
+.np-wb__top { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; align-items: end; padding: 16px 20px; border-bottom: 1px solid var(--ok-line, #e4e6e9); }
 .np-wb__num { display: flex; flex-direction: column; gap: 2px; }
 .np-wb__muted { font-size: 12px; color: var(--ok-ink-muted, #676e75); }
 .np-wb__card .np-wb__number { display: inline-flex; align-items: center; gap: 12px; margin: 0; white-space: nowrap; font-size: 26px; font-weight: 600; letter-spacing: 0; }
@@ -134,7 +136,7 @@
 .np-wb__capital::first-letter { text-transform: uppercase; }
 .np-wb__services { padding: 0 20px 14px; }
 .np-wb__caps { display: block; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); margin-bottom: 2px; }
-.np-wb__pay { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 0 20px 16px; }
+.np-wb__pay { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; padding: 0 20px 16px; }
 .np-wb__big { font-size: 20px; font-weight: 600; }
 .np-wb__note { padding: 0 20px 12px; }
 .np-wb__card .np-wb__more { margin: 12px 0 -12px; overflow: hidden; background: #f2f4f4; }
@@ -152,6 +154,7 @@
 .np-wb__icon--danger:hover { color: var(--ok-danger, #c8352c); }
 @media (max-width: 767px) {
     .np-wb__top, .np-wb__body, .np-wb__pay { grid-template-columns: minmax(0, 1fr); }
+    .np-wb__top .np-wb__num { grid-column: auto; }
     .np-wb__card .np-wb__number { font-size: 22px; }
 }
 
