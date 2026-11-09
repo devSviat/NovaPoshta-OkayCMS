@@ -11,7 +11,7 @@ class ThemeClassesTest extends TestCase
     public static function themes(): array
     {
         return [
-            ['okay_shop', 'okay'], ['broken', 'okay'], ['broken_new', 'okay'], ['my_custom_theme', 'okay'], ['', 'okay'],
+            ['okay_shop', 'okay'], ['shop_child', 'okay'], ['shop_child_new', 'okay'], ['my_custom_theme', 'okay'], ['', 'okay'],
             ['vibe_shop', 'vibe'], ['vibe_shop_custom', 'vibe'],
         ];
     }
@@ -24,7 +24,7 @@ class ThemeClassesTest extends TestCase
 
     public function testOkayFamilyUsesTheThemeFormClasses(): void
     {
-        $classes = ThemeClasses::for('broken_new');
+        $classes = ThemeClasses::for('shop_child_new');
 
         self::assertSame('form__group', $classes['field']);
         self::assertSame('form__input form__placeholder--focus', $classes['input']);
@@ -50,7 +50,7 @@ class ThemeClassesTest extends TestCase
     public function testCheckboxes(): void
     {
         self::assertSame('checkbox', ThemeClasses::for('okay_shop')['check'], "the theme's own component");
-        self::assertSame('checkbox', ThemeClasses::for('broken_new')['check']);
+        self::assertSame('checkbox', ThemeClasses::for('shop_child_new')['check']);
         self::assertSame('np-check', ThemeClasses::for('vibe_shop')['check'], 'vibe_shop has none: the module draws it in theme colours');
     }
 }
