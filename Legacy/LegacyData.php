@@ -32,12 +32,9 @@ interface LegacyData
     /** @return list<object> id, volume of variants after the given id with an old volume > 0 */
     public function volumes(int $afterId, int $limit): array;
 
-    /** @return list<object> city_ref, name, position — ascending by position */
-    public function popularCities(): array;
-
     public function setting(string $name): ?string;
 
-    /** @return array{orders:int, waybills:int, payments:int, volumes:int, popular:int} what a run would look at */
+    /** @return array{orders:int, waybills:int, payments:int, volumes:int} what a run would look at */
     public function counts(): array;
 
     /** @return list<string> vendor/name of the old modules that are installed and enabled */

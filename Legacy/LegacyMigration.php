@@ -17,9 +17,9 @@ final class LegacyMigration
     private const int STALL_SECONDS = 3600;
     /**
      * Carried only by the first finished run: a re-run must not switch cash on delivery back on,
-     * refill settings or a popular list the manager has changed since.
+     * or refill settings the manager has changed since.
      */
-    private const array ONCE = ['payments', 'popular', 'settings'];
+    private const array ONCE = ['payments', 'settings'];
 
     /** @var list<LegacyStep> */
     private readonly array $steps;

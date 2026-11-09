@@ -166,6 +166,20 @@ class MassWaybillsTest extends TestCase
         self::assertSame([['orderId' => 990065, 'kind' => 'skipped', 'key' => 'waybill_no_point', 'value' => null]], $this->mass()->run([990065])->rows);
     }
 
+    /** No form in a mass run: a fixed "Recipient" payer with delivery inside the total would charge the customer twice. */
+    public function testDoubleDeliveryIsSkipped(): void
+    {
+        $this->drafts[990067] = W::point(['orderId' => 990067, 'cod' => true, 'codAmount' => 500.0, 'payerType' => 'Recipient', 'deliveryInTotal' => 95.0]);
+        $this->drafts[990061] = W::point(['cod' => true, 'codAmount' => 500.0, 'payerType' => 'Sender', 'deliveryInTotal' => 95.0]);
+        $this->npCreates();
+
+        $rows = $this->mass()->run([990067, 990061])->rows;
+
+        self::assertSame(['skipped', 'mass_double_delivery'], [$rows[0]['kind'], $rows[0]['key']]);
+        self::assertSame('created', $rows[1]['kind'], json_encode($rows[1], JSON_UNESCAPED_UNICODE));
+        self::assertSame(1, $this->saves());
+    }
+
     public function testBadInvoiceEdrpouIsSkipped(): void
     {
         $this->drafts[990066] = W::point(['recipientType' => 'Organization', 'edrpou' => '123456789', 'fromInvoice' => true]);
@@ -221,15 +235,15 @@ class MassWaybillsTest extends TestCase
         self::assertLessThanOrEqual(45.0, MassWaybills::BUDGET_SECONDS);
     }
 
-    public function testStaleAttemptIsReported(): void
+    /** A died or unanswered attempt may have made a waybill: the batch skips the order until it is checked. */
+    public function testOrderAwaitingACheckIsSkipped(): void
     {
         $this->rows->reserve(990068);
         $this->rows->now += 600;
-        $this->npCreates();
 
         $row = $this->mass()->run([990068])->rows[0];
 
-        self::assertSame(['created', 'waybill_stale_attempt'], [$row['kind'], $row['key']]);
+        self::assertSame(['skipped', 'waybill_uncertain_check'], [$row['kind'], $row['key']]);
     }
 
     public function testUnexpectedErrorKeepsTheBatch(): void

@@ -10,8 +10,6 @@ final class FakeLegacyTargets implements LegacyTargets
     public array $payments = [];
     /** @var array<int, float> */
     public array $volumes = [];
-    /** @var list<int> */
-    public array $popular = [];
     /** @var array<string, string> */
     public array $settings = [];
 
@@ -33,16 +31,6 @@ final class FakeLegacyTargets implements LegacyTargets
     public function setVariantVolume(int $id, float $volume): void
     {
         $this->volumes[$id] = $volume;
-    }
-
-    public function popularIds(): array
-    {
-        return $this->popular;
-    }
-
-    public function savePopular(array $ids): void
-    {
-        $this->popular = $ids;
     }
 
     public function ourSetting(string $name): ?string

@@ -2,6 +2,9 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Backend\Controllers;
 
+use Okay\Modules\Sviat\NovaPoshta\Backend\DeliveryWarnings;
+use Okay\Entities\DeliveriesEntity;
+use Okay\Core\Modules\Module;
 use Okay\Admin\Controllers\IndexAdmin;
 use Okay\Core\Languages;
 use Okay\Modules\Sviat\NovaPoshta\Api\ApiKey;
@@ -48,6 +51,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         WaybillSettings $waybillSettings,
         SenderContacts $senderContacts,
         LegacyMigration $legacyMigration,
+        Module $module,
         LegacyData $legacyData,
     ) {
         $submission = null;
@@ -59,11 +63,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
                     $dictionaryRunner->requestRun();
                     break;
                 case 'legacy_migrate':
-                    if ($this->request->post('legacy_backup') === '1') {
-                        $legacyMigration->request();
-                    } else {
-                        $this->design->assign('np_legacy_backup_missing', true);
-                    }
+                    $legacyMigration->request();
                     break;
                 case 'popular':
                     $ids = $this->request->post('popular');
@@ -126,9 +126,13 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         $sender = $config->senderDivisionId ? $entityFactory->get(DivisionEntity::class)->get($config->senderDivisionId) : null;
         $senderCity = $sender ? $entityFactory->get(SettlementEntity::class)->get((int)$sender->settlement_id) : null;
         $this->design->assign('np_cod_payments', $codPayments->all());
+        $this->design->assign('np_free_for_all', DeliveryWarnings::freeForAll(
+            $entityFactory->get(DeliveriesEntity::class)->noLimit()->find(),
+            (int)$module->getModuleIdByNamespace(__CLASS__),
+        ));
         $this->design->assign('np_shipping', [
             'config' => $config,
-            'city' => $senderCity ? ['id' => (int)$senderCity->id, 'name' => (string)($lang === 'en' && $senderCity->name_en ? $senderCity->name_en : $senderCity->name_uk)] : null,
+            'city' => $senderCity ? self::cityView($senderCity, $lang) : null,
             'divisions' => $senderCity ? $senderDivisions->forSettlement((int)$senderCity->id, $lang) : [],
         ]);
         try {
@@ -138,6 +142,15 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         }
         $this->design->assign('np_waybill', ['config' => $waybillSettings->read()] + $waybillSender);
         $this->response->setContent($this->design->fetch('settings.tpl'));
+    }
+
+    /** @return array{id: int, name: string, type: string, title: string, area: string} the chosen city as the page shows it */
+    private static function cityView(object $city, string $lang): array
+    {
+        $name = (string)($lang === 'en' && $city->name_en ? $city->name_en : $city->name_uk);
+        [$type, $title] = \Okay\Modules\Sviat\NovaPoshta\Cart\SettlementName::split($name);
+
+        return ['id' => (int)$city->id, 'name' => $name, 'type' => $type, 'title' => $title, 'area' => (string)($lang === 'en' && $city->area_en ? $city->area_en : ($city->area_uk ?? ''))];
     }
 
     /** City suggestions for the popular-cities block (`controller=…@searchSettlements&q=`). */

@@ -21,7 +21,9 @@ final class DivisionsUpdater
         $english = $this->english($enFile);
         $loader = new TableLoader($this->store, DictionaryStore::DIVISIONS, $run, touchUnchanged: true);
         foreach ($this->ukrainian($ukFile) as $item) {
-            $loader->put(DivisionRow::fromNp($item, $english[$item['id']] ?? null));
+            if (self::open($item)) {
+                $loader->put(DivisionRow::fromNp($item, $english[$item['id']] ?? null));
+            }
         }
         $counts = $loader->finish();
         $loader->assertPlausibleFullFile();
@@ -32,14 +34,14 @@ final class DivisionsUpdater
         return new UpdateCounts($counts->added, $counts->changed, $deleted, $counts->unchanged);
     }
 
-    /** A daily delta: records with `deletedAt` go, the rest are written with their status. */
+    /** A daily delta: what the base would not hold (deleted, closed, not open to customers) goes, the rest is written. */
     public function delta(string $ukFile, ?string $enFile, int $run): UpdateCounts
     {
         $english = $this->english($enFile);
         $loader = new TableLoader($this->store, DictionaryStore::DIVISIONS, $run, touchUnchanged: false);
         $deletedIds = [];
         foreach ($this->ukrainian($ukFile) as $item) {
-            if (!empty($item['deletedAt'])) {
+            if (!empty($item['deletedAt']) || !self::open($item)) {
                 if ($loader->isKnown((int)$item['id'])) {
                     $deletedIds[] = (int)$item['id'];
                 }
@@ -52,6 +54,15 @@ final class DivisionsUpdater
         $this->store->refreshPickup();
 
         return new UpdateCounts($counts->added, $counts->changed, $deleted, $counts->unchanged);
+    }
+
+    /**
+     * The base holds only working points open to customers, and the API knows no others; a delta
+     * also carries the rest, which would sit in the cart as points no waybill can be made to.
+     */
+    private static function open(array $item): bool
+    {
+        return ($item['status'] ?? null) === 'Working' && ($item['customerServiceAvailable'] ?? true) !== false;
     }
 
     /** @return \Generator<array> */

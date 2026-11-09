@@ -15,9 +15,9 @@ final class LegacySettingsMap
         [ApiKey::SETTING, 'newpost_key', 'any'],
         [ShippingSettings::WEIGHT, 'newpost_weight', 'weight'],
         [ShippingSettings::VOLUME, 'newpost_volume', 'volume'],
-        [self::WAYBILL . 'payer_type', 'novapost_payer_type', ['Recipient', 'Sender']],
+        // No payer: the old module had no «as in the order», so its explicit choice would switch off the safe default.
         [self::WAYBILL . 'payment_method', 'novapost_payment_method', ['Cash', 'NonCash']],
-        [self::WAYBILL . 'cargo_type', 'novapost_cargo_type', ['Parcel', 'Cargo', 'Documents']],
+        // No cargo type: the old default «Вантаж» means over 30 kg and is refused by parcel lockers.
         [self::WAYBILL . 'cod_payer', 'novapost_back_payer_type', ['Recipient', 'Sender']],
         [self::WAYBILL . 'sender_phone', 'novapost_sender_phone', 'phone'],
         [self::WAYBILL . 'cutoff', 'novapost_time_today_date', 'time'],

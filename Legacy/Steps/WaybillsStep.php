@@ -47,7 +47,8 @@ final class WaybillsStep implements LegacyStep
     {
         $orderId = (int)($row->order_id ?? 0);
         if ($orderId <= 0 || $this->orders->order($orderId) === null) {
-            $report->fail(self::NAME, $orderId > 0 ? $orderId : null, 'legacy_fail_no_order');
+            // No such order in the shop: the old record is named, a link would lead nowhere.
+            $report->fail(self::NAME, null, $orderId > 0 ? 'legacy_fail_no_order' : 'legacy_fail_no_order_id', $orderId > 0 ? (string)$orderId : null, (int)($row->id ?? 0) ?: null);
 
             return;
         }
@@ -77,6 +78,8 @@ final class WaybillsStep implements LegacyStep
         $fetchedAt = self::date($row->tracking_update_at ?? null);
         $ref = trim((string)($row->ref_id ?? '')) ?: (is_string($document['Ref'] ?? null) && $document['Ref'] !== '' ? $document['Ref'] : null);
         $code = $document !== null ? WaybillTrackingDocument::status($document) : null;
+        // The old tracker kept the code in its own column too; its response may be gone.
+        $code ??= is_numeric($row->status_code ?? null) && (int)$row->status_code > 0 ? (int)$row->status_code : null;
         $values = [
             'number' => $number,
             'ref' => $ref,
@@ -86,6 +89,8 @@ final class WaybillsStep implements LegacyStep
             'status_text' => $code !== null ? mb_substr(trim((string)($document['Status'] ?? '')), 0, 255) : null,
             // The date of the status at NP, as the tracker writes it; the old module's refresh time only without one.
             'status_at' => $code !== null ? (WaybillTrackingDocument::scanDate($document['DateScan'] ?? null) ?? $fetchedAt) : null,
+            // Tracking counts its days from it: null leaves the time of the move.
+            'created_at' => self::date($row->created_at ?? null),
             'scheduled_at' => self::date($document['ScheduledDeliveryDate'] ?? null),
             'tracking' => $document !== null ? WaybillTrackingDocument::merge($document, null, $fetchedAt ?? date('Y-m-d H:i:s')) : null,
             'tracked_at' => $fetchedAt,

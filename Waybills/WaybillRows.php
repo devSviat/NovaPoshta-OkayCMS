@@ -28,6 +28,9 @@ interface WaybillRows
     /** Drops the reservation; a made or attached waybill stays. */
     public function release(int $orderId): void;
 
+    /** Keeps the reservation of a create NP did not answer: the order waits for WaybillService::lookup(). */
+    public function markUncertain(int $orderId): void;
+
     public function saveAudit(int $orderId, AuditResult $audit): void;
 
     public function remove(int $orderId): void;
@@ -41,20 +44,14 @@ interface WaybillRows
     /** Asked about and not found in the batch: checked now, nothing else changes. */
     public function markChecked(int $orderId): void;
 
-    /** @return list<object> waybills to ask about, the longest unchecked first */
-    public function due(int $limit, int $page): array;
+    /** @return list<object> waybills made since $createdSince to ask about, the longest unchecked first */
+    public function due(int $limit, int $page, string $createdSince): array;
 
     /**
      * @param list<int> $orderIds
      * @return array<int, object> by order id
      */
     public function forOrders(array $orderIds): array;
-
-    /**
-     * @param list<int> $codes
-     * @return list<int> order ids
-     */
-    public function ordersWithStatus(array $codes): array;
 
     /** @return list<int> order ids with a waybill of this number */
     public function ordersOfNumber(string $number): array;

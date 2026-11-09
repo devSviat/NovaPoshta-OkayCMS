@@ -60,7 +60,7 @@ final class MassWaybills
             return $skip('mass_not_np');
         }
         $existing = $this->rows->forOrder($orderId);
-        // A reservation is judged by create(): fresh is refused, a dead one is replaced with a warning.
+        // A reservation is judged by create(): refused while fresh, and once stale until the manager checks NP.
         if ($existing !== null && !PendingWaybill::is($existing)) {
             return $skip('mass_has_waybill', (string)$existing->number);
         }
@@ -72,17 +72,17 @@ final class MassWaybills
         if ($issue !== null) {
             return $skip($issue);
         }
+        if ($draft->chargesDeliveryTwice()) {
+            return $skip('mass_double_delivery');
+        }
 
         $outcome = $this->service->create($orderId, $draft);
         if ($outcome->ok) {
-            // The NP account may already hold a waybill from the request that died.
-            $warning = in_array('waybill_stale_attempt', $outcome->notices, true) ? 'waybill_stale_attempt' : null;
-
-            return ['kind' => 'created', 'key' => $warning, 'value' => $outcome->number];
+            return ['kind' => 'created', 'key' => null, 'value' => $outcome->number];
         }
         $first = $outcome->issues[0] ?? ['advice' => 'waybill_advice_generic', 'message' => null];
-        if ($first['advice'] === 'waybill_pending') {
-            return $skip('waybill_pending');
+        if (in_array($first['advice'], ['waybill_pending', 'waybill_uncertain_check'], true)) {
+            return $skip($first['advice']);
         }
 
         return ['kind' => 'failed', 'key' => $first['advice'], 'value' => $first['message']];

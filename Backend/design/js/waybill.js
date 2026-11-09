@@ -96,7 +96,14 @@
             var alert = el('div', 'alert alert--error np-wb__issue');
             var content = el('div', 'alert__content');
             content.appendChild(el('p', 'text_600', heading || ''));
-            if (issue.message) {
+            if (issue.orderUrl) {
+                var link = el('a', '', issue.orderText);
+                link.href = issue.orderUrl;
+                link.target = '_blank';
+                var line = el('p', '');
+                line.appendChild(link);
+                content.appendChild(line);
+            } else if (issue.message) {
                 content.appendChild(el('p', '', issue.message));
             }
             content.appendChild(el('p', 'text_grey', root.getAttribute('data-what-to-do') + ' ' + issue.advice));
@@ -131,7 +138,8 @@
             return;
         }
         clearIssues(root);
-        var label = button.textContent;
+        // Icon buttons keep their SVG: the label is restored as markup.
+        var label = button.innerHTML;
         button.disabled = true;
         if (action === 'create') {
             button.textContent = root.getAttribute('data-busy');
@@ -140,6 +148,11 @@
         fetch(root.getAttribute('data-url'), { method: 'POST', body: body, credentials: 'same-origin' })
             .then(function (response) { return response.json(); })
             .then(function (answer) {
+                // The card lives in the main column, the form beside it: a new state reloads the page.
+                if (answer.ok && action !== 'refresh') {
+                    window.location.reload();
+                    return;
+                }
                 if (answer.ok && typeof answer.html === 'string') {
                     var holder = document.createElement('template');
                     holder.innerHTML = answer.html.trim();
@@ -160,7 +173,7 @@
             })
             .finally(function () {
                 button.disabled = false;
-                button.textContent = label;
+                button.innerHTML = label;
             });
     }
 
@@ -176,7 +189,7 @@
     }
 
     document.addEventListener('click', function (event) {
-        var button = event.target.closest('.fn_np_wb_create, .fn_np_wb_attach, .fn_np_wb_remove, .fn_np_wb_unlink, .fn_np_wb_refresh');
+        var button = event.target.closest('.fn_np_wb_create, .fn_np_wb_attach, .fn_np_wb_remove, .fn_np_wb_unlink, .fn_np_wb_refresh, .fn_np_wb_lookup');
         var root = button ? rootOf(button) : null;
         if (!root) {
             return;
@@ -189,6 +202,8 @@
             send(root, button, 'attach', { number: number ? number.value : '' }, root.querySelector('.np-wb__issues--attach'));
         } else if (button.classList.contains('fn_np_wb_refresh')) {
             send(root, button, 'refresh', {});
+        } else if (button.classList.contains('fn_np_wb_lookup')) {
+            send(root, button, 'lookup', {});
         } else if (button.classList.contains('fn_np_wb_unlink')) {
             if (window.confirm(root.getAttribute('data-confirm-unlink'))) {
                 send(root, button, 'unlink', {});
@@ -214,6 +229,21 @@
         if (input.getAttribute('data-field') === 'cod' && root.querySelector('[data-field="cod_amount"]')) {
             root.querySelector('[data-field="cod_amount"]').disabled = !input.checked;
         }
+    });
+
+    /** Delivery inside the order total plus the recipient paying NP for it again: say so before creating. */
+    document.addEventListener('change', function (event) {
+        var input = event.target;
+        if (!input.matches || !input.matches('[data-field="payer_type"]')) {
+            return;
+        }
+        var root = rootOf(input);
+        var warning = root && root.querySelector('.np-wb__double');
+        if (!warning) {
+            return;
+        }
+        var recipient = root.querySelector('[data-field="payer_type"][value="Recipient"]');
+        warning.hidden = !(recipient && recipient.checked);
     });
 
     document.addEventListener('click', function (event) {

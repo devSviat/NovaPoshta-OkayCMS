@@ -35,7 +35,8 @@ final class CartSelectionValidator
         }
         [$settlementId, $divisionId] = self::postedIds($post, $deliveryId);
         $settlement = $settlementId > 0 ? $this->entityFactory->get(SettlementEntity::class)->get($settlementId) : null;
-        $address = self::checkAddress($delivery ?: null, (int)$this->module->getModuleIdByNamespace(__CLASS__), $settlement ?: null, $post, $this->shipping->read()->showLifting);
+        $dictionaryReady = $this->settlements->hasAny();
+        $address = self::checkAddress($delivery ?: null, (int)$this->module->getModuleIdByNamespace(__CLASS__), $settlement ?: null, $post, $this->shipping->read()->showLifting, $dictionaryReady);
         if (is_string($address) || $address->applies()) {
             return $address;
         }
@@ -48,7 +49,7 @@ final class CartSelectionValidator
             $division ?: null,
             $this->groups->all(),
             $cart,
-            $this->settlements->hasAny(),
+            $dictionaryReady,
         );
     }
 
@@ -101,13 +102,17 @@ final class CartSelectionValidator
     }
 
     /** Address mode of this module's method: the posted address, checked; anything else is not this check's business. */
-    public static function checkAddress(?object $delivery, int $moduleId, ?object $settlement, array $post, bool $liftingOffered): CartSelection|string
+    public static function checkAddress(?object $delivery, int $moduleId, ?object $settlement, array $post, bool $liftingOffered, bool $dictionaryReady = true): CartSelection|string
     {
         if ($delivery === null || (int)($delivery->module_id ?? 0) !== $moduleId || $moduleId === 0) {
             return CartSelection::none();
         }
         $settings = is_array($delivery->settings ?? null) ? $delivery->settings : [];
         if (DeliveryMode::fromServiceType($settings['service_type'] ?? null) !== DeliveryMode::Address) {
+            return CartSelection::none();
+        }
+        // Before the first dictionary run the cart shows a notice instead of the form, as for points.
+        if (!$dictionaryReady) {
             return CartSelection::none();
         }
         $parsed = AddressInput::parse($post, (int)$delivery->id, $liftingOffered);

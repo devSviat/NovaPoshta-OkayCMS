@@ -116,6 +116,35 @@ class OrdersStepTest extends TestCase
         self::assertSame('migrated', $row['legacy']);
     }
 
+    /** A big city has village namesakes and old address rows carry no region: the City Ref decides. */
+    public function testAddressCityIsMatchedByItsRef(): void
+    {
+        $this->places->settlements[] = (object)['id' => 4, 'name_uk' => 'село Київ', 'area_uk' => 'Миколаївська область', 'district_uk' => 'Вознесенський район', 'has_pickup' => 0];
+        $this->places->settlements[] = (object)['id' => 5, 'name_uk' => 'село Липове', 'area_uk' => 'Сумська область', 'district_uk' => null, 'has_pickup' => 1];
+        $this->places->cityRefs['lypove-ref'] = 5;
+        $this->old->delivery = [
+            self::row(1, 101, ['city_id' => 'kyiv-ref', 'city_name' => 'Київ', 'street' => 'вул. Хрещатик', 'house' => '1']),
+            self::row(2, 102, ['city_id' => 'lypove-ref', 'city_name' => 'Липове', 'street' => 'вул. Шкільна', 'house' => '2']),
+        ];
+        $report = new LegacyReport();
+        $this->migrate($report);
+
+        self::assertSame(1, $this->orders->rows[101]['settlement_id']);
+        self::assertSame('migrated', $this->orders->rows[101]['legacy']);
+        self::assertSame(5, $this->orders->rows[102]['settlement_id'], 'a remembered City Ref wins over a namesake');
+        self::assertSame(['done' => 2, 'existed' => 0, 'failed' => 0], $report->counts('orders'));
+    }
+
+    public function testAddressWaitsWhenTheCityRefNeedsNp(): void
+    {
+        $this->places->settlements[] = (object)['id' => 3, 'name_uk' => 'село Липове', 'area_uk' => 'Сумська область', 'district_uk' => null, 'has_pickup' => 1];
+        $this->places->settlements[1]->has_pickup = 1;
+        $this->old->delivery = [self::row(1, 103, ['city_id' => 'far-ref', 'city_name' => 'Липове', 'street' => 'вул. Шкільна', 'house' => '5'])];
+
+        self::assertSame(0, $this->migrate(new LegacyReport(), new LegacyBudget(PHP_INT_MAX, 0)));
+        self::assertArrayNotHasKey(103, $this->orders->rows);
+    }
+
     public function testOrderWithOurRowIsSkipped(): void
     {
         $this->orders->rows[104] = ['mode' => 'points'];
@@ -135,7 +164,9 @@ class OrdersStepTest extends TestCase
 
         self::assertSame([], $this->orders->rows);
         self::assertSame(2, $report->counts('orders')['failed']);
-        self::assertSame('legacy_fail_no_order', $report->fails()[1]['key']);
+        // The shop has no such order: the report names the old record, not a link to nothing.
+        self::assertSame(['step' => 'orders', 'order' => null, 'key' => 'legacy_fail_no_order_id', 'name' => null, 'record' => 1], $report->fails()[0]);
+        self::assertSame(['step' => 'orders', 'order' => null, 'key' => 'legacy_fail_no_order', 'name' => '999', 'record' => 2], $report->fails()[1]);
     }
 
     public function testRowWithoutDataIsSkipped(): void

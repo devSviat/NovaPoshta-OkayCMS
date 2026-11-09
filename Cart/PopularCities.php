@@ -46,6 +46,7 @@ final class PopularCities
                 $list[] = [
                     'id' => $id,
                     'name' => (string)($english && $row->name_en ? $row->name_en : $row->name_uk),
+                    'title' => self::label((string)($english && $row->name_en ? $row->name_en : $row->name_uk)),
                     'area' => ($english && $row->area_en ? $row->area_en : $row->area_uk) ?: null,
                 ];
             }
@@ -95,6 +96,8 @@ final class PopularCities
     /** "місто Київ" → "Київ": a button is short, and namesakes are not offered as buttons anyway. */
     public static function label(string $name): string
     {
-        return preg_replace(self::TYPE_PREFIX, '', trim($name)) ?? $name;
+        $title = SettlementName::split($name)[1];
+
+        return preg_replace(self::TYPE_PREFIX, '', $title) ?? $title;
     }
 }

@@ -19,6 +19,7 @@ use Okay\Entities\LanguagesEntity;
 use Okay\Entities\PaymentsEntity;
 use Okay\Entities\VariantsEntity;
 use Okay\Admin\Helpers\BackendOrdersHelper;
+use Okay\Admin\Helpers\BackendDeliveriesHelper;
 use Okay\Entities\OrdersEntity;
 use Okay\Admin\Requests\BackendProductsRequest;
 use Okay\Admin\Requests\BackendPaymentsRequest;
@@ -67,7 +68,7 @@ class Init extends AbstractInit
     {
         $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
         $this->registerEntityField(VariantsEntity::class, VariantVolume::FIELD);
-        $this->addBackendBlock('product_variant', 'variant_volume.tpl');
+        // The variant's volume field goes into the row itself, by a module.json modification of product.tpl.
         $this->registerChainExtension([BackendPaymentsRequest::class, 'postPayment'], [BackendExtender::class, 'paymentPost']);
         $this->registerQueueExtension([BackendPaymentsHelper::class, 'getPaymentMethod'], [BackendExtender::class, 'assignPaymentCod']);
         $this->addBackendBlock('payment_switch_checkboxes', 'payment_cod.tpl');
@@ -80,13 +81,18 @@ class Init extends AbstractInit
             [BackendExtender::class, 'assignOrderDelivery']
         );
         $this->registerQueueExtension([BackendOrdersHelper::class, 'delete'], [BackendExtender::class, 'deleteOrders']);
+        $this->registerChainExtension([BackendDeliveriesHelper::class, 'getDelivery'], [BackendExtender::class, 'offeredMode']);
+        $this->registerQueueExtension([BackendDeliveriesHelper::class, 'getDelivery'], [BackendExtender::class, 'deliveryWarning']);
+        $this->addBackendBlock('delivery_price_block', 'delivery_free_warning.tpl');
         $this->registerChainExtension([BackendOrdersHelper::class, 'buildFilter'], [BackendExtender::class, 'listFilter']);
         $this->registerChainExtension([BackendOrdersHelper::class, 'buildCountStatusesFilter'], [BackendExtender::class, 'countFilter']);
         $this->registerQueueExtension([BackendOrdersHelper::class, 'findOrders'], [BackendExtender::class, 'listOrders']);
         $this->registerEntityFilter(OrdersEntity::class, 'np_without_waybill', OrdersEntityFilters::class, 'filter__np_without_waybill');
+        $this->registerEntityFilter(OrdersEntity::class, 'np_status_codes', OrdersEntityFilters::class, 'filter__np_status_codes');
         $this->addBackendBlock('orders_list_name', 'orders_status.tpl');
         // The core prints a block's templates last-registered first: the point goes above the waybill.
-        $this->addBackendBlock('order_contact', 'waybill.tpl');
+        $this->addBackendBlock('order_custom_block', 'waybill_main.tpl');
+        $this->addBackendBlock('order_contact', 'waybill_side.tpl');
         $this->addBackendBlock('order_contact', 'order_delivery.tpl');
         $this->registerBackendController('NovaPoshtaSettingsAdmin');
         $this->addBackendControllerPermission('NovaPoshtaSettingsAdmin', 'delivery');

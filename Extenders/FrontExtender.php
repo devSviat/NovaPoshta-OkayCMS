@@ -30,6 +30,8 @@ use Okay\Entities\CurrenciesEntity;
 use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
+use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteSession;
+use Okay\Modules\Sviat\NovaPoshta\Quote\FreeDelivery;
 use Okay\Modules\Sviat\NovaPoshta\Quote\PriceDecision;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
 
@@ -39,7 +41,7 @@ class FrontExtender implements ExtensionInterface
     private const array SCRIPT_TEXTS = [
         'cart_no_results', 'cart_choose', 'cart_shown_of', 'cart_all_day', 'cart_up_to_kg', 'cart_weekdays', 'cart_day_off', 'cart_change', 'cart_change_city', 'cart_schedule',
         'cart_too_heavy', 'cart_too_expensive', 'cart_dictionary_empty', 'cart_no_points', 'cart_search_failed', 'cart_no_city', 'cart_too_big',
-        'cart_cod_fee', 'cart_cod_fee_unknown', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager', 'cart_none_fit',
+        'cart_cod_fee', 'cart_cod_fee_unknown', 'cart_price_unreachable', 'cart_term', 'cart_calculating', 'cart_price_by_manager', 'cart_price_after_point', 'cart_price_after_address', 'cart_none_fit',
         'cart_street_failed', 'cart_no_street', 'cart_address_choice', 'cart_flat_short', 'cart_no_address', 'cart_lifting_paid', 'cart_lifting_unknown', 'cart_note_left', 'cart_price_rejected',
         'error_city', 'error_point', 'error_street', 'error_house', 'error_floor', 'error_lifting_floor',
     ];
@@ -76,13 +78,29 @@ class FrontExtender implements ExtensionInterface
         if (!is_array($deliveries) || !is_object($cart)) {
             return $deliveries;
         }
+        $dictionaryReady = null;
         foreach ($deliveries as $delivery) {
+            if (!is_object($delivery)) {
+                continue;
+            }
             // Already free (free_from, or a promo's free shipping earlier in the chain): left as it is.
-            $quote = is_object($delivery) && empty($delivery->is_free_delivery) ? $this->quotes->cachedForChoice($delivery, $cart) : null;
-            if ($quote?->price !== null) {
-                $this->showPrice($delivery, $quote->price, (float)$cart->total_price);
-            } elseif ($quote?->unpriced()) {
-                DeliveryPriceView::unpriced($delivery, (float)$cart->total_price, $this->translations->getTranslation('sviat__novaposhta__cart_price_by_manager'));
+            $quote = empty($delivery->is_free_delivery) ? $this->quotes->cachedForChoice($delivery, $cart) : null;
+            $own = $this->quotes->isOwnMethod($delivery);
+            $total = (float)$cart->total_price;
+            switch (DeliveryPriceView::cartState($delivery, $quote, $own, $own ? ($dictionaryReady ??= $this->settlements->hasAny()) : true, $total)) {
+                case 'price':
+                    $this->showPrice($delivery, $quote->price, $total);
+                    break;
+                case 'unpriced':
+                    DeliveryPriceView::unpriced($delivery, $total, $this->translations->getTranslation('sviat__novaposhta__cart_price_by_manager'));
+                    break;
+                case 'free':
+                    DeliveryPriceView::free($delivery, $total, $this->translations->getTranslation('cart_free'));
+                    break;
+                case 'awaiting':
+                    $key = $this->quotes->isOwnPointsMethod($delivery) ? 'sviat__novaposhta__cart_price_after_point' : 'sviat__novaposhta__cart_price_after_address';
+                    DeliveryPriceView::awaiting($delivery, $total, $this->translations->getTranslation($key));
+                    break;
             }
         }
 
@@ -113,7 +131,7 @@ class FrontExtender implements ExtensionInterface
         } else {
             return $info;
         }
-        $freeByCore = !((float)($delivery->free_from ?? 0) > (float)($order->total_price ?? 0));
+        $freeByCore = FreeDelivery::applies($delivery, (float)($order->total_price ?? 0));
         $decision = PriceDecision::forOrder($quote, $info, $freeByCore, $freeByCore ? 0.0 : (float)$delivery->price);
         $this->pricing = $quote === null ? null : [
             'delivery_price' => $decision['info']['delivery_price'] ?? null,
@@ -237,8 +255,7 @@ class FrontExtender implements ExtensionInterface
         $metrics = CartMetrics::fromCart($cart);
         foreach ($deliveries as $delivery) {
             $deliveryId = (int)$delivery->id;
-            $choice = is_array($posted[$deliveryId] ?? null) ? $posted[$deliveryId]
-                : ($last ? ['settlement_id' => $last->settlement_id, 'division_id' => $last->division_id] + self::lastAddress($last) : []);
+            $choice = self::prefillChoice(is_array($posted[$deliveryId] ?? null) ? $posted[$deliveryId] : null, $this->sessionChoice($deliveryId), $last ?: null);
             $described = $this->describe($delivery, $metrics, (int)($choice['settlement_id'] ?? 0), (int)($choice['division_id'] ?? 0), $lang);
             $prefill[(int)$deliveryId] = $described + [
                 'address' => self::addressPrefill($choice),
@@ -248,6 +265,36 @@ class FrontExtender implements ExtensionInterface
         }
 
         return $prefill;
+    }
+
+    /**
+     * The posted form, else the choice priced in this session, else the last order. The session keeps
+     * only the city for an address, so in the last order's city its street and house come back too.
+     */
+    public static function prefillChoice(?array $posted, array $session, ?object $last): array
+    {
+        if ($posted !== null) {
+            return $posted;
+        }
+        if ($session !== []) {
+            $sameCity = $last !== null && !isset($session['division_id']) && (int)($session['settlement_id'] ?? 0) === (int)($last->settlement_id ?? 0);
+
+            return $sameCity ? $session + self::lastAddress($last) : $session;
+        }
+
+        return $last ? ['settlement_id' => $last->settlement_id, 'division_id' => $last->division_id] + self::lastAddress($last) : [];
+    }
+
+    /** @return array{settlement_id?: int, division_id?: int} */
+    private function sessionChoice(int $deliveryId): array
+    {
+        $ids = QuoteSession::targetIds((string)($this->quotes->chosen($deliveryId)['target'] ?? ''));
+        if (isset($ids['division_id'])) {
+            $division = $this->entityFactory->get(DivisionEntity::class)->get($ids['division_id']);
+            $ids['settlement_id'] = $division ? (int)$division->settlement_id : 0;
+        }
+
+        return $ids;
     }
 
     /** Address fields of the previous order's snapshot, under the names the cart posts. */
@@ -292,12 +339,24 @@ class FrontExtender implements ExtensionInterface
         $division = $division ? $this->validator->restorable($delivery, $settlement, $division, $cart) : null;
 
         return [
-            'settlement' => $settlement ? [
-                'id' => (int)$settlement->id,
-                'name' => (string)($english && $settlement->name_en ? $settlement->name_en : $settlement->name_uk),
-                'area' => (string)($english && $settlement->area_en ? $settlement->area_en : $settlement->area_uk) ?: null,
-            ] : null,
+            'settlement' => $settlement ? self::settlementView($settlement, $english) : null,
             'division' => $division ? ['id' => (int)$division->id] + DivisionList::describe($division, $english) : null,
+        ];
+    }
+
+    /** @return array{id: int, name: string, type: string, title: string, district: ?string, area: ?string} */
+    private static function settlementView(object $settlement, bool $english): array
+    {
+        $name = (string)($english && $settlement->name_en ? $settlement->name_en : $settlement->name_uk);
+        [$type, $title] = \Okay\Modules\Sviat\NovaPoshta\Cart\SettlementName::split($name);
+
+        return [
+            'id' => (int)$settlement->id,
+            'name' => $name,
+            'type' => $type,
+            'title' => $title,
+            'district' => (string)($english && $settlement->district_en ? $settlement->district_en : $settlement->district_uk) ?: null,
+            'area' => (string)($english && $settlement->area_en ? $settlement->area_en : $settlement->area_uk) ?: null,
         ];
     }
 }

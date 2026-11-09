@@ -2,6 +2,8 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Orders;
 
+use Okay\Modules\Sviat\NovaPoshta\Quote\FreeDelivery;
+
 /**
  * What happens to an order's delivery price after the manager changes its point or address
  * (author's decision 07.11.2026): a price paid apart follows the tariff, a price inside the
@@ -17,8 +19,7 @@ final class OrderPriceRule
         }
         $total = (float)($order->total_price ?? 0);
         $goods = empty($order->separate_delivery) ? $total - (float)($order->delivery_price ?? 0) : $total;
-        $freeFrom = (float)($delivery->free_from ?? 0);
-        if ($freeFrom > 0 && $goods >= $freeFrom) {
+        if (FreeDelivery::applies($delivery, $goods)) {
             return ['action' => 'free', 'price' => 0.0];
         }
         if (round($tariff, 2) === round((float)($order->delivery_price ?? 0), 2)) {

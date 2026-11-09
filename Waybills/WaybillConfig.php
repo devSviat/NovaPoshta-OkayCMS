@@ -9,7 +9,7 @@ final readonly class WaybillConfig
     public const string DEFAULT_DESCRIPTION = 'Товари інтернет-магазину';
 
     /**
-     * @param 'Recipient'|'Sender' $payerType
+     * @param 'Recipient'|'Sender' $payerType where the form starts; a draft still makes the sender pay when the order total holds delivery
      * @param 'Cash'|'NonCash' $paymentMethod
      * @param 'Parcel'|'Cargo'|'Documents' $cargoType
      * @param 'Recipient'|'Sender' $codPayer who pays the money-transfer commission
@@ -24,6 +24,10 @@ final readonly class WaybillConfig
         public string $cargoType = 'Parcel',
         public string $codPayer = 'Recipient',
         public string $description = self::DEFAULT_DESCRIPTION,
+        /** 'order' — «Замовлення №…», as the old module; 'text' — $description */
+        public string $descriptionMode = 'order',
+        /** AdditionalInformation: 'skus', 'names' or 'none' */
+        public string $extraInfo = 'skus',
     ) {
     }
 }

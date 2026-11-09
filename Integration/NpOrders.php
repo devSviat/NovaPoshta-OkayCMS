@@ -16,6 +16,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 final class NpOrders
 {
     private const array ARRIVED = [7, 8];
+    private const array WAYBILL_COLUMNS = ['order_id', 'number', 'status_code', 'status_at', 'services'];
 
     public function __construct(private readonly EntityFactory $entityFactory)
     {
@@ -32,13 +33,13 @@ final class NpOrders
             return [];
         }
 
-        return $this->build($this->entityFactory->get(WaybillEntity::class)->noLimit()->find(['order_id' => $orderIds]));
+        return $this->build($this->entityFactory->get(WaybillEntity::class)->noLimit()->cols(self::WAYBILL_COLUMNS)->find(['order_id' => $orderIds]));
     }
 
     /** @return array<int, NpShipment> waybills Nova Poshta still moves (not final, number known) */
     public function unfinished(): array
     {
-        return $this->build($this->entityFactory->get(WaybillEntity::class)->noLimit()->find(['due' => 1]));
+        return $this->build($this->entityFactory->get(WaybillEntity::class)->noLimit()->cols(self::WAYBILL_COLUMNS)->find(['due' => 1]));
     }
 
     /**
@@ -99,7 +100,7 @@ final class NpOrders
     {
         $waybills = is_array($waybills) ? $waybills : iterator_to_array($waybills);
         $orderIds = array_map(static fn(object $w): int => (int)$w->order_id, $waybills);
-        $deliveries = $orderIds === [] ? [] : $this->entityFactory->get(OrderDeliveryEntity::class)->mappedBy('order_id')->noLimit()->find(['order_id' => $orderIds]);
+        $deliveries = $orderIds === [] ? [] : $this->entityFactory->get(OrderDeliveryEntity::class)->mappedBy('order_id')->noLimit()->cols(['order_id', 'cod'])->find(['order_id' => $orderIds]);
         $result = [];
         foreach ($waybills as $waybill) {
             $shipment = self::shipment($waybill, $deliveries[(int)$waybill->order_id] ?? null);

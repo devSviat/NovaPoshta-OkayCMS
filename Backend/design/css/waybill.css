@@ -34,8 +34,13 @@
 .np-op__suggest li { padding: 6px 10px; cursor: pointer; }
 .np-op__suggest li:hover { background: #eef4fb; }
 .np-op__chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.np-op__chip { padding: 4px 12px; border-radius: 999px; border: 1px solid #c9cfd5; background: #fff; font: inherit; font-size: 12px; cursor: pointer; }
-.np-op__chip--on { background: #232f3e; border-color: #232f3e; color: #fff; }
+.np-op__chip { padding: 5px 14px; border-radius: 8px; border: 1px solid var(--ok-accent, #48b0f7); background: #fff; color: var(--ok-accent, #48b0f7); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.np-op__chip--on { background: var(--ok-accent, #48b0f7); color: #fff; }
+.np-op__chosen { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 7px 12px; border: 1px solid #ced4da; border-radius: 4px; line-height: 1.35; }
+.np-op__chosen[hidden] { display: none; }
+.np-op__type { color: #676e75; }
+.np-op__where { display: block; font-size: 12px; color: #676e75; }
+.np-op__link { flex: none; background: none; border: 0; padding: 0; color: var(--ok-accent, #48b0f7); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; }
 .np-op__list { border: 1px solid #e4e6e9; border-radius: 6px; max-height: 260px; overflow: auto; }
 .np-op__option { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; padding: 8px 10px; border: 0; border-bottom: 1px solid #eef0f2; background: #fff; font: inherit; cursor: pointer; }
 .np-op__option--on { background: #eef4fb; }
@@ -62,13 +67,17 @@
 .np-wb__more { margin-top: 10px; }
 .np-wb__more summary { cursor: pointer; color: #2a76c6; }
 .np-wb__more > div { margin-top: 6px; }
-.np-wb__footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; }
+.np-wb__footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; margin-top: 10px; font-size: 12px; }
+.np-wb__footer .np-wb__link { flex: none; }
 .np-wb__link { background: none; border: 0; padding: 0; color: #2a76c6; text-decoration: underline; cursor: pointer; font: inherit; }
 .np-wb__more > div { display: flex; justify-content: space-between; gap: 12px; }
 .np-wb__more > div > .np-wb__label { display: inline; flex: none; font-size: 13px; }
 .np-wb__more > div { text-align: right; }
-.np-list-status { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; }
-.np-list-status__number { color: #545b62; white-space: nowrap; }
+.np-list-status { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
+.np-list-status__logo { flex: none; }
+.np-list-status__number { color: inherit; white-space: nowrap; text-decoration: none; }
+.np-list-status__number:hover { color: var(--ok-accent, #135c94); }
+.np-list-status .np-wb__badge { padding: 1px 7px; font-size: 12px; }
 .np-list-status .np-wb__badge { margin-left: 0; }
 .np-mass { display: flex; flex-direction: column; gap: 6px; }
 .np-mass__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
@@ -84,6 +93,8 @@
 .np-wb__tip { margin-left: 4px; vertical-align: middle; }
 .np-wb__radios { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 4px 10px; margin-bottom: 6px; }
 .np-wb__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; align-items: end; }
+.np-wb__triple { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 8px; align-items: end; }
+.np-wb__locker { background: #f3f7fc; border-radius: 6px; padding: 8px 10px; margin-bottom: 10px; }
 .np-wb__who { margin: 6px 0 10px; padding: 8px 10px; border-radius: 4px; background: #f5f7f9; line-height: 1.45; }
 .np-wb__who-label { color: #6b7279; }
 .np-wb__who .np-wb__error:empty { display: none; }
@@ -93,5 +104,59 @@
 .np-wb__attach > summary.btn::-webkit-details-marker { display: none; }
 
 .np-codpay__kinds{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-.np-codpay__kind{display:flex;gap:8px;align-items:flex-start;font-weight:400;cursor:pointer;line-height:1.4}
-.np-codpay__kind input{margin-top:3px;flex:none}
+/* The core centres the switches of a row; with the COD kinds open, the neighbours would slide down. */
+.activity_of_switch:has(> .np-codpay){align-items:flex-start}
+.np-codpay__kinds .okay_type_radio_wrap{margin:0}
+/* The core radio is a flex item: a long label would squeeze its circle. */
+.np-codpay .okay_type_radio::before{flex:none}
+.np-codpay .okay_type_radio{gap:6px;padding:6px 0}
+.np-codpay .np_tip[data-hint]:after{width:max-content;max-width:300px;white-space:normal;font-weight:400;font-size:13px;line-height:1.35;text-align:left}
+
+/* The waybill card in the main column, laid out as the old tracking module's card. */
+.np-wb:has(> .np-wb__card) { margin-top: 0; padding-top: 0; border-top: 0; }
+.np-wb__card { border: 1px solid var(--ok-line, #e4e6e9); border-radius: 10px; background: var(--ok-surface, #fff); }
+.np-wb__card .np-wb__label { display: block; margin: 0 0 2px; font-size: 13px; color: var(--ok-ink-muted, #676e75); }
+.np-wb__top { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: end; padding: 16px 20px; border-bottom: 1px solid var(--ok-line, #e4e6e9); }
+.np-wb__num { display: flex; flex-direction: column; gap: 2px; }
+.np-wb__muted { font-size: 12px; color: var(--ok-ink-muted, #676e75); }
+.np-wb__card .np-wb__number { display: inline-flex; align-items: center; gap: 10px; margin: 0; white-space: nowrap; font-size: 24px; font-weight: 500; letter-spacing: 0; color: inherit; text-decoration: none; }
+.np-wb__card .np-wb__number svg { color: var(--ok-ink-muted, #676e75); }
+.np-wb__card .np-wb__number:hover { color: var(--ok-accent, #135c94); }
+.np-wb__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 16px 20px; }
+.np-wb__route { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px 14px; background: var(--ok-sunken, #f6f7f9); border: 1px solid var(--ok-line, #eceff3); border-radius: 8px; }
+.np-wb__route b { font-weight: 600; }
+.np-wb__small { font-size: 13px; color: var(--ok-ink-soft, #343a40); }
+.np-wb__route .np-wb__badge { margin: 0; font-size: 13px; }
+.np-wb__recip { display: flex; flex-direction: column; gap: 10px; }
+.np-wb__capital { display: inline-block; }
+.np-wb__capital::first-letter { text-transform: uppercase; }
+.np-wb__services { padding: 0 20px 14px; }
+.np-wb__caps { display: block; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); margin-bottom: 2px; }
+.np-wb__pay { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 0 20px 16px; }
+.np-wb__big { font-size: 20px; font-weight: 600; }
+.np-wb__note { padding: 0 20px 12px; }
+.np-wb__card .np-wb__more { margin: 0; padding: 0 20px; }
+.np-wb__more-toggle { display: inline-block; list-style: none; padding: 8px 14px; border-radius: 8px; background: var(--ok-sunken, #eef0f3); color: var(--ok-ink-soft, #343a40); cursor: pointer; }
+.np-wb__more-toggle::-webkit-details-marker { display: none; }
+.np-wb__card .np-wb__more-body { padding: 10px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; text-align: left; }
+.np-wb__card .np-wb__more-body > div { display: block; text-align: left; }
+.np-wb__card .np-wb__more-body .np-wb__label { display: block; }
+.np-wb__card .np-wb__issues { padding: 0 20px; }
+.np-wb__card .np-wb__footer { margin: 12px 0 0; padding: 10px 20px; border-top: 1px solid var(--ok-line, #e4e6e9); font-size: 13px; }
+.np-wb__tools { display: inline-flex; align-items: center; gap: 4px; }
+.np-wb__icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--ok-ink-muted, #676e75); cursor: pointer; }
+.np-wb__icon:hover { background: var(--ok-sunken, #eef0f3); color: var(--ok-ink, #212529); }
+.np-wb__icon--danger:hover { color: var(--ok-danger, #c8352c); }
+@media (max-width: 767px) {
+    .np-wb__top, .np-wb__body, .np-wb__pay, .np-wb__card .np-wb__more-body { grid-template-columns: minmax(0, 1fr); }
+    .np-wb__card .np-wb__number { font-size: 22px; }
+}
+
+/* Create and attach side by side; the attach row opens below them. */
+.np-wb__actions--form { align-items: center; }
+.np-wb__actions--form .np-wb__attach { margin: 0; }
+.np-wb__actions--form .np-wb__attach[open] { flex-basis: 100%; }
+.np-wb__field .bootstrap-select { width: 100% !important; }
+/* Both fit one row of the right column, as in the old module. */
+.np-wb__actions--form { gap: 6px; }
+.np-wb__actions--form > .btn, .np-wb__actions--form .np-wb__attach > summary { padding-left: 8px; padding-right: 8px; font-size: 13px; white-space: nowrap; }

@@ -12,7 +12,6 @@ use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 /** What the waybill block of an order page shows: the waybill card, or the form for a new one. */
 final class WaybillView
 {
-    private const string TRACKING_URL = 'https://novaposhta.ua/tracking/?cargo_number=';
 
     public function __construct(
         private readonly EntityFactory $entityFactory,
@@ -33,6 +32,12 @@ final class WaybillView
         $view = ['orderId' => $orderId, 'row' => null, 'draft' => null, 'refusal' => null];
 
         $row = $this->rows->forOrder($orderId);
+        if (WaybillService::needsCheck($row, time())) {
+            // NP may hold a waybill of this order: the manager asks it before anything new is made.
+            $view['check'] = true;
+
+            return $view;
+        }
         if (WaybillService::isPending($row, time())) {
             $view['refusal'] = 'waybill_pending';
             $view['refusalKey'] = 'sviat__novaposhta__waybill_pending';
@@ -47,7 +52,8 @@ final class WaybillView
                 'number' => (string)$row->number,
                 'numberSpaced' => trim(chunk_split((string)$row->number, 4, ' ')),
                 'attached' => $row->api === 'attached',
-                'trackingUrl' => self::TRACKING_URL . rawurlencode((string)$row->number),
+                'deletable' => $row->api !== 'attached' && (!is_numeric($row->status_code ?? null) || in_array((int)$row->status_code, WaybillStatus::DELETABLE, true)),
+                'trackingUrl' => WaybillNumber::trackingUrl((string)$row->number),
                 'card' => WaybillCard::fromDocument(is_string($row->tracking ?? null) ? (json_decode($row->tracking, true) ?: null) : null, $row),
                 'services' => json_decode((string)$row->services, true) ?: [],
                 'audit' => $row->audit_status ? AuditResult::fromArray(json_decode((string)$row->audit, true) ?: ['status' => $row->audit_status])->toArray() : null,

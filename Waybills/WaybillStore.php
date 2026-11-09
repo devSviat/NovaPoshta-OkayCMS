@@ -63,6 +63,7 @@ final class WaybillStore implements WaybillRows
             'ref' => $ref,
             'api' => $api,
             'services' => json_encode($services, JSON_UNESCAPED_UNICODE),
+            'audit_status' => null,
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
         $saved = $this->forOrder($orderId);
@@ -75,6 +76,14 @@ final class WaybillStore implements WaybillRows
         $row = $this->forOrder($orderId);
         if (PendingWaybill::is($row)) {
             $this->entity()->delete([(int)$row->id]);
+        }
+    }
+
+    public function markUncertain(int $orderId): void
+    {
+        $row = $this->forOrder($orderId);
+        if (PendingWaybill::is($row)) {
+            $this->entity()->update((int)$row->id, ['audit_status' => 'uncertain', 'updated_at' => date('Y-m-d H:i:s')]);
         }
     }
 
@@ -101,7 +110,7 @@ final class WaybillStore implements WaybillRows
 
     /**
      * A waybill carried over from NovaPoshtaTracking (stage 5), with the status and tracking it had.
-     * @param array{number:string, ref:?string, api:string, status_code:?int, status_text:?string, status_at:?string, scheduled_at:?string, tracking:?array, tracked_at:?string} $values
+     * @param array{number:string, ref:?string, api:string, status_code:?int, status_text:?string, status_at:?string, scheduled_at:?string, tracking:?array, tracked_at:?string, created_at?:?string} $values
      * @return bool false when the order already has a waybill
      */
     public function importLegacy(int $orderId, array $values): bool
@@ -116,7 +125,7 @@ final class WaybillStore implements WaybillRows
             'scheduled_at' => $values['scheduled_at'],
             'tracking' => $values['tracking'] !== null ? json_encode($values['tracking'], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) : null,
             'tracked_at' => $values['tracked_at'],
-        ]);
+        ] + (($values['created_at'] ?? null) !== null ? ['created_at' => $values['created_at']] : []));
 
         return true;
     }
@@ -146,23 +155,14 @@ final class WaybillStore implements WaybillRows
         $this->update($orderId, []);
     }
 
-    public function due(int $limit, int $page): array
+    public function due(int $limit, int $page, string $createdSince): array
     {
-        return array_values($this->entity()->order('due')->find(['due' => 1, 'limit' => $limit, 'page' => $page]));
+        return array_values($this->entity()->order('due')->find(['due' => 1, 'created_since' => $createdSince, 'limit' => $limit, 'page' => $page]));
     }
 
     public function forOrders(array $orderIds): array
     {
         return $orderIds === [] ? [] : $this->entity()->mappedBy('order_id')->find(['order_id' => $orderIds, 'limit' => count($orderIds)]);
-    }
-
-    public function ordersWithStatus(array $codes): array
-    {
-        if ($codes === []) {
-            return [];
-        }
-
-        return array_map('intval', array_values($this->entity()->cols(['order_id'])->noLimit()->find(['status_codes' => $codes])));
     }
 
     public function ordersOfNumber(string $number): array

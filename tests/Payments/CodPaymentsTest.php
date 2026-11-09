@@ -50,4 +50,20 @@ class CodPaymentsTest extends TestCase
         self::assertTrue(CodPayments::wantsFee([6, 18], [18]));
         self::assertTrue(CodPayments::wantsFee(['18'], [18]), 'the core gives ids as strings');
     }
+
+    /** A switched-off method is not offered in the cart, so its commission is not shown there either. */
+    public function testDisabledMethodHasNoCartCommission(): void
+    {
+        $entity = $this->createStub(\Okay\Entities\PaymentsEntity::class);
+        $entity->method('noLimit')->willReturnSelf();
+        $entity->method('find')->willReturn([
+            (object)['id' => 18, 'module' => 'null', 'enabled' => 1, CodPayments::FIELD => 2],
+            (object)['id' => 19, 'module' => 'null', 'enabled' => 0, CodPayments::FIELD => 2],
+            (object)['id' => 20, 'module' => 'null', 'enabled' => '1', CodPayments::FIELD => 3],
+        ]);
+        $factory = $this->createStub(\Okay\Core\EntityFactory::class);
+        $factory->method('get')->willReturn($entity);
+
+        self::assertSame([18], new CodPayments($factory)->moneyIds());
+    }
 }

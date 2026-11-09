@@ -34,6 +34,14 @@ class AddressSelectionValidatorTest extends TestCase
         self::assertNull($selection->division);
     }
 
+    /** Before the first dictionary run the cart shows only a notice, as for points: the order is not blocked. */
+    public function testEmptyDictionariesDoNotBlockTheOrder(): void
+    {
+        $selection = CartSelectionValidator::checkAddress(self::delivery('WarehouseDoors'), self::MODULE, null, [], false, dictionaryReady: false);
+
+        self::assertFalse($selection->applies());
+    }
+
     public function testUnknownSettlement(): void
     {
         self::assertSame('error_city', CartSelectionValidator::checkAddress(self::delivery('DoorsDoors'), self::MODULE, null, self::post(), false));

@@ -112,7 +112,7 @@ final class CartQuotes
             return $cached;
         }
 
-        $wantPrice = $forAdmin || (empty($delivery->hide_front_delivery_price) && (float)($delivery->free_from ?? 0) > (float)($cart->total_price ?? 0));
+        $wantPrice = $forAdmin || (empty($delivery->hide_front_delivery_price) && !FreeDelivery::applies($delivery, (float)($cart->total_price ?? 0)));
         $wantTerm = $config->showTerm;
         if (!$wantPrice && !$wantTerm) {
             $this->store($bag);
@@ -142,7 +142,7 @@ final class CartQuotes
         } else {
             $settings = self::settings($delivery);
             $quote = $this->service->quote(new QuoteRequest(
-                (string)($settings['service_type'] ?? 'WarehouseWarehouse'),
+                DeliveryMode::fromServiceType($settings['service_type'] ?? null)->serviceType(),
                 $sender,
                 $recipient instanceof AddressTarget ? null : $recipient,
                 // Nova Poshta takes the declared value in hryvnias; the cart total is in the main currency.

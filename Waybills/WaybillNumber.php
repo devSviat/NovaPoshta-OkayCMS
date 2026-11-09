@@ -14,4 +14,10 @@ final class WaybillNumber
 
         return strlen($digits) === 14 ? $digits : null;
     }
+
+    /** The public tracking page; the site routes the number in the path. */
+    public static function trackingUrl(string $number): string
+    {
+        return 'https://novaposhta.ua/tracking/' . rawurlencode($number) . '/';
+    }
 }

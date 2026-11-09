@@ -3,15 +3,18 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 use Okay\Core\EntityFactory;
+use Okay\Entities\DeliveriesEntity;
 use Okay\Entities\OrdersEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
+use Okay\Modules\Sviat\NovaPoshta\Groups\DivisionCategory;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderParcel;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
+use Okay\Modules\Sviat\NovaPoshta\Quote\FreeDelivery;
 use Okay\Modules\Sviat\NovaPoshta\Quote\Parcel;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
 
@@ -56,13 +59,29 @@ final class WaybillDrafts
             new \DateTimeImmutable(),
             fn(float $totalUah): float => $this->amountDue->onPickup($order, $totalUah),
             $this->invoices->forOrder($order),
+            self::promisedFree($this->entityFactory->get(DeliveriesEntity::class)->get((int)($order->delivery_id ?? 0)) ?: null, $order, $snapshot),
         );
+    }
+
+    /** The cart showed delivery as free: a free method, the free_from threshold, or another module (a promo) zeroing the price. */
+    public static function promisedFree(?object $delivery, object $order, ?object $snapshot): bool
+    {
+        if ($delivery === null) {
+            return false;
+        }
+        $deliveryPrice = max(0.0, (float)($order->delivery_price ?? 0));
+        $goods = (float)($order->total_price ?? 0) - (empty($order->separate_delivery) ? $deliveryPrice : 0.0);
+
+        return empty($delivery->paid)
+            || FreeDelivery::applies($delivery, $goods)
+            || (($snapshot->price_source ?? null) === 'external' && $deliveryPrice <= 0.0);
     }
 
     /**
      * @param float $uahRate hryvnias per unit of the shop's main currency (order sums are in it)
      * @param ?\Closure(float): float $amountDue what NP collects, from the order total in hryvnias
      * @param ?array{edrpou: string, company: string} $invoice the organization the order was invoiced to
+     * @param bool $promisedFree see promisedFree(): the shop then pays Nova Poshta, whatever the setting
      * @return WaybillDraft|string the draft, or the language key of what the order lacks
      */
     public static function build(
@@ -77,6 +96,7 @@ final class WaybillDrafts
         \DateTimeImmutable $now,
         ?\Closure $amountDue = null,
         ?array $invoice = null,
+        bool $promisedFree = false,
     ): WaybillDraft|string {
         $mode = DeliveryMode::tryFrom((string)($snapshot->mode ?? '')) ?? DeliveryMode::Points;
         if ($mode === DeliveryMode::Points) {
@@ -91,7 +111,8 @@ final class WaybillDrafts
         }
 
         $total = (float)($order->total_price ?? 0);
-        $goods = empty($order->separate_delivery) ? $total - (float)($order->delivery_price ?? 0) : $total;
+        $deliveryInTotal = empty($order->separate_delivery) ? max(0.0, (float)($order->delivery_price ?? 0)) : 0.0;
+        $goods = $total - $deliveryInTotal;
         $totalUah = round($total * $uahRate, 2);
         $parcel = Parcel::fromMetrics(CartMetrics::fromPurchases($purchases, $total), $shipping);
         $note = implode(', ', array_filter([
@@ -101,6 +122,9 @@ final class WaybillDrafts
         $phone = NpPhone::normalize((string)($order->phone ?? ''));
         $name = trim(preg_replace('/\s+/u', ' ', trim((string)($order->last_name ?? '')) . ' ' . trim((string)($order->name ?? ''))));
         $address = $mode === DeliveryMode::Address;
+        $locker = !$address && ($division->category ?? null) === DivisionCategory::Postomat->value;
+        // Delivery the shop already took (in the total) or promised free: NP must not charge the recipient.
+        $senderPaysBecause = $deliveryInTotal > 0 ? 'in_total' : ($promisedFree ? 'free' : null);
 
         return new WaybillDraft(
             (int)$order->id,
@@ -125,9 +149,10 @@ final class WaybillDrafts
             $parcel->weightKg,
             $parcel->volumeM3,
             round(max(0.0, $goods) * $uahRate, 2),
-            $waybill->description,
-            $waybill->cargoType,
-            $waybill->payerType,
+            $waybill->descriptionMode === 'text' ? $waybill->description : 'Замовлення №' . (int)$order->id,
+            // A parcel locker takes no «Вантаж» (api-docs-ua, «ЕН на поштомат»).
+            $locker && $waybill->cargoType === 'Cargo' ? 'Parcel' : $waybill->cargoType,
+            $senderPaysBecause !== null ? 'Sender' : $waybill->payerType,
             $waybill->paymentMethod,
             $codKind !== null && empty($order->paid),
             round($amountDue ? $amountDue($totalUah) : $totalUah),
@@ -138,6 +163,33 @@ final class WaybillDrafts
             $invoice !== null ? preg_replace('/\D+/', '', $invoice['edrpou']) : null,
             $invoice !== null ? mb_substr($invoice['company'], 0, 100) : null,
             $invoice !== null,
+            round($deliveryInTotal * $uahRate, 2),
+            self::extraInfo($purchases, $waybill->extraInfo),
+            $senderPaysBecause,
+            $locker,
         );
+    }
+
+    /**
+     * AdditionalInformation as the old module made it: SKUs (a name where there is none), «(2 шт)» for
+     * several, cut to NP's 100 characters.
+     */
+    public static function extraInfo(array $purchases, string $kind): string
+    {
+        if ($kind === 'none') {
+            return '';
+        }
+        $counts = [];
+        foreach ($purchases as $purchase) {
+            $sku = trim((string)($purchase->sku ?? '')) ?: trim((string)($purchase->variant->sku ?? ''));
+            $name = trim((string)($purchase->product_name ?? ''));
+            $item = $kind === 'names' ? ($name ?: $sku) : ($sku ?: $name);
+            if ($item !== '') {
+                $counts[$item] = ($counts[$item] ?? 0) + max(1, (int)($purchase->amount ?? 1));
+            }
+        }
+        $items = array_map(static fn(string $item, int $n): string => $n > 1 ? "{$item} ({$n} шт)" : $item, array_keys($counts), $counts);
+
+        return mb_substr(implode(', ', $items), 0, WaybillDraft::EXTRA_INFO_MAX);
     }
 }

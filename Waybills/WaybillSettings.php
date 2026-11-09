@@ -8,7 +8,7 @@ use Okay\Core\Settings;
 final class WaybillSettings
 {
     private const string PREFIX = 'sviat__novaposhta__waybill_';
-    private const array FIELDS = ['contact_ref', 'sender_phone', 'cutoff', 'payer_type', 'payment_method', 'cargo_type', 'cod_payer', 'description'];
+    private const array FIELDS = ['contact_ref', 'sender_phone', 'cutoff', 'payer_type', 'payment_method', 'cargo_type', 'cod_payer', 'description', 'description_mode', 'extra_info'];
     private const int DESCRIPTION_MAX = 100;
 
     public function __construct(private readonly Settings $settings)
@@ -46,6 +46,8 @@ final class WaybillSettings
             'cargo_type' => $config->cargoType,
             'cod_payer' => $config->codPayer,
             'description' => $config->description,
+            'description_mode' => $config->descriptionMode,
+            'extra_info' => $config->extraInfo,
         ] as $field => $value) {
             $this->settings->set(self::PREFIX . $field, $value ?? '');
         }
@@ -86,10 +88,13 @@ final class WaybillSettings
 
             return $value;
         };
-        $payer = $choice($text('payer_type'), ['Recipient', 'Sender'], 'waybill_error_payer');
+        // 'auto' was the default before 1.0.0; the drafts make the sender pay where needed anyway.
+        $payer = $choice($text('payer_type') === 'auto' ? '' : $text('payer_type'), ['Recipient', 'Sender'], 'waybill_error_payer');
         $payment = $choice($text('payment_method'), ['Cash', 'NonCash'], 'waybill_error_payment');
         $cargo = $choice($text('cargo_type'), ['Parcel', 'Cargo', 'Documents'], 'waybill_error_cargo');
         $codPayer = $choice($text('cod_payer'), ['Recipient', 'Sender'], 'waybill_error_cod_payer');
+        $descriptionMode = $choice($text('description_mode'), ['order', 'text'], 'waybill_error_choice');
+        $extraInfo = $choice($text('extra_info'), ['skus', 'names', 'none'], 'waybill_error_choice');
         $description = $text('description') === '' ? WaybillConfig::DEFAULT_DESCRIPTION : $text('description');
         if (mb_strlen($description) > self::DESCRIPTION_MAX) {
             $errors[] = 'waybill_error_description';
@@ -104,6 +109,8 @@ final class WaybillSettings
             $cargo,
             $codPayer,
             $description,
+            $descriptionMode,
+            $extraInfo,
         );
     }
 }

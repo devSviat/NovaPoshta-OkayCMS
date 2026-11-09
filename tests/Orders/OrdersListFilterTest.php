@@ -10,9 +10,8 @@ class OrdersListFilterTest extends TestCase
     private static function apply(array $filter, ?string $group, ?string $keyword): array
     {
         $byNumber = static fn(string $number): array => $number === '20450000000001' ? [990061] : [];
-        $byCodes = static fn(array $codes): array => in_array(7, $codes, true) ? [990061, 990062] : [];
 
-        return OrdersListFilter::apply($filter, $group, $keyword, $byNumber, $byCodes);
+        return OrdersListFilter::apply($filter, $group, $keyword, $byNumber);
     }
 
     public function testOnlyFourteenDigitsBecomeWaybillSearch(): void
@@ -30,11 +29,11 @@ class OrdersListFilterTest extends TestCase
         self::assertSame(['keyword' => '20459999999999'], self::apply(['keyword' => '20459999999999'], null, '20459999999999'));
     }
 
-    public function testStatusGroupNarrowsIds(): void
+    /** A status group is a subquery in SQL, not the ids of every matching order (tens of thousands in time). */
+    public function testStatusGroupIsAnEntityFilter(): void
     {
-        self::assertSame(['status' => 1, 'id' => [990061, 990062]], self::apply(['status' => 1], 'arrived', null));
-        self::assertSame(['id' => [990062]], self::apply(['id' => [990062, 5]], 'arrived', null));
-        self::assertSame(['id' => [0]], self::apply([], 'refused', null));
+        self::assertSame(['status' => 1, 'np_status_codes' => [7, 8]], self::apply(['status' => 1], 'arrived', null));
+        self::assertSame(['id' => [990062, 5], 'np_status_codes' => [7, 8]], self::apply(['id' => [990062, 5]], 'arrived', null));
         self::assertSame([], self::apply([], 'nonsense', null));
     }
 
@@ -45,6 +44,6 @@ class OrdersListFilterTest extends TestCase
 
     public function testNumberAndGroupTogether(): void
     {
-        self::assertSame(['id' => [990061]], self::apply(['keyword' => '20450000000001'], 'arrived', '20450000000001'));
+        self::assertSame(['id' => [990061], 'np_status_codes' => [7, 8]], self::apply(['keyword' => '20450000000001'], 'arrived', '20450000000001'));
     }
 }

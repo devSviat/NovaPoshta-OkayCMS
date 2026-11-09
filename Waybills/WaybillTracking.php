@@ -20,6 +20,9 @@ final class WaybillTracking
     /** Stock 4.5.3 ignores the scheduler lock; a run older than this died and is not waited for. */
     private const int RUNNING_FOR = 600;
     private const int NOT_FOUND_AFTER_DAYS = 30;
+
+    /** A parcel still moving after two months is stuck (never handed over, endless return); asking again only slows the queue. */
+    private const int TRACK_FOR_DAYS = 60;
     private const int TIMEOUT_SECONDS = 30;
 
     private readonly \Closure $now;
@@ -47,7 +50,7 @@ final class WaybillTracking
         $this->state->set(self::RUNNING, (string)$now);
         try {
             // Taken once: rows checked during the run move to the end of the queue.
-            $due = $this->rows->due(self::BATCH * self::BATCHES_PER_RUN, 1);
+            $due = $this->rows->due(self::BATCH * self::BATCHES_PER_RUN, 1, date('Y-m-d H:i:s', $now - self::TRACK_FOR_DAYS * 86400));
             foreach (array_chunk($due, self::BATCH) as $batch) {
                 $result['requests']++;
                 $byNumber = [];

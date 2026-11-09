@@ -24,7 +24,9 @@ class WaybillCardTest extends TestCase
         self::assertSame('Тест', $card['description']);
         self::assertSame('500 ₴', $card['announced']);
         self::assertSame('м. Львів, Відділення №1: вул. Городоцька, 359', $card['route']['from']);
-        self::assertSame('08.11.2026', $card['route']['plan']);
+        // As the old tracking card: the date it leaves and the planned time with the hour.
+        self::assertSame('07.11.2026', $card['route']['departure']);
+        self::assertSame('08.11.2026 18:00', $card['route']['plan']);
         self::assertSame('м. Київ, Відділення №1: вул. Пирогівський шлях, 135', $card['route']['to']);
         self::assertSame('arrived', $card['route']['statusGroup']);
         self::assertSame('Петренко Іван', $card['recipient']['name']);
@@ -46,8 +48,8 @@ class WaybillCardTest extends TestCase
     public function testLinkDependsOnStatus(): void
     {
         self::assertSame('https://new.novaposhta.ua/edit/01a1b60d-0000-0000-0000-000000000001', WaybillCard::fromDocument(null, self::row(['status_code' => 1]))['link']);
-        self::assertSame('https://novaposhta.ua/tracking/?cargo_number=20451581331601', WaybillCard::fromDocument(null, self::row())['link']);
-        self::assertSame('https://novaposhta.ua/tracking/?cargo_number=20451581331601', WaybillCard::fromDocument(null, self::row(['status_code' => 1, 'ref' => null]))['link']);
+        self::assertSame('https://novaposhta.ua/tracking/20451581331601/', WaybillCard::fromDocument(null, self::row())['link']);
+        self::assertSame('https://novaposhta.ua/tracking/20451581331601/', WaybillCard::fromDocument(null, self::row(['status_code' => 1, 'ref' => null]))['link']);
     }
 
     public function testWithoutDocumentOnlyTheNumber(): void

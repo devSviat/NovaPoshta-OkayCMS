@@ -27,7 +27,16 @@ class DeliveryModeTest extends TestCase
         self::assertSame($mode, DeliveryMode::fromServiceType($serviceType));
     }
 
-    public function testSettingsFileOffersTheSameValuesAsNovaposhtaCost(): void
+    /** The module never orders a courier pickup: a stored Doors* (NovaposhtaCost) is priced from the branch. */
+    public function testPricedServiceTypeIsFromTheBranch(): void
+    {
+        self::assertSame('WarehouseWarehouse', DeliveryMode::fromServiceType('DoorsWarehouse')->serviceType());
+        self::assertSame('WarehouseDoors', DeliveryMode::fromServiceType('DoorsDoors')->serviceType());
+        self::assertSame('WarehouseDoors', DeliveryMode::Address->serviceType());
+    }
+
+    /** Two modes the module ships: courier pickup from the shop (Doors*) is not ordered on its waybills. */
+    public function testSettingsFileOffersTheTwoModes(): void
     {
         $xml = simplexml_load_file(dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/settings.xml');
 
@@ -36,6 +45,15 @@ class DeliveryModeTest extends TestCase
         foreach ($xml->settings->options as $option) {
             $values[] = (string)$option->value;
         }
-        self::assertSame(['WarehouseWarehouse', 'WarehouseDoors', 'DoorsWarehouse', 'DoorsDoors'], $values);
+        self::assertSame(['WarehouseWarehouse', 'WarehouseDoors'], $values);
+    }
+
+    /** The core form selects an option only on an exact match: a stored Doors* would fall back to the first, points. */
+    public function testStoredSettingsShowAnOfferedMode(): void
+    {
+        self::assertSame(['service_type' => 'WarehouseDoors', 'x' => 1], DeliveryMode::offered(['service_type' => 'DoorsDoors', 'x' => 1]));
+        self::assertSame(['service_type' => 'WarehouseWarehouse'], DeliveryMode::offered(['service_type' => 'DoorsWarehouse']));
+        self::assertSame(['service_type' => 'WarehouseDoors'], DeliveryMode::offered(['service_type' => 'WarehouseDoors']));
+        self::assertSame([], DeliveryMode::offered([]), 'a new method has no mode yet');
     }
 }

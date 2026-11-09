@@ -10,7 +10,7 @@ final class LegacyReport
 
     /** @var array<string, array{done:int, existed:int, failed:int}> */
     private array $counts = [];
-    /** @var list<array{step:string, order:?int, key:string, name:?string}> */
+    /** @var list<array{step:string, order:?int, key:string, name:?string, record:?int}> */
     private array $fails = [];
     private int $moreFails = 0;
 
@@ -21,11 +21,12 @@ final class LegacyReport
     }
 
     /** Counted as failed; the row itself may still be carried over with its names. */
-    public function fail(string $step, ?int $orderId, string $key, ?string $name = null): void
+    /** @param ?int $record id of the old module's row, for a failure the shop has no order to link */
+    public function fail(string $step, ?int $orderId, string $key, ?string $name = null, ?int $record = null): void
     {
         $this->add($step, 'failed');
         if (count($this->fails) < self::FAILS_MAX) {
-            $this->fails[] = ['step' => $step, 'order' => $orderId, 'key' => $key, 'name' => $name !== null ? mb_substr($name, 0, 255) : null];
+            $this->fails[] = ['step' => $step, 'order' => $orderId, 'key' => $key, 'name' => $name !== null ? mb_substr($name, 0, 255) : null, 'record' => $record];
         } else {
             $this->moreFails++;
         }
@@ -37,7 +38,7 @@ final class LegacyReport
         return $this->counts[$step] ?? array_fill_keys(self::KINDS, 0);
     }
 
-    /** @return list<array{step:string, order:?int, key:string, name:?string}> */
+    /** @return list<array{step:string, order:?int, key:string, name:?string, record:?int}> */
     public function fails(): array
     {
         return $this->fails;
@@ -73,6 +74,7 @@ final class LegacyReport
                     'order' => isset($fail['order']) && is_numeric($fail['order']) ? (int)$fail['order'] : null,
                     'key' => $fail['key'],
                     'name' => is_string($fail['name'] ?? null) ? $fail['name'] : null,
+                    'record' => isset($fail['record']) && is_numeric($fail['record']) ? (int)$fail['record'] : null,
                 ];
             }
         }

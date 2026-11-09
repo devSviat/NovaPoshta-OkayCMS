@@ -59,8 +59,14 @@ final class WaybillAudit
         if ($wantsMoney !== $hasMoney || ($wantsMoney && $moneySum !== $amount)) {
             $add('cod', $wantsMoney ? $amount : '0', $hasMoney ? $moneySum : '0');
         }
-        if ($wantsMoney && $hasMoney && (string)($status['RedeliveryPayer'] ?? '') !== $draft->codPayer) {
-            $add('cod_payer', $draft->codPayer, (string)($status['RedeliveryPayer'] ?? ''));
+        $payer = (string)($status['RedeliveryPayer'] ?? '');
+        if ($wantsMoney && $hasMoney && $payer !== $draft->codPayer) {
+            // For 10–20 s after creation Nova Poshta reports its default, Sender, whatever was sent (live 09.11.2026).
+            if ($payer === 'Sender') {
+                $unchecked[] = 'cod_payer';
+            } else {
+                $add('cod_payer', $draft->codPayer, $payer);
+            }
         }
 
         $wantsControl = $draft->cod && $draft->codKind === CodKind::Control;

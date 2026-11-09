@@ -9,6 +9,9 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 /** City suggestions for the cart: from the module's own table, never a request to Nova Poshta. */
 final class SettlementSearch
 {
+    /** The cart asks once per delivery method on the same page. */
+    private ?bool $hasAny = null;
+
     public function __construct(
         private readonly Database $db,
         private readonly QueryFactory $queryFactory,
@@ -18,13 +21,18 @@ final class SettlementSearch
     /** False until the dictionary run has loaded settlements that have pickup points. */
     public function hasAny(): bool
     {
+        if ($this->hasAny !== null) {
+            return $this->hasAny;
+        }
         $select = $this->queryFactory->newSelect()->cols(['1 AS x'])->from(SettlementEntity::getTable())->where('has_pickup = 1')->limit(1);
 
-        return $this->db->query($select) !== false && $this->db->results() !== [];
+        return $this->hasAny = $this->db->query($select) !== false && $this->db->results() !== [];
     }
 
-    /** @return list<array{id:int, name:string, district:?string, area:?string}> */
-    /** @param bool $pickupOnly points mode: only places with pickup points; address mode: every settlement */
+    /**
+     * @param bool $pickupOnly points mode: only places with pickup points; address mode: every settlement
+     * @return list<array{id:int, name:string, type:string, title:string, district:?string, area:?string}>
+     */
     public function find(string $raw, string $lang, int $limit = 10, bool $pickupOnly = true): array
     {
         $query = SettlementQuery::parse($raw);
@@ -54,9 +62,14 @@ final class SettlementSearch
 
         $found = [];
         foreach ($this->db->results() as $row) {
+            $name = $english && $row->name_en ? $row->name_en : $row->name_uk;
+            [$type, $title] = SettlementName::split((string)$name);
             $found[] = [
                 'id' => (int)$row->id,
-                'name' => $english && $row->name_en ? $row->name_en : $row->name_uk,
+                'name' => $name,
+                // Shown apart: the title bold, the type before it only where it tells namesakes apart.
+                'type' => $type,
+                'title' => $title,
                 'district' => $english && $row->district_en ? $row->district_en : $row->district_uk,
                 'area' => $english && $row->area_en ? $row->area_en : $row->area_uk,
             ];

@@ -128,4 +128,14 @@ class QuoteSessionTest extends TestCase
         self::assertNull(QuoteSession::get($bag, 'k', self::NOW + 60, retryUnreachableAfter: 60));
         self::assertSame('unreachable', QuoteSession::get($bag, 'k', self::NOW + 600)?->problem, 'checkout keeps what the cart showed');
     }
+
+    /** What the cart shows again after a reload: the point or the settlement the customer last priced. */
+    public function testTargetOfTheChoice(): void
+    {
+        self::assertSame(['division_id' => 11213], QuoteSession::targetIds('d:11213'));
+        self::assertSame(['settlement_id' => 110248], QuoteSession::targetIds('a:110248'));
+        self::assertSame([], QuoteSession::targetIds('x:1'));
+        self::assertSame([], QuoteSession::targetIds('d:'));
+        self::assertSame([], QuoteSession::targetIds('d:-5'));
+    }
 }

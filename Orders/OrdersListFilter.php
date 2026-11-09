@@ -12,11 +12,8 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus;
  */
 final class OrdersListFilter
 {
-    /**
-     * @param callable(string): list<int> $ordersOfNumber
-     * @param callable(list<int>): list<int> $ordersWithCodes
-     */
-    public static function apply(array $filter, ?string $group, ?string $keyword, callable $ordersOfNumber, callable $ordersWithCodes): array
+    /** @param callable(string): list<int> $ordersOfNumber */
+    public static function apply(array $filter, ?string $group, ?string $keyword, callable $ordersOfNumber): array
     {
         $number = is_string($keyword) && preg_match('/^[\d\s\-]+$/', trim($keyword)) ? WaybillNumber::normalize(trim($keyword)) : null;
         $byNumber = $number !== null ? $ordersOfNumber($number) : [];
@@ -28,7 +25,8 @@ final class OrdersListFilter
         if ($group === 'none') {
             $filter['np_without_waybill'] = 1;
         } elseif ($group !== null && $group !== '' && isset(WaybillStatus::FILTER_GROUPS[$group])) {
-            $filter = self::narrow($filter, $ordersWithCodes(WaybillStatus::FILTER_GROUPS[$group]));
+            // A subquery (OrdersEntityFilters), not the ids of every order in the group.
+            $filter['np_status_codes'] = WaybillStatus::FILTER_GROUPS[$group];
         }
 
         return $filter;

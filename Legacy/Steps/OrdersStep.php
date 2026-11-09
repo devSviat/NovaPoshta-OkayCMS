@@ -54,7 +54,8 @@ final class OrdersStep implements LegacyStep
         $orderId = (int)($row->order_id ?? 0);
         $order = $orderId > 0 ? $this->orders->order($orderId) : null;
         if ($order === null) {
-            $report->fail(self::NAME, $orderId > 0 ? $orderId : null, 'legacy_fail_no_order');
+            // No such order in the shop: the old record is named, a link would lead nowhere.
+            $report->fail(self::NAME, null, $orderId > 0 ? 'legacy_fail_no_order' : 'legacy_fail_no_order_id', $orderId > 0 ? (string)$orderId : null, (int)($row->id ?? 0) ?: null);
 
             return null;
         }
@@ -67,7 +68,7 @@ final class OrdersStep implements LegacyStep
         if ($warehouseRef !== '') {
             $values = $this->point($row, $warehouseRef, $budget);
         } elseif (trim((string)($row->street ?? '')) !== '') {
-            $values = $this->address($row);
+            $values = $this->address($row, $budget);
         } else {
             $report->fail(self::NAME, $orderId, 'legacy_fail_no_data');
 
@@ -128,13 +129,25 @@ final class OrdersStep implements LegacyStep
         ];
     }
 
-    /** @return array{0: array, 1: ?string, 2: ?string} */
-    private function address(object $row): array
+    /**
+     * The City Ref first: old address rows rarely carry a region, and a big city by name alone has
+     * village namesakes (Київ, Запоріжжя). The name with region and district is the fallback.
+     *
+     * @return array{0: array, 1: ?string, 2: ?string}|null values, problem key, name for the report; null — wait for NP
+     */
+    private function address(object $row, LegacyBudget $budget): ?array
     {
         $city = trim((string)($row->city_name ?? ''));
         $area = trim((string)($row->area_name ?? '')) ?: null;
         $district = trim((string)($row->region_name ?? '')) ?: null;
-        [$settlementId, $why] = $this->addresses->match($city, $area, $district);
+        $cityRef = trim((string)($row->city_id ?? ''));
+        [$settlementId, $why] = $cityRef !== '' ? $this->cities->match($cityRef, $city !== '' ? $city : $this->old->cityName($cityRef), $budget) : [null, null];
+        if ($why === LegacyCityMatcher::BUDGET) {
+            return null;
+        }
+        if ($settlementId === null) {
+            [$settlementId, $why] = $this->addresses->match($city, $area, $district);
+        }
         $floor = (int)($row->lifting_floor ?? 0);
         $lifting = (int)($row->door_delivery ?? 0) === 1 && $floor >= 1 && $floor <= 99;
 

@@ -139,8 +139,10 @@
         this.cityBox.hidden = step !== 'city';
         this.cityLine.hidden = step !== 'points';
         if (step === 'points' && this.settlement) {
-            this.cityLine.querySelector('.np-cart__city-line-name').textContent = this.settlement.name;
-            this.cityLine.querySelector('.np-cart__city-line-area').textContent = this.settlement.area || '';
+            // The type plain before the bold title; district and region tell namesakes apart.
+            this.cityLine.querySelector('.np-cart__city-line-type').textContent = this.settlement.type || '';
+            this.cityLine.querySelector('.np-cart__city-line-name').textContent = this.settlement.title || this.settlement.name;
+            this.cityLine.querySelector('.np-cart__city-line-area').textContent = [this.settlement.district, this.settlement.area].filter(Boolean).join(', ');
         }
         this.chosen.hidden = step !== 'chosen';
         if (step === 'chosen') {
@@ -198,8 +200,18 @@
     };
 
     Block.prototype.showChosen = function () {
-        var city = this.settlement ? [this.settlement.name, this.settlement.area].filter(Boolean).join(', ') : '';
-        this.chosen.querySelector('.np-cart__chosen-city').textContent = city;
+        var cityBox = this.chosen.querySelector('.np-cart__chosen-city');
+        cityBox.textContent = '';
+        if (this.settlement) {
+            if (this.settlement.type) {
+                cityBox.appendChild(el('span', 'np-cart__city-line-type', this.settlement.type + ' '));
+            }
+            cityBox.appendChild(el('b', null, this.settlement.title || this.settlement.name));
+            var where = [this.settlement.district, this.settlement.area].filter(Boolean).join(', ');
+            if (where) {
+                cityBox.appendChild(document.createTextNode(', ' + where));
+            }
+        }
         this.chosen.querySelector('.np-cart__chosen-title').textContent = this.division ? this.division.title || '' : '';
         var place = this.chosen.querySelector('.np-cart__chosen-place');
         place.textContent = this.division && this.division.place ? this.division.place : '';
@@ -223,7 +235,8 @@
      */
     Block.prototype.scheduleNode = function (schedule) {
         if (schedule === true) {
-            return el('span', 'np-cart__day', this.texts.cart_all_day || '');
+            // Same look as working hours: small and muted.
+            return el('span', 'np-cart__schedule np-cart__day', this.texts.cart_all_day || '');
         }
         if (!Array.isArray(schedule) || schedule.length === 0) {
             return null;
@@ -319,7 +332,10 @@
             var option = el('li', 'np-cart__suggest-item');
             option.id = self.suggest.id + '_' + index;
             option.setAttribute('role', 'option');
-            option.appendChild(el('b', null, item.name));
+            if (item.type) {
+                option.appendChild(el('span', 'np-cart__suggest-type', item.type + ' '));
+            }
+            option.appendChild(el('b', null, item.title || item.name));
             var region = [item.district, item.area].filter(Boolean).join(', ');
             if (region) {
                 option.appendChild(el('span', 'np-cart__suggest-region', region));
@@ -577,7 +593,7 @@
             var house = this.house ? this.house.value.trim() : '';
             var flat = this.flat ? this.flat.value.trim() : '';
             if (this.settlement && street && house) {
-                var place = [this.settlement.name, street, house].join(', ') + (flat ? ', ' + (this.texts.cart_flat_short || '') + ' ' + flat : '');
+                var place = [(this.settlement.type ? this.settlement.type + ' ' : '') + (this.settlement.title || this.settlement.name), street, house].join(', ') + (flat ? ', ' + (this.texts.cart_flat_short || '') + ' ' + flat : '');
                 this.choice.textContent = format(this.texts.cart_address_choice, { place: place });
                 this.choice.hidden = false;
             } else {
@@ -615,15 +631,19 @@
         }
     };
 
-    /** Not charged: the order summary says the manager will tell instead of the theme's "0". */
+    /**
+     * Not charged yet (NP gave no price, or no point or address is chosen): the order summary repeats
+     * the method's text instead of the theme's "0".
+     */
     Block.prototype.showUnpricedSummary = function () {
         var input = this.themeInput();
-        var text = this.texts.cart_price_by_manager || '';
+        var texts = [this.texts.cart_price_by_manager, this.texts.cart_price_after_point, this.texts.cart_price_after_address].filter(Boolean);
         if (!input || !input.length || !input.is(':checked') || input.data('is_free_delivery') || Number(input.data('delivery_price')) !== 0) {
             return;
         }
-        if (text !== '' && input.closest('.fn_delivery_item').find('.fn_delivery_price').first().text().trim() === text) {
-            window.jQuery('#fn_total_delivery_price').text(text);
+        var shown = input.closest('.fn_delivery_item').find('.fn_delivery_price').first().text().trim().replace(/^\(|\)$/g, '');
+        if (texts.indexOf(shown) !== -1) {
+            window.jQuery('#fn_total_delivery_price').text(shown);
         }
     };
 

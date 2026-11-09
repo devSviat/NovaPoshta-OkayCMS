@@ -53,7 +53,7 @@
     {* Shown once a place is chosen, instead of the popular cities and the city field. *}
     <div class="np-cart__city-line" hidden>
         <span class="np-cart__city-line-label">{$lang->sviat__novaposhta__cart_city|escape}:</span>
-        <b class="np-cart__city-line-name"></b>
+        <span class="np-cart__city-line-type"></span> <b class="np-cart__city-line-name"></b>
         <span class="np-cart__city-line-area"></span>
         <button type="button" class="np-cart__link np-cart__change-city">{$lang->sviat__novaposhta__cart_change_city|escape}</button>
     </div>

@@ -60,7 +60,7 @@ final class InMemoryWaybillRows implements WaybillRows
         if ($this->failComplete || ($owner !== null && $owner !== $orderId) || !\Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill::is($this->rows[$orderId] ?? null)) {
             return false;
         }
-        $this->rows[$orderId] = (object)(['number' => $number, 'ref' => $ref, 'api' => $api, 'services' => json_encode($services)] + (array)$this->rows[$orderId]);
+        $this->rows[$orderId] = (object)(['number' => $number, 'ref' => $ref, 'api' => $api, 'services' => json_encode($services), 'audit_status' => null] + (array)$this->rows[$orderId]);
 
         return true;
     }
@@ -69,6 +69,13 @@ final class InMemoryWaybillRows implements WaybillRows
     {
         if (\Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill::is($this->rows[$orderId] ?? null)) {
             unset($this->rows[$orderId]);
+        }
+    }
+
+    public function markUncertain(int $orderId): void
+    {
+        if (isset($this->rows[$orderId])) {
+            $this->rows[$orderId]->audit_status = 'uncertain';
         }
     }
 
@@ -96,10 +103,10 @@ final class InMemoryWaybillRows implements WaybillRows
         $this->rows[$orderId]->tracked_at = date('Y-m-d H:i:s', $this->now);
     }
 
-    public function due(int $limit, int $page): array
+    public function due(int $limit, int $page, string $createdSince): array
     {
         $closed = [...\Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus::FINAL, 3];
-        $due = array_values(array_filter($this->rows, static fn(object $r): bool => !\Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill::is($r) && !in_array($r->status_code ?? null, $closed, true)));
+        $due = array_values(array_filter($this->rows, static fn(object $r): bool => !\Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill::is($r) && !in_array($r->status_code ?? null, $closed, true) && (string)($r->created_at ?? '') >= $createdSince));
         usort($due, static fn(object $a, object $b): int => [($a->tracked_at ?? ''), $a->order_id] <=> [($b->tracked_at ?? ''), $b->order_id]);
 
         return array_slice($due, ($page - 1) * $limit, $limit);
@@ -108,11 +115,6 @@ final class InMemoryWaybillRows implements WaybillRows
     public function forOrders(array $orderIds): array
     {
         return array_intersect_key($this->rows, array_flip($orderIds));
-    }
-
-    public function ordersWithStatus(array $codes): array
-    {
-        return array_keys(array_filter($this->rows, static fn(object $r): bool => in_array($r->status_code ?? null, $codes, true)));
     }
 
     public function ordersOfNumber(string $number): array
