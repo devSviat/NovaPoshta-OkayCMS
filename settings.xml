@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+	<settings>
+		<variable>service_type</variable>
+		<name>{$lang->sviat__novaposhta__service_type}</name>
+		<options>
+			<name>{$lang->sviat__novaposhta__service_ww}</name>
+			<value>WarehouseWarehouse</value>
+		</options>
+		<options>
+			<name>{$lang->sviat__novaposhta__service_wd}</name>
+			<value>WarehouseDoors</value>
+		</options>
+	</settings>
+</module>

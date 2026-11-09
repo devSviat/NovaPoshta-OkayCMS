@@ -1,0 +1,170 @@
+/* Лише розкладка: поля й чіпи беруть класи теми; кольори дає тема (змінні або, якщо тема
+   змінних не має, скрипт зчитує їх із власної кнопки теми). */
+.np-cart {
+    --np-accent: var(--okay-basic-company, var(--broken-basic-company, var(--vs-accent, #00afee)));
+    --np-border: var(--okay-border-color, var(--broken-border-color, var(--vs-border, #dbdbdb)));
+    --np-text: var(--okay-body-text, var(--broken-body-text, var(--vs-ink, #222)));
+    --np-surface: var(--okay-boxed-color, var(--broken-boxed-color, #fff));
+    --np-warning: #a35a00;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 0;
+    font-size: 14px;
+    font-style: normal;
+    color: var(--np-text);
+}
+.np-cart [hidden] { display: none !important; }
+.np-cart__city { position: relative; margin: 0; }
+.np-cart__suggest {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 20;
+    margin: 2px 0 0;
+    padding: 4px 0;
+    list-style: none;
+    background: var(--np-surface);
+    border: 1px solid var(--np-border);
+    border-radius: 4px;
+    box-shadow: var(--okay-shadow-color, 0 2px 5px rgba(0, 0, 0, .2));
+    max-height: 320px;
+    overflow-y: auto;
+}
+.np-cart__suggest-item { padding: 8px 12px; cursor: pointer; line-height: 1.35; }
+.np-cart__suggest-item[aria-selected="true"], .np-cart__suggest-item:hover { background: rgba(0, 0, 0, .05); }
+.np-cart__suggest-region { display: block; font-size: 12px; opacity: .75; }
+.np-cart__suggest-type, .np-cart__city-line-type { font-weight: 400; opacity: .75; }
+.np-cart__suggest-empty { padding: 8px 12px; opacity: .75; }
+.np-cart__points { display: flex; flex-direction: column; gap: 10px; }
+.np-cart__search { margin: 0; }
+.np-cart__list {
+    display: flex;
+    flex-direction: column;
+    max-height: 340px;
+    overflow-y: auto;
+    border: 1px solid var(--np-border);
+    border-radius: 4px;
+    background: var(--np-surface);
+}
+.np-cart__option {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    padding: 10px 12px;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--np-border);
+    cursor: pointer;
+}
+.np-cart__option:last-child { border-bottom: 0; }
+.np-cart__option:hover { background: rgba(0, 0, 0, .03); }
+.np-cart__option--selected { box-shadow: inset 3px 0 0 var(--np-accent); background: rgba(0, 0, 0, .04); }
+.np-cart__option--unfit { cursor: not-allowed; opacity: .6; }
+.np-cart__option-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.np-cart__option-limit { font-size: 12px; opacity: .75; white-space: nowrap; }
+.np-cart__option-place { font-size: 13px; }
+.np-cart__option-note { font-size: 12px; opacity: .8; }
+.np-cart__option--unfit .np-cart__option-note { color: var(--np-warning); opacity: 1; }
+.np-cart__count { margin-left: .4em; opacity: .7; }
+.np-cart__more, .np-cart__empty, .np-cart__message { margin: 0; font-size: 13px; }
+.np-cart__empty { padding: 10px 12px; }
+.np-cart__quote { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 8px 12px; font-size: 13px; line-height: 1.5; background: rgba(0, 0, 0, .03); border-radius: 4px; }
+.np-cart__quote--problem { background: #fbf2e5; border: 1px solid #e2c08e; }
+.np-cart__quote p { margin: 0; }
+.np-cart__choice { margin: 0; padding: 8px 12px; border-left: 3px solid var(--np-accent); background: rgba(0, 0, 0, .03); }
+.np-cart--loading .np-cart__list { opacity: .5; }
+
+/* Теми на основі okay_shop не мають компонента чіпа. */
+.np-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.np-chip {
+    min-height: 34px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 14px;
+    color: var(--np-text);
+    background: var(--np-surface);
+    border: 1px solid var(--np-border);
+    border-radius: var(--np-radius, 17px);
+    cursor: pointer;
+}
+.np-chip:hover { border-color: var(--np-accent); }
+.np-chip--selected {
+    color: var(--np-accent-text, var(--okay-basic-company-text, var(--broken-basic-company-text, #fff)));
+    background: var(--np-accent);
+    border-color: var(--np-accent);
+}
+.np-chip--selected .np-cart__count { opacity: .85; }
+
+.np-cart__address { display: flex; flex-direction: column; gap: 12px; }
+.np-cart__address[hidden] { display: none; }
+.np-cart__street { position: relative; }
+.np-cart__street .np-cart__field, .np-cart__note .np-cart__field { margin: 0; }
+.np-cart__street-hint { margin: 4px 0 0; font-size: 13px; color: #a35a00; }
+.np-cart__address-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.np-cart__address-row .np-cart__field { margin: 0; min-width: 0; }
+.np-cart__address-row input { min-width: 0; width: 100%; box-sizing: border-box; }
+@media (max-width: 600px) { .np-cart__address-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.np-cart .np-cart__check { margin: 0; }
+/* vibe_shop не має компонента чекбокса; та сама структура, що й `.checkbox` в okay_shop, кольори теми. */
+.np-check { display: flex; align-items: flex-start; gap: 8px; position: relative; cursor: pointer; line-height: 1.4; }
+.np-check__input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.np-check__icon { flex: 0 0 22px; width: 22px; height: 22px; box-sizing: border-box; border: 1px solid var(--np-border, #dbdbdb); border-radius: 4px; background: #fff; }
+.np-check > span { padding-top: 1px; }
+.np-check__mark { stroke: #fff; stroke-width: 2px; opacity: 0; }
+.np-check__input:checked + .np-check__icon { background: var(--np-accent, #222); border-color: var(--np-accent, #222); }
+.np-check__input:checked + .np-check__icon .np-check__mark { opacity: 1; }
+.np-check__input:focus-visible + .np-check__icon { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--np-accent, #222); }
+.np-cart .np-check { margin: 0; font-weight: inherit; align-items: flex-start; }
+.np-check > span { flex: 1; min-width: 0; }
+.np-cart__note { display: flex; flex-direction: column; gap: 4px; }
+.np-cart__note-count { align-self: flex-end; font-size: 12px; opacity: .7; }
+.np-cart__lifting { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--np-border, #dbdbdb); border-radius: 4px; }
+.np-cart__lifting[hidden], .np-cart__lifting [hidden] { display: none; }
+.np-cart__lifting .np-cart__check { min-height: 22px; line-height: 22px; }
+/* Той самий відступ, що й у тексту чекбокса (тема .checkbox / np-check: квадрат 22 px + проміжок). */
+.np-cart__lifting-note { margin: 0 0 0 30px; font-size: 13px; line-height: 1.4; opacity: .8; }
+.np-cart__lifting .np-cart__elevator-check { margin-left: 30px; }
+
+/* Тема сама задає внутрішні відступи блоку; проміжок потрібен лише під описом доставки над блоком. */
+* + .fn_delivery_module_html .np-cart { margin-top: 10px; }
+
+.np-cart__city-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.np-cart__city-line-label, .np-cart__city-line-area { font-size: 13px; opacity: .7; }
+.np-cart__link {
+    padding: 0;
+    font: inherit;
+    font-weight: 600;
+    color: var(--np-accent);
+    text-decoration: underline;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+.np-cart__chosen { display: flex; align-items: flex-start; gap: 12px; line-height: 1.5; }
+.np-cart__chosen-text { display: flex; flex: 1 1 auto; flex-direction: column; gap: 2px; min-width: 0; }
+.np-cart__chosen-city { font-size: 12px; opacity: .7; }
+.np-cart__chosen .np-cart__change { flex: none; }
+.np-cart__schedule, .np-cart__chosen-schedule { font-size: 11px; line-height: 1.35; opacity: .75; }
+.np-cart__chosen-schedule .np-cart__schedule { opacity: 1; }
+.np-cart__day { white-space: nowrap; }
+.np-cart__option-schedule { display: block; margin-top: 2px; }
+/* Вужчі бічні поля дають "Відділення 652 | Поштомат 7389" вміститися в рядок на телефоні 390 px; довші назви
+   переносяться. */
+.np-cart__groups > * { padding-left: 10px; padding-right: 10px; white-space: nowrap; }
+
+/* Усередині label оплати теми (поза .np-cart): змінні кольорів модуля там не задані. */
+.np-cod-line { display: block; margin-top: 2px; font-size: 11px; font-style: normal; font-weight: 400; line-height: 1.35; color: #a35a00; }
+.np-cod-line--described { margin-top: 6px; font-size: inherit; }
+.np-cod-line[hidden] { display: none; }
+
+/* Видимий для jQuery Validate (він пропускає :hidden), але не для людей: до нього чіпляється повідомлення
+   "виберіть пункт видачі". */
+.np-cart__points { position: relative; }
+.np-cart__point-check { position: absolute; width: 1px; height: 1px; padding: 0; margin: 0; border: 0; opacity: 0; pointer-events: none; }
+

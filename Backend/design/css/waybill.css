@@ -1,0 +1,182 @@
+.np-wb { margin-top: 12px; padding-top: 12px; border-top: 1px solid #e4e6e9; }
+.np-wb__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.np-wb__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0 10px; }
+.np-wb__field { display: block; margin-bottom: 8px; }
+.np-wb__field .heading_label { display: block; margin-bottom: 2px; }
+.np-wb__error { display: block; color: #c0392b; font-size: 12px; margin-top: 2px; }
+.np-wb__error:empty { display: none; }
+.np-wb .form-control.np-wb__invalid { border-color: #c0392b; }
+.np-wb__line { margin: 4px 0; }
+.np-wb__note-small { display: block; margin-top: 2px; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
+.np-wb__note-small[hidden] { display: none; }
+/* Пояснення під полем не зсуває сусіднє поле пари: обидва вирівнюються по верху. */
+.np-wb__pair:has(.np-wb__declared-note:not([hidden])) { align-items: start; }
+.np-wb__form .np-wb__line { margin: 2px 0 6px; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
+/* Заголовки груп форми накладної, оформлені як «ДОДАТКОВІ ПОСЛУГИ» в картці. */
+.np-wb__group { display: block; margin: 16px 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); }
+.np-wb__group--first { margin-top: 4px; }
+.np-wb__actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+.np-wb__number { font-size: 18px; font-weight: 600; letter-spacing: .02em; margin: 6px 0; }
+.np-wb__issue { margin-top: 10px; }
+.np-wb__issue details { margin-top: 4px; }
+.np-wb__issue summary { cursor: pointer; }
+.np-wb__attach { margin-top: 10px; }
+.np-wb__attach[hidden] { display: none; }
+.np-wb__attach-row { display: flex; gap: 8px; margin: 8px 0 4px; }
+.np-wb__attach-row .form-control { flex: 1 1 auto; min-width: 0; }
+.np-wb__notices .alert { margin: 8px 0 0; }
+.np-wb [hidden] { display: none !important; }
+.np-wb__grid > .np-wb__field { display: flex; flex-direction: column; justify-content: flex-end; }
+
+.np-op__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.np-op__link { background: none; border: 0; padding: 0; color: #2a76c6; text-decoration: underline; cursor: pointer; font: inherit; }
+.np-op__editor { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+.np-op__field { display: block; position: relative; margin: 0; }
+.np-op__field .heading_label { display: block; margin-bottom: 2px; }
+.np-op__error { display: block; color: #c0392b; font-size: 12px; }
+.np-op__error:empty { display: none; }
+.np-op__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 0 8px; align-items: end; }
+/* Будинок, квартира, під'їзд, поверх: короткі значення, один рядок, як у кошику. */
+.np-op__row { margin-bottom: 8px; color: var(--ok-ink, #212529); font-size: 14px; line-height: 1.35; }
+.np-op__label { display: block; margin-bottom: 1px; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
+.fn_np_order_point.is-editing > .np-op__row { display: none; }
+.np-op__hint { display: block; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
+.np-op__grid--four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.np-op__suggest { position: absolute; z-index: 20; left: 0; right: 0; margin: 2px 0 0; padding: 0; list-style: none; background: #fff; border: 1px solid #d0d5da; border-radius: 6px; max-height: 220px; overflow: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, .08); }
+.np-op__suggest li { padding: 6px 10px; cursor: pointer; }
+.np-op__suggest li:hover { background: #eef4fb; }
+.np-op__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.np-op__chip { padding: 5px 14px; border-radius: 8px; border: 1px solid var(--ok-accent, #48b0f7); background: #fff; color: var(--ok-accent, #48b0f7); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.np-op__chip--on { background: var(--ok-accent, #48b0f7); color: #fff; }
+.np-op__chosen { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 7px 12px; border: 1px solid #ced4da; border-radius: 4px; line-height: 1.35; }
+.np-op__chosen[hidden] { display: none; }
+.np-op__type { color: #676e75; }
+.np-op__where { display: block; font-size: 12px; color: #676e75; }
+.np-op__link { flex: none; background: none; border: 0; padding: 0; color: var(--ok-accent, #48b0f7); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; }
+.np-op__list { border: 1px solid #e4e6e9; border-radius: 6px; max-height: 260px; overflow: auto; }
+.np-op__option { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; padding: 8px 10px; border: 0; border-bottom: 1px solid #eef0f2; background: #fff; font: inherit; cursor: pointer; }
+.np-op__option--on { background: #eef4fb; }
+.np-op__place, .np-op__hours { font-size: 12px; color: #676e75; }
+.np-op__problem { font-size: 12px; color: #a35a00; }
+.np-op__empty { padding: 8px 10px; }
+.np-op__unfit { padding: 8px 10px; border-radius: 6px; background: #fbf2e5; border: 1px solid #e2c08e; }
+.np-op__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.np-op__message .alert { margin-top: 8px; }
+.np-op__message .alert .btn { margin-top: 6px; }
+.np-op__editor[hidden] { display: none !important; }
+
+.np-wb__badge { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; vertical-align: middle; letter-spacing: 0; }
+.np-wb__badge--created, .np-wb__badge--processing, .np-wb__badge--changed, .np-wb__badge--failed { background: #fff3cd; color: #856404; }
+.np-wb__badge--deleted, .np-wb__badge--refused { background: #f8d7da; color: #721c24; }
+.np-wb__badge--not-found { background: #e2e3e5; color: #383d41; }
+.np-wb__badge--in-transit { background: #cfe2ff; color: #084298; }
+.np-wb__badge--arrived { background: #d1e2e7; color: #0f5132; }
+.np-wb__badge--received, .np-wb__badge--return { background: #d1e7dd; color: #0f5132; }
+.np-wb__cells { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0; }
+.np-wb__section { margin-top: 10px; padding-top: 8px; border-top: 1px solid #eef0f2; }
+.np-wb__label { display: block; font-size: 12px; color: #676e75; }
+.np-wb__status { margin: 6px 0; color: #545b62; }
+/* Як у старому модулі трекінгу: стримана сіра кнопка ліворуч у футері. */
+.np-wb__more-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 0; border-radius: 4px; background: #f5f5f5; color: #757575; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color .2s; }
+.np-wb__more-toggle:hover { background: #e7e7e7; }
+.np-wb__more-toggle svg { transition: transform .3s ease; }
+.np-wb__more-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.np-wb__tools .np-wb__muted { margin-right: 6px; }
+.np-wb__footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; margin-top: 10px; font-size: 12px; }
+.np-wb__footer .np-wb__link { flex: none; }
+.np-wb__link { background: none; border: 0; padding: 0; color: #2a76c6; text-decoration: underline; cursor: pointer; font: inherit; }
+.np-list-status { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; }
+.np-list-status__logo { flex: none; }
+/* Переважає правило списку ядра .okay_list .okay_list_boding a:not(.btn). */
+.okay_list .np-list-status a.np-list-status__number:not(.btn) { color: #646464; white-space: nowrap; text-decoration: none; }
+.okay_list .np-list-status a.np-list-status__number:not(.btn):hover { color: var(--ok-accent, #135c94); }
+.np-list-status .np-wb__badge { margin-left: 4px; padding: 3px 6px; font-size: 10px; line-height: 1; white-space: nowrap; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .1); }
+.np-mass { display: flex; flex-direction: column; gap: 6px; }
+.np-mass__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.np-mass__title { font-weight: 600; }
+.np-mass__hide { background: none; border: 0; padding: 0; color: #2a76c6; text-decoration: underline; cursor: pointer; font: inherit; }
+.np-mass__row--created { color: #1e7e34; }
+.np-mass__row--skipped { color: #8a5a00; }
+.np-mass__row--failed { color: #c0392b; }
+.np-mass__note { padding: 8px 10px; border-radius: 6px; background: #eef4fb; border: 1px solid #c9dcf0; }
+
+.np-wb__title { font-size: 16px; font-weight: 600; }
+.np-wb__label { display: block; margin: 8px 0 4px; }
+.np-wb__tip { margin-left: 4px; vertical-align: middle; }
+.np-wb__radios { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 4px 10px; margin-bottom: 6px; }
+.np-wb__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; align-items: end; }
+.np-wb__triple { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 8px; align-items: end; }
+.np-wb__locker { background: #f3f7fc; border-radius: 6px; padding: 8px 10px; margin-bottom: 10px; }
+.np-wb__who { margin: 6px 0 10px; padding: 8px 10px; border-radius: 4px; background: #f5f7f9; line-height: 1.45; }
+.np-wb__who-label { color: #6b7279; }
+.np-wb__who .np-wb__error:empty { display: none; }
+.np-wb__switch { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.np-wb__switch .switch { margin: 0; flex: none; }
+
+.np-codpay__kinds{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+/* Ядро центрує перемикачі рядка; з відкритими видами післяплати сусідні з'їхали б донизу. */
+.activity_of_switch:has(> .np-codpay){align-items:flex-start}
+.np-codpay__kinds .okay_type_radio_wrap{margin:0}
+/* Радіокнопка ядра — flex-елемент: довгий підпис стиснув би її кружечок. */
+.np-codpay .okay_type_radio::before{flex:none}
+.np-codpay .okay_type_radio{gap:6px;padding:6px 0}
+.np-codpay .np_tip[data-hint]:after{width:max-content;max-width:300px;white-space:normal;font-weight:400;font-size:13px;line-height:1.35;text-align:left}
+
+/* Картка накладної в основній колонці, розкладена як картка старого модуля трекінгу. */
+.np-wb:has(> .np-wb__card) { margin-top: 0; padding-top: 0; border-top: 0; }
+.np-wb__card { border: 1px solid var(--ok-line, #e4e6e9); border-radius: 10px; background: var(--ok-surface, #fff); }
+.np-wb__card .np-wb__label { display: block; margin: 0 0 2px; font-size: 13px; color: var(--ok-ink-muted, #676e75); }
+/* Одна сітка на чотири колонки для верхнього рядка, тіла й рядка оплати, як у старій картці: опис, отримувач і платник починаються на тих самих лініях. */
+.np-wb__top .np-wb__num { grid-column: span 2; }
+/* Опис лишається в один рядок поруч з оголошеною вартістю; довгий закінчується «…», підказка містить його повністю. */
+.np-wb__oneline { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 400; }
+.np-wb__top { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; align-items: end; padding: 16px 20px; border-bottom: 1px solid var(--ok-line, #e4e6e9); }
+.np-wb__num { display: flex; flex-direction: column; gap: 2px; }
+.np-wb__muted { font-size: 12px; color: var(--ok-ink-muted, #676e75); }
+.np-wb__card .np-wb__number { display: inline-flex; align-items: center; gap: 12px; margin: 0; white-space: nowrap; font-size: 26px; font-weight: 600; letter-spacing: 0; }
+.np-wb__card .np-wb__copy { line-height: 1.2; color: inherit; text-decoration: none; }
+.np-wb__card .np-wb__copy:hover, .np-wb__card .np-wb__copy.is-copied { color: var(--ok-accent, #135c94); }
+.np-wb__open { display: inline-flex; align-items: center; color: #757575; }
+.np-wb__open:hover { color: var(--ok-accent, #135c94); }
+.np-wb__open svg { display: block; }
+.np-wb__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 16px 20px; }
+.np-wb__route { display: flex; flex-direction: column; align-items: flex-start; align-self: start; gap: 20px; padding: 8px 10px; font-size: 14px; font-weight: 500; line-height: 16px; color: var(--ok-ink, #212529); background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; }
+.np-wb__route b { font-weight: inherit; }
+.np-wb__small { margin-top: 4px; font-size: 12px; color: var(--ok-ink-soft, #343a40); }
+.np-wb__route .np-wb__badge { margin: 0; font-size: 13px; line-height: 18px; }
+.np-wb__recip { display: flex; flex-direction: column; gap: 10px; }
+.np-wb__capital { display: inline-block; }
+.np-wb__capital::first-letter { text-transform: uppercase; }
+.np-wb__services { padding: 0 20px 14px; }
+.np-wb__caps { display: block; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); margin-bottom: 2px; }
+.np-wb__pay { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; padding: 0 20px 16px; }
+.np-wb__big { font-size: 20px; font-weight: 600; }
+.np-wb__note { padding: 0 20px 12px; }
+.np-wb__card .np-wb__more { margin: 12px 0 -12px; overflow: hidden; background: #f2f4f4; }
+.np-wb__card .np-wb__more[hidden] { display: none; }
+.np-wb__more-inner { padding: 16px 20px; }
+.np-wb__more-title { margin-bottom: 8px; font-size: 14px; font-weight: 600; text-transform: uppercase; color: var(--ok-ink, #212529); }
+.np-wb__card .np-wb__more-body { display: flex; flex-wrap: wrap; gap: 12px 40px; text-align: left; }
+.np-wb__card .np-wb__more-body > div { display: block; min-width: 90px; text-align: left; }
+.np-wb__card .np-wb__more-body .np-wb__label { display: block; }
+.np-wb__card .np-wb__issues { padding: 0 20px; }
+.np-wb__card .np-wb__footer { margin: 12px 0 0; padding: 10px 20px; border-top: 1px solid var(--ok-line, #e4e6e9); font-size: 13px; }
+.np-wb__tools { display: inline-flex; align-items: center; gap: 4px; }
+.np-wb__icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--ok-ink-muted, #676e75); cursor: pointer; }
+.np-wb__icon:hover { background: var(--ok-sunken, #eef0f3); color: var(--ok-ink, #212529); }
+.fn_np_wb_refresh.is-busy svg { animation: np-wb-spin .8s linear infinite; }
+@keyframes np-wb-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .fn_np_wb_refresh.is-busy svg { animation: none; } }
+.np-wb__icon--danger:hover { color: var(--ok-danger, #c8352c); }
+@media (max-width: 767px) {
+    .np-wb__top, .np-wb__body, .np-wb__pay { grid-template-columns: minmax(0, 1fr); }
+    .np-wb__top .np-wb__num { grid-column: auto; }
+    .np-wb__card .np-wb__number { font-size: 22px; }
+}
+
+/* Створення й прив'язка поруч; рядок прив'язки відкривається під ними. */
+.np-wb__actions--form { align-items: center; }
+.np-wb__field .bootstrap-select { width: 100% !important; }
+/* Повнорозмірні кнопки поруч, як у старому модулі. */
+.np-wb__actions--form { gap: 8px; }
+.np-wb__actions > .btn { white-space: nowrap; }

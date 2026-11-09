@@ -1,0 +1,1 @@
+{* Один рядок, без завершального перенесення: тема показує блок опису, щойно цей блок щось виводить. 2 — це CodKind::Money; скрипт кошика заповнює й показує рядок. *}{if $payment_method->sviat__novaposhta__cod|default:0 == 2}<span class="np-cod-line np-cod-line--described" data-np-cod-payment="{$payment_method->id|escape}" hidden></span>{/if}

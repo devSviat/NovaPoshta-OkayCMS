@@ -1,0 +1,60 @@
+{
+  "Okay": "4.5.3",
+  "version": "1.0.0",
+  "moduleName": "Nova Poshta",
+  "vendor": {
+    "email": "devsviat@proton.me",
+    "site": "https://github.com/devSviat"
+  },
+  "modifications": {
+    "front": [
+      {
+        "file": "order.tpl",
+        "changes": [
+          {
+            "find": "{if $delivery}",
+            "append": "order_delivery.tpl"
+          }
+        ]
+      }
+    ],
+    "backend": [
+      {
+        "file": "orders.tpl",
+        "changes": [
+          {
+            "find": "{if $labels}",
+            "appendBefore": "orders_status_filter.tpl"
+          },
+          {
+            "find": "<form class=\"search\" method=\"get\">",
+            "appendAfter": "{if $np_status_group}<input type=\"hidden\" name=\"np_waybill\" value=\"{$np_status_group|escape}\">{/if}"
+          },
+          {
+            "find": "<option data-item=\"remove\" value=\"delete\">",
+            "appendBefore": "orders_action_option.tpl"
+          },
+          {
+            "find": "{* Visited info *}",
+            "appendBefore": "orders_mass_report.tpl"
+          }
+        ]
+      },
+      {
+        "file": "product.tpl",
+        "changes": [
+          {
+            "find": "name=\"variants[weight][]\" type=\"text\" value=\"{$variant->weight|escape}\"",
+            "parent": "",
+            "appendAfter": "variant_volume.tpl"
+          },
+          {
+            "find": "name=\"variants[weight][]\" type=\"text\" value=\"\"",
+            "parent": "",
+            "appendAfter": "variant_volume_new.tpl"
+          }
+        ]
+      }
+    ]
+  }
+}

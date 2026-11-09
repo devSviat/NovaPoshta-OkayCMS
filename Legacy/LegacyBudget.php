@@ -1,0 +1,31 @@
+<?php
+
+namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
+
+/** Скільки може витратити один тік планувальника: реальний час і виклики до Нової Пошти. */
+final class LegacyBudget
+{
+    public function __construct(private readonly float $deadline, private int $calls)
+    {
+    }
+
+    public static function forTick(float $seconds, int $calls): self
+    {
+        return new self(microtime(true) + $seconds, $calls);
+    }
+
+    public function hasTime(): bool
+    {
+        return microtime(true) < $this->deadline;
+    }
+
+    public function takeCall(): bool
+    {
+        if ($this->calls <= 0) {
+            return false;
+        }
+        $this->calls--;
+
+        return true;
+    }
+}
