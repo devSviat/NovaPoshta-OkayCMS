@@ -223,8 +223,6 @@
 | `addressOf(int $orderId)` | `NpAddress`: місто й відділення або адреса |
 | `NpOrders::waybillTable()` | таблиця накладних для підзапитів у фільтрах сутностей |
 
-Ручна перевірка перед релізом описана в [tests/MANUAL-TESTING.md](tests/MANUAL-TESTING.md).
-
 Тести лежать у `tests/` і в архів релізу не потрапляють. До Нової Пошти звертається лише
 `tests/Api/LiveApiTest.php`, і тільки зі змінною `NP_TEST_API_KEY` (тестовий ключ, не
 ключ магазину):
