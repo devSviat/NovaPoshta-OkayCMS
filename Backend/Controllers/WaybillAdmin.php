@@ -5,6 +5,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Backend\Controllers;
 use Okay\Admin\Controllers\IndexAdmin;
 use Okay\Core\BackendTranslations;
 use Okay\Entities\OrdersEntity;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\MassOrderSource;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\NpPhone;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDraft;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDrafts;
@@ -20,7 +21,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
  */
 class WaybillAdmin extends IndexAdmin
 {
-    public function fetch(WaybillService $service, WaybillDrafts $drafts, WaybillView $view, WaybillTracking $tracking, BackendTranslations $translations)
+    public function fetch(WaybillService $service, WaybillDrafts $drafts, WaybillView $view, WaybillTracking $tracking, BackendTranslations $translations, MassOrderSource $orders)
     {
         if (!$this->request->method('post')) {
             $this->answer(405, ['ok' => false]);
@@ -41,7 +42,14 @@ class WaybillAdmin extends IndexAdmin
             return;
         }
 
-        $outcome = match ((string)$this->request->post('action')) {
+        $action = (string)$this->request->post('action');
+        // A new waybill only for an order still delivered by the module; removing or refreshing one stays possible.
+        if (in_array($action, ['create', 'attach'], true) && !$orders->isOurs($orderId)) {
+            $this->answer(200, self::view(WaybillOutcome::refused('waybill_not_np'), $translations));
+
+            return;
+        }
+        $outcome = match ($action) {
             'create' => $this->create($service, $drafts, $orderId),
             'attach' => $service->attach($orderId, (string)$this->request->post('number'), NpPhone::normalize((string)($order->phone ?? ''))),
             'remove' => $service->remove($orderId),

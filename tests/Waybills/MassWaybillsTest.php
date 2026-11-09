@@ -166,6 +166,19 @@ class MassWaybillsTest extends TestCase
         self::assertSame([['orderId' => 990065, 'kind' => 'skipped', 'key' => 'waybill_no_point', 'value' => null]], $this->mass()->run([990065])->rows);
     }
 
+    /** An online payment not made yet and no COD: a mass run would ship goods nobody paid for. The form can still make it. */
+    public function testUnpaidOrderWithoutCodIsSkipped(): void
+    {
+        $this->drafts[990068] = W::point(['orderId' => 990068, 'cod' => false, 'awaitsPayment' => true]);
+        $this->drafts[990069] = W::point(['orderId' => 990069, 'cod' => true, 'codAmount' => 500.0]);
+        $this->npCreates();
+
+        $rows = $this->mass()->run([990068, 990069])->rows;
+
+        self::assertSame(['skipped', 'mass_unpaid'], [$rows[0]['kind'], $rows[0]['key']]);
+        self::assertSame('created', $rows[1]['kind'], 'COD collects the money on pickup');
+    }
+
     /** No form in a mass run: a fixed "Recipient" payer with delivery inside the total would charge the customer twice. */
     public function testDoubleDeliveryIsSkipped(): void
     {

@@ -75,6 +75,9 @@ final class MassWaybills
         if ($draft->chargesDeliveryTwice()) {
             return $skip('mass_double_delivery');
         }
+        if ($draft->awaitsPayment) {
+            return $skip('mass_unpaid');
+        }
 
         $outcome = $this->service->create($orderId, $draft);
         if ($outcome->ok) {

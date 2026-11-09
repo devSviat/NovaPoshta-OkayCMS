@@ -33,6 +33,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigration;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersEntityFilters;
@@ -143,6 +144,14 @@ class Init extends AbstractInit
             new Schedule([LegacyMigration::class, 'tick'])
                 ->name('Nova Poshta: data from the old modules')
                 ->time('*/5 * * * *')
+                ->overlap(false)
+                ->timeout(300)
+        );
+        // A cheap check every 15 minutes; the work itself runs once a day (see OrderRowsCleanup::tick).
+        $this->registerSchedule(
+            new Schedule([OrderRowsCleanup::class, 'tick'])
+                ->name('Nova Poshta: rows of deleted orders')
+                ->time('*/15 * * * *')
                 ->overlap(false)
                 ->timeout(300)
         );

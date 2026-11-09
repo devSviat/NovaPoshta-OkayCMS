@@ -137,7 +137,7 @@ return [
     ],
     OrderRowsCleanup::class => [
         'class' => OrderRowsCleanup::class,
-        'arguments' => [new SR(EntityFactory::class)],
+        'arguments' => [new SR(EntityFactory::class), new SR(ModuleState::class)],
     ],
     DbCityRefStore::class => [
         'class' => DbCityRefStore::class,

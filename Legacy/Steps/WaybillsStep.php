@@ -76,7 +76,9 @@ final class WaybillsStep implements LegacyStep
             return;
         }
         $fetchedAt = self::date($row->tracking_update_at ?? null);
-        $ref = trim((string)($row->ref_id ?? '')) ?: (is_string($document['Ref'] ?? null) && $document['Ref'] !== '' ? $document['Ref'] : null);
+        // Only the old module's own ref proves the shop made it: getStatusDocuments carries RefEW, and an attached
+        // waybill taken for ours would be deleted at NP by «remove».
+        $ref = trim((string)($row->ref_id ?? '')) ?: null;
         $code = $document !== null ? WaybillTrackingDocument::status($document) : null;
         // The old tracker kept the code in its own column too; its response may be gone.
         $code ??= is_numeric($row->status_code ?? null) && (int)$row->status_code > 0 ? (int)$row->status_code : null;

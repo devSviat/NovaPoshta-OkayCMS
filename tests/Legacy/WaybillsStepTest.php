@@ -119,6 +119,18 @@ class WaybillsStepTest extends TestCase
         self::assertSame('2026-11-01 10:00:00', $this->orders->waybills[201]['status_at']);
     }
 
+    /** getStatusDocuments carries RefEW, not Ref: a Ref there is no proof the shop made the waybill, so it stays attached and is never deleted at NP. */
+    public function testRefFromTheTrackingAnswerDoesNotMakeItOurs(): void
+    {
+        $doc = ['Number' => '20450000000046', 'StatusCode' => '9', 'Ref' => 'doc-ref'];
+        $this->old->tracking = [self::row(1, 203, ['ref_id' => '', 'tracking_response' => json_encode($doc)])];
+        $this->migrate(new LegacyReport());
+
+        $w = $this->orders->waybills[203];
+        self::assertNull($w['ref']);
+        self::assertSame('attached', $w['api']);
+    }
+
     public function testBrokenJsonKeepsNumber(): void
     {
         $this->old->tracking = [self::row(1, 202, ['ref_id' => '', 'tracking_response' => '{oops'])];
