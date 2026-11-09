@@ -149,6 +149,9 @@
 .np-wb__tools { display: inline-flex; align-items: center; gap: 4px; }
 .np-wb__icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--ok-ink-muted, #676e75); cursor: pointer; }
 .np-wb__icon:hover { background: var(--ok-sunken, #eef0f3); color: var(--ok-ink, #212529); }
+.fn_np_wb_refresh.is-busy svg { animation: np-wb-spin .8s linear infinite; }
+@keyframes np-wb-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .fn_np_wb_refresh.is-busy svg { animation: none; } }
 .np-wb__icon--danger:hover { color: var(--ok-danger, #c8352c); }
 @media (max-width: 767px) {
     .np-wb__top, .np-wb__body, .np-wb__pay { grid-template-columns: minmax(0, 1fr); }

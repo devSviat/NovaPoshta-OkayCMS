@@ -133,6 +133,29 @@
         });
     }
 
+    var TOAST_KEY = 'sviat_novaposhta_toast';
+
+    function toast(kind, text, title) {
+        if (text && window.toastr) {
+            window.toastr[kind](text, title);
+        }
+    }
+
+    /** Create, attach and remove reload the page: the toast waits in the session storage for the next load. */
+    function toastAfterReload(root, action) {
+        try {
+            window.sessionStorage.setItem(TOAST_KEY, JSON.stringify([root.getAttribute('data-done-' + action), root.getAttribute('data-toast-ok')]));
+        } catch (e) {}
+    }
+
+    try {
+        var pending = JSON.parse(window.sessionStorage.getItem(TOAST_KEY) || 'null');
+        window.sessionStorage.removeItem(TOAST_KEY);
+        if (pending) {
+            document.addEventListener('DOMContentLoaded', function () { toast('success', pending[0], pending[1]); });
+        }
+    } catch (e) {}
+
     function send(root, button, action, extra, issuesBox) {
         if (button.disabled) {
             return;
@@ -141,6 +164,7 @@
         // Icon buttons keep their SVG: the label is restored as markup.
         var label = button.innerHTML;
         button.disabled = true;
+        button.classList.add('is-busy');
         if (action === 'create') {
             button.textContent = root.getAttribute('data-busy');
         }
@@ -150,6 +174,7 @@
             .then(function (answer) {
                 // The card lives in the main column, the form beside it: a new state reloads the page.
                 if (answer.ok && action !== 'refresh') {
+                    toastAfterReload(root, action);
                     window.location.reload();
                     return;
                 }
@@ -160,19 +185,23 @@
                     if (fresh) {
                         root.replaceWith(fresh);
                         showNotices(fresh, answer.notices);
+                        toast('success', root.getAttribute('data-done-refresh'), root.getAttribute('data-toast-ok'));
                         return;
                     }
                 }
                 showIssues(root, answer.issues || [], issuesBox, root.getAttribute('data-failed-' + action));
+                toast('error', root.getAttribute('data-failed-' + action), root.getAttribute('data-toast-error'));
                 if (action === 'remove') {
                     offerUnlink(root);
                 }
             })
             .catch(function () {
                 showIssues(root, [{ field: null, message: null, advice: root.getAttribute('data-network'), details: '' }], issuesBox, root.getAttribute('data-failed-' + action));
+                toast('error', root.getAttribute('data-network'), root.getAttribute('data-toast-error'));
             })
             .finally(function () {
                 button.disabled = false;
+                button.classList.remove('is-busy');
                 button.innerHTML = label;
             });
     }
