@@ -235,7 +235,8 @@
      */
     Block.prototype.scheduleNode = function (schedule) {
         if (schedule === true) {
-            return el('span', 'np-cart__day', this.texts.cart_all_day || '');
+            // Same look as working hours: small and muted.
+            return el('span', 'np-cart__schedule np-cart__day', this.texts.cart_all_day || '');
         }
         if (!Array.isArray(schedule) || schedule.length === 0) {
             return null;
