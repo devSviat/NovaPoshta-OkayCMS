@@ -9,12 +9,12 @@ use PHPUnit\Framework\TestCase;
 
 class ApiKeyTest extends TestCase
 {
-    private const string KEY = '76a0a855c068a51254fb19d539fa1e70';
+    private const string KEY = 'test-np-key-not-real-aaaaaaaaaaa';
 
     public static function pasted(): array
     {
         return [
-            'spaces and newline' => [" 76A0A855C068A51254FB19D539FA1E70\n", '76A0A855C068A51254FB19D539FA1E70'],
+            'spaces and newline' => [" TEST-NP-KEY-NOT-REAL-AAAAAAAAAAA\n", 'TEST-NP-KEY-NOT-REAL-AAAAAAAAAAA'],
             'double quotes' => ['"' . self::KEY . '"', self::KEY],
             'single quotes and tab' => ["\t'" . self::KEY . "' ", self::KEY],
             'clean' => [self::KEY, self::KEY],
@@ -33,7 +33,7 @@ class ApiKeyTest extends TestCase
 
     public function testMaskedShowsOnlyLastFour(): void
     {
-        self::assertSame('••••1e70', ApiKey::masked(self::KEY));
+        self::assertSame('••••aaaa', ApiKey::masked(self::KEY));
     }
 
     public function testFingerprintDoesNotRevealTheKey(): void

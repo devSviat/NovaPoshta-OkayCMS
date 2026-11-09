@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class WaybillIssuesTest extends TestCase
 {
-    private const string KEY = '0123456789abcdef0123456789abcdef';
+    private const string KEY = 'test-np-key-not-real-bbbbbbbbbbb';
 
     public function testNewApiPhoneErrorPointsAtThePhone(): void
     {
