@@ -81,7 +81,7 @@ final class CodPayments
      */
     public static function wantsFee(array $deliveryPaymentIds, array $codIds): bool
     {
-        return array_intersect(array_map('intval', $deliveryPaymentIds), $codIds) !== [];
+        return array_intersect(array_map(intval(...), $deliveryPaymentIds), $codIds) !== [];
     }
 
     /**
