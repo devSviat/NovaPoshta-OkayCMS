@@ -210,7 +210,7 @@ return [
     ],
     DictionaryCounts::class => [
         'class' => DictionaryCounts::class,
-        'arguments' => [new SR(EntityFactory::class)],
+        'arguments' => [new SR(EntityFactory::class), new SR(Database::class), new SR(QueryFactory::class)],
     ],
     GroupsStore::class => [
         'class' => GroupsStore::class,
