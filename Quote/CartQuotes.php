@@ -50,7 +50,7 @@ final class CartQuotes
             return null;
         }
 
-        return $this->run($delivery, 'd:' . $divisionId, $cart, $forOrder || $forAdmin, false, $forAdmin,
+        return $this->run($delivery, 'd:' . $divisionId, $cart, $forOrder || $forAdmin, false, $forAdmin, null, false,
             static fn(ShippingConfig $config): array => [$division, null]);
     }
 
@@ -67,7 +67,7 @@ final class CartQuotes
         }
         $lifting = $lifting && $this->shipping->read()->showLifting;
 
-        return $this->run($delivery, 'a:' . (int)$settlement->id, $cart, $forOrder || $forAdmin, $lifting, $forAdmin,
+        return $this->run($delivery, 'a:' . (int)$settlement->id, $cart, $forOrder || $forAdmin, $lifting, $forAdmin, $floor, $elevator,
             function (ShippingConfig $config) use ($settlement, $lifting, $floor, $elevator): array {
                 try {
                     $cityRef = $this->addressCities->forSettlement($settlement);
@@ -89,7 +89,7 @@ final class CartQuotes
      *     it, and the visitor's session cache is neither read nor written
      * @param callable(ShippingConfig): array{0: object|AddressTarget|null, 1: ?string} $target recipient, or the problem
      */
-    private function run(object $delivery, string $targetKey, object $cart, bool $forOrder, bool $lifting, bool $forAdmin, callable $target): DeliveryQuote
+    private function run(object $delivery, string $targetKey, object $cart, bool $forOrder, bool $lifting, bool $forAdmin, ?int $floor, bool $elevator, callable $target): DeliveryQuote
     {
         $config = $this->shipping->read();
         $sender = $config->senderDivisionId ? $this->entityFactory->get(DivisionEntity::class)->get($config->senderDivisionId) : null;
@@ -101,9 +101,9 @@ final class CartQuotes
         $cod = $this->codFeeWanted($delivery);
         $bag = $forAdmin ? [] : $this->bag();
         if (!$forAdmin) {
-            QuoteSession::choose($bag, (int)$delivery->id, $targetKey, $cod, $lifting);
+            QuoteSession::choose($bag, (int)$delivery->id, $targetKey, $cod, $lifting, $floor, $elevator);
         }
-        $key = QuoteKey::for((int)$delivery->id, $targetKey, $cod, $cart, $lifting);
+        $key = QuoteKey::for((int)$delivery->id, $targetKey, $cod, $cart, $lifting, $floor, $elevator);
         $now = time();
         $cached = $forAdmin ? null : QuoteSession::get($bag, $key, $now, $forOrder ? null : self::RETRY_UNREACHABLE_AFTER);
         if ($cached !== null) {
@@ -174,10 +174,10 @@ final class CartQuotes
             return null;
         }
 
-        return QuoteSession::get($bag, QuoteKey::for((int)$delivery->id, $chosen['target'], $chosen['cod'], $cart, $chosen['lifting']), time());
+        return QuoteSession::get($bag, QuoteKey::for((int)$delivery->id, $chosen['target'], $chosen['cod'], $cart, $chosen['lifting'], $chosen['floor'], $chosen['elevator']), time());
     }
 
-    /** @return array{target:string, cod:bool, lifting:bool}|null what the visitor last chose for this method */
+    /** @return array{target:string, cod:bool, lifting:bool, floor:?int, elevator:bool}|null what the visitor last chose for this method */
     public function chosen(int $deliveryId): ?array
     {
         return QuoteSession::chosen($this->bag(), $deliveryId);

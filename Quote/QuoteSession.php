@@ -46,19 +46,28 @@ final class QuoteSession
     }
 
     /** @param string $target "d:<division id>" or "a:<settlement id>" */
-    public static function choose(array &$bag, int $deliveryId, string $target, bool $cod, bool $lifting = false): void
+    public static function choose(array &$bag, int $deliveryId, string $target, bool $cod, bool $lifting = false, ?int $floor = null, bool $elevator = false): void
     {
         $chosen = is_array($bag['chosen'] ?? null) ? $bag['chosen'] : [];
-        $chosen[$deliveryId] = ['target' => $target, 'cod' => $cod, 'lifting' => $lifting];
+        $chosen[$deliveryId] = ['target' => $target, 'cod' => $cod, 'lifting' => $lifting, 'floor' => $floor, 'elevator' => $elevator];
         $bag['chosen'] = $chosen;
     }
 
-    /** @return array{target:string, cod:bool, lifting:bool}|null */
+    /** @return array{target:string, cod:bool, lifting:bool, floor:?int, elevator:bool}|null */
     public static function chosen(array $bag, int $deliveryId): ?array
     {
         $row = is_array($bag['chosen'] ?? null) ? ($bag['chosen'][$deliveryId] ?? null) : null;
+        if (!is_array($row) || !is_string($row['target'] ?? null)) {
+            return null;
+        }
 
-        return is_array($row) && is_string($row['target'] ?? null) ? ['target' => $row['target'], 'cod' => (bool)($row['cod'] ?? false), 'lifting' => (bool)($row['lifting'] ?? false)] : null;
+        return [
+            'target' => $row['target'],
+            'cod' => (bool)($row['cod'] ?? false),
+            'lifting' => (bool)($row['lifting'] ?? false),
+            'floor' => is_int($row['floor'] ?? null) ? $row['floor'] : null,
+            'elevator' => (bool)($row['elevator'] ?? false),
+        ];
     }
 
     /** @return array{division_id?: int, settlement_id?: int} the ids a "d:" or "a:" target names */

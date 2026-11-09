@@ -6,10 +6,13 @@ namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 final class QuoteKey
 {
     /** Bumped when a cached quote's meaning changes. */
-    private const string FORMAT = 'v2';
+    private const string FORMAT = 'v3';
 
-    /** @param string $target "d:<division id>" or "a:<settlement id>" */
-    public static function for(int $deliveryId, string $target, bool $cod, object $cart, bool $lifting = false): string
+    /**
+     * @param string $target "d:<division id>" or "a:<settlement id>"
+     * @param ?int $floor with $elevator, part of the key only with lifting: NP prices lifting by both
+     */
+    public static function for(int $deliveryId, string $target, bool $cod, object $cart, bool $lifting = false, ?int $floor = null, bool $elevator = false): string
     {
         $lines = [];
         foreach ((array)($cart->purchases ?? []) as $purchase) {
@@ -17,6 +20,8 @@ final class QuoteKey
         }
         sort($lines);
 
-        return sha1(implode('|', [self::FORMAT, $deliveryId, $target, $cod ? 1 : 0, $lifting ? 1 : 0, implode(',', $lines), number_format((float)($cart->total_price ?? 0), 2, '.', '')]));
+        $lift = $lifting ? '1:' . (int)$floor . ':' . ($elevator ? 1 : 0) : '0';
+
+        return sha1(implode('|', [self::FORMAT, $deliveryId, $target, $cod ? 1 : 0, $lift, implode(',', $lines), number_format((float)($cart->total_price ?? 0), 2, '.', '')]));
     }
 }
