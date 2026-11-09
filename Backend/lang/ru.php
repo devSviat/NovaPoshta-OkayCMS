@@ -19,6 +19,7 @@ $lang['sviat__novaposhta__state_none_action'] = 'вставьте ключ из 
 $lang['sviat__novaposhta__state_unchecked_title'] = 'Ключ ещё не проверен';
 $lang['sviat__novaposhta__state_unchecked_text'] = 'Модуль не знает, работает ли сохранённый ключ.';
 $lang['sviat__novaposhta__state_unchecked_action'] = 'нажмите «Проверить ещё раз».';
+$lang['sviat__novaposhta__key_renew_hint'] = 'Новая Почта сама продлевает ключ, которым пользуется модуль. Чтобы получить напоминание об окончании срока действия, укажите e-mail при создании ключа в бизнес-кабинете.';
 $lang['sviat__novaposhta__state_invalid_title'] = 'Новая Почта не принимает этот ключ';
 $lang['sviat__novaposhta__state_invalid_text'] = 'Ключ недействителен, просрочен или отозван.';
 $lang['sviat__novaposhta__state_invalid_action'] = 'создайте новый ключ в бизнес-кабинете НП (Настройки → Безопасность → API-ключи) и вставьте его сюда.';

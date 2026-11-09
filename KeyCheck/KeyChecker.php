@@ -13,7 +13,7 @@ use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 /** Checks a key against both Nova Poshta APIs before the manager relies on it. */
 final class KeyChecker
 {
-    private const string STATE = 'key_check';
+    public const string STATE = 'key_check';
 
     /** Both checks run while the manager waits for the page; keep them well under proxy timeouts (60 s). */
     public const int TIMEOUT_SECONDS = 8;

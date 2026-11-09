@@ -121,6 +121,7 @@
                 </button>
             {/if}
         </div>
+        <p class="text_grey mt-1 mb-0">{$btr->sviat__novaposhta__key_renew_hint|escape}</p>
     </div>
 </form>
 

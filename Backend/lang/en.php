@@ -19,6 +19,7 @@ $lang['sviat__novaposhta__state_none_action'] = 'paste the key from the Nova Pos
 $lang['sviat__novaposhta__state_unchecked_title'] = 'The key has not been checked';
 $lang['sviat__novaposhta__state_unchecked_text'] = 'The module does not know whether the saved key works.';
 $lang['sviat__novaposhta__state_unchecked_action'] = 'press “Check again”.';
+$lang['sviat__novaposhta__key_renew_hint'] = 'Nova Poshta renews a key in use by itself. To get a reminder before a key expires, add an e-mail when you create the key in the business account.';
 $lang['sviat__novaposhta__state_invalid_title'] = 'Nova Poshta does not accept this key';
 $lang['sviat__novaposhta__state_invalid_text'] = 'The key is invalid, expired or revoked.';
 $lang['sviat__novaposhta__state_invalid_action'] = 'create a new key in the Nova Poshta business account (Settings → Security → API keys) and paste it here.';
