@@ -208,6 +208,9 @@ final readonly class WaybillDraft
         if ($this->locker && $cargoType === 'Cargo') {
             $errors[] = ['field' => 'cargo_type', 'key' => 'waybill_error_locker_cargo'];
         }
+        if ($cargoType === 'Documents' && $weight !== null && $weight > OldDocumentRequest::DOCUMENTS_WEIGHTS[array_key_last(OldDocumentRequest::DOCUMENTS_WEIGHTS)]) {
+            $errors[] = ['field' => 'weight', 'key' => 'waybill_error_documents_weight'];
+        }
         $note = $this->mode === DeliveryMode::Address ? mb_substr($text('address_note', (string)$this->addressNote), 0, self::NOTE_MAX) : null;
 
         $recipientType = $choice('recipient_type', $this->recipientType, ['PrivatePerson', 'Organization']);

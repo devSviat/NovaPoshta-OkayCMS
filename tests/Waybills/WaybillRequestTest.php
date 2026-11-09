@@ -72,6 +72,30 @@ class WaybillRequestTest extends TestCase
         self::assertArrayNotHasKey('OptionsSeat', OldDocumentRequest::forDivision(W::point(['cod' => true]), W::sender()), 'a branch takes the general weight and volume');
     }
 
+    /** NP takes documents at 0.1, 0.5 or 1 kg only and refuses any volume (live 09.11.2026: «VolumeWeight must be empty»). */
+    public function testOldDocumentsSendAnAllowedWeightAndNoVolume(): void
+    {
+        $documents = static fn(array $override): array => OldDocumentRequest::forDivision(W::point(['cargoType' => 'Documents', 'cod' => true] + $override), W::sender());
+
+        self::assertSame(['0.1', '0.5', '0.5', '1', '1'], array_map(
+            static fn(float $kg): string => $documents(['weightKg' => $kg])['Weight'],
+            [0.05, 0.2, 0.5, 0.7, 1.0],
+        ));
+        $request = $documents(['weightKg' => 0.3, 'locker' => true, 'seatCm' => [30, 20, 2]]);
+        self::assertArrayNotHasKey('VolumeGeneral', $request);
+        self::assertArrayNotHasKey('OptionsSeat', $request, 'a parcel locker takes documents without the seat (live 09.11.2026)');
+        self::assertSame('0.008', OldDocumentRequest::forDivision(W::point(['cod' => true]), W::sender())['VolumeGeneral'], 'a parcel keeps its volume');
+    }
+
+    /** The new API takes documents of any size and records the size's weight: a 40 cm cube became 16 kg (live 09.11.2026). */
+    public function testNewDocumentsGoAsAnEnvelopeOfOneKilogramAtMost(): void
+    {
+        $parcel = NewShipmentRequest::build(W::point(['cargoType' => 'Documents', 'weightKg' => 3.0, 'volumeM3' => 0.064]), W::sender())['parcels'][0];
+
+        self::assertSame(['documents', 350, 250, 20, 1000], [$parcel['cargoCategory'], $parcel['length'], $parcel['width'], $parcel['height'], $parcel['actualWeight']]);
+        self::assertSame(300, NewShipmentRequest::build(W::point(['cargoType' => 'Documents', 'weightKg' => 0.3]), W::sender())['parcels'][0]['actualWeight']);
+    }
+
     public function testExtraInfoGoesToBothApis(): void
     {
         self::assertSame('ZR879A01 (2 шт)', OldDocumentRequest::forDivision(W::point(['extraInfo' => 'ZR879A01 (2 шт)']), W::sender())['AdditionalInformation']);

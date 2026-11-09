@@ -497,6 +497,7 @@ $lang['sviat__novaposhta__waybill_extra_names'] = 'Назви товарів';
 $lang['sviat__novaposhta__waybill_extra_none'] = 'Нічого';
 $lang['sviat__novaposhta__waybill_error_extra_info'] = 'Додаткова інформація: не більше 100 символів';
 $lang['sviat__novaposhta__waybill_error_locker_cargo'] = 'У поштомат не можна «Вантаж»: виберіть «Посилка» або «Документи»';
+$lang['sviat__novaposhta__waybill_error_documents_weight'] = 'Документи — до 1 кг: зменште вагу або виберіть «Посилка»';
 $lang['sviat__novaposhta__cod_overview_note'] = 'Вмикається в самому способі оплати. Тут перелік, щоб бачити все разом.';
 $lang['sviat__novaposhta__cod_configure'] = 'змінити';
 $lang['sviat__novaposhta__cod_kind_money'] = 'грошовий переказ';

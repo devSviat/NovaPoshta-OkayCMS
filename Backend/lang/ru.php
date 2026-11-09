@@ -497,6 +497,7 @@ $lang['sviat__novaposhta__waybill_extra_names'] = 'Названия товаро
 $lang['sviat__novaposhta__waybill_extra_none'] = 'Ничего';
 $lang['sviat__novaposhta__waybill_error_extra_info'] = 'Дополнительная информация: не больше 100 символов';
 $lang['sviat__novaposhta__waybill_error_locker_cargo'] = 'В почтомат нельзя «Груз»: выберите «Посылка» или «Документы»';
+$lang['sviat__novaposhta__waybill_error_documents_weight'] = 'Документы — до 1 кг: уменьшите вес или выберите «Посылка»';
 $lang['sviat__novaposhta__cod_overview_note'] = 'Включается в самом способе оплаты. Здесь перечень, чтобы видеть всё вместе.';
 $lang['sviat__novaposhta__cod_configure'] = 'изменить';
 $lang['sviat__novaposhta__cod_kind_money'] = 'денежный перевод';

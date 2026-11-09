@@ -497,6 +497,7 @@ $lang['sviat__novaposhta__waybill_extra_names'] = 'Product names';
 $lang['sviat__novaposhta__waybill_extra_none'] = 'Nothing';
 $lang['sviat__novaposhta__waybill_error_extra_info'] = 'Additional information: 100 characters at most';
 $lang['sviat__novaposhta__waybill_error_locker_cargo'] = 'A parcel locker takes no «Cargo»: choose «Parcel» or «Documents»';
+$lang['sviat__novaposhta__waybill_error_documents_weight'] = 'Documents weigh up to 1 kg: lower the weight or choose «Parcel»';
 $lang['sviat__novaposhta__cod_overview_note'] = 'Switched on in the payment method itself. Listed here to see them all.';
 $lang['sviat__novaposhta__cod_configure'] = 'change';
 $lang['sviat__novaposhta__cod_kind_money'] = 'money transfer';

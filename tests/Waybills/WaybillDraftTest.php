@@ -324,6 +324,14 @@ class WaybillDraftTest extends TestCase
         self::assertSame([['field' => 'extra_info', 'key' => 'waybill_error_extra_info']], self::build()->withInput(['extra_info' => str_repeat('я', 101)]));
     }
 
+    /** NP refuses documents over 1 kg (live 09.11.2026: «Weight is not allowed for Documents»). */
+    public function testDocumentsWeighOneKilogramAtMost(): void
+    {
+        self::assertSame([['field' => 'weight', 'key' => 'waybill_error_documents_weight']], self::build()->withInput(['cargo_type' => 'Documents', 'weight' => '1.5']));
+        self::assertSame(1.0, self::build()->withInput(['cargo_type' => 'Documents', 'weight' => '1'])->weightKg);
+        self::assertSame(1.5, self::build()->withInput(['cargo_type' => 'Parcel', 'weight' => '1.5'])->weightKg);
+    }
+
     /** NP takes no «Вантаж» to a parcel locker (api-docs-ua «ЕН на поштомат»: Parcel, Documents). */
     public function testLockerTakesNoCargo(): void
     {
