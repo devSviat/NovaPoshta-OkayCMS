@@ -1,16 +1,17 @@
 {* Waybill of the order: the card when there is one, the form otherwise. Inside the order's own
    form, so the fields carry data-field instead of name: saving the order must not post them. *}
 {if $np_waybill}
-{function name=np_wb_attach}
-<details class="np-wb__attach">
-    <summary class="btn btn_small btn_border_blue">{$btr->sviat__novaposhta__waybill_attach_open|escape}</summary>
+{* Attach by number: a toggle button among the actions, the number row in its own panel below them, as in the old module. *}
+{function name=np_wb_attach_toggle}<button type="button" class="btn btn_border_blue fn_np_wb_attach_toggle" aria-expanded="false">{$btr->sviat__novaposhta__waybill_attach_open|escape}</button>{/function}
+{function name=np_wb_attach_panel}
+<div class="np-wb__attach" hidden>
     <div class="np-wb__attach-row">
         <input class="form-control" data-attach="number" inputmode="numeric" maxlength="20" placeholder="{$btr->sviat__novaposhta__waybill_attach_placeholder|escape}">
         <button type="button" class="btn btn_small btn_border_blue fn_np_wb_attach">{$btr->sviat__novaposhta__waybill_attach|escape}</button>
     </div>
     <div class="text_grey">{$btr->sviat__novaposhta__waybill_attach_note|escape}</div>
     <div class="np-wb__issues np-wb__issues--attach" role="alert"></div>
-</details>
+</div>
 {/function}
 {function name=np_wb_tip}<i class="fn_tooltips np-wb__tip" title="{$text|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>{/function}
 {function name=np_wb_switch}
@@ -150,7 +151,8 @@
         </div>
     {elseif $w.refusal}
         <div class="alert alert--warning"><div class="alert__content"><p>{$btr->getTranslation($w.refusalKey)|escape}</p></div></div>
-        {np_wb_attach}
+        <div class="np-wb__actions">{np_wb_attach_toggle}</div>
+        {np_wb_attach_panel}
     {else}
         {$d = $w.draft}
         <div class="np-wb__form">
@@ -253,9 +255,10 @@
 
             <div class="np-wb__issues" role="alert"></div>
             <div class="np-wb__actions np-wb__actions--form">
-                <button type="button" class="btn btn_small btn-info fn_np_wb_create">{$btr->sviat__novaposhta__waybill_create|escape}</button>
-                {np_wb_attach}
+                <button type="button" class="btn btn-info fn_np_wb_create">{$btr->sviat__novaposhta__waybill_create|escape}</button>
+                {np_wb_attach_toggle}
             </div>
+            {np_wb_attach_panel}
         </div>
     {/if}
 </div>
