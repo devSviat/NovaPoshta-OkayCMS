@@ -121,7 +121,7 @@
                 </button>
             {/if}
         </div>
-        <p class="text_grey mt-1 mb-0">{$btr->sviat__novaposhta__key_renew_hint|escape}</p>
+        <p class="text_grey mt-1 mb-0">{$btr->sviat__novaposhta__key_renew_hint|escape} <i class="fn_tooltips np_tip hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__key_renew_tip|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__key_renew_tip|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i></p>
     </div>
 </form>
 
