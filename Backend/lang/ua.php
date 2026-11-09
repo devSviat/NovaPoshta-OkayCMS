@@ -116,8 +116,6 @@ $lang['sviat__novaposhta__shipping_error_volume'] = 'Об\'єм — число �
 $lang['sviat__novaposhta__cod_box'] = 'Післяплата';
 $lang['sviat__novaposhta__cod_payment_disabled'] = 'вимкнений';
 $lang['sviat__novaposhta__cod_no_payments'] = 'Способів оплати ще немає.';
-$lang['sviat__novaposhta__variant_volume'] = 'Об\'єм, м³ (НП)';
-$lang['sviat__novaposhta__variant_volume_hint'] = 'Об\'єм упаковки в метрах кубічних: 40×30×10 см = 0.012. Порожньо — невідомо.';
 $lang['sviat__novaposhta__order_term'] = 'Орієнтовна дата доставки';
 $lang['sviat__novaposhta__order_price_fallback'] = 'Нова Пошта не дала ціни доставки, тому доставку в замовлення не нараховано. Повідомте покупцю її вартість.';
 $lang['sviat__novaposhta__shipping_show_lifting'] = 'Підйом на поверх у кошику';
@@ -526,3 +524,5 @@ $lang['sviat__novaposhta__waybill_attach_open'] = 'Прив\'язати накл
 $lang['sviat__novaposhta__waybill_payer_free'] = 'Покупцю обіцяно безкоштовну доставку, тому її оплачує відправник.';
 $lang['sviat__novaposhta__waybill_payer_in_total'] = 'Доставка (%sum% грн) уже в сумі замовлення, тому її оплачує відправник.';
 $lang['sviat__novaposhta__op_change'] = 'змінити';
+$lang['sviat__novaposhta__variant_volume'] = 'Об\'єм, м³';
+$lang['sviat__novaposhta__variant_volume_hint'] = 'Об\'єм упакованого товару для Нової Пошти: рахує ціну доставки і чи вміститься посилка в поштомат. 40×30×10 см = 0.012. Якщо порожньо, береться об\'єм із налаштувань модуля.';

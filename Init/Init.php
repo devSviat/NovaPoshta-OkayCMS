@@ -68,7 +68,7 @@ class Init extends AbstractInit
     {
         $this->registerEntityField(PaymentsEntity::class, CodPayments::FIELD);
         $this->registerEntityField(VariantsEntity::class, VariantVolume::FIELD);
-        $this->addBackendBlock('product_variant', 'variant_volume.tpl');
+        // The variant's volume field goes into the row itself, by a module.json modification of product.tpl.
         $this->registerChainExtension([BackendPaymentsRequest::class, 'postPayment'], [BackendExtender::class, 'paymentPost']);
         $this->registerQueueExtension([BackendPaymentsHelper::class, 'getPaymentMethod'], [BackendExtender::class, 'assignPaymentCod']);
         $this->addBackendBlock('payment_switch_checkboxes', 'payment_cod.tpl');
