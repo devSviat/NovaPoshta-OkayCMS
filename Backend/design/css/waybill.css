@@ -99,3 +99,7 @@
 /* The core centres the switches of a row; with the COD kinds open, the neighbours would slide down. */
 .activity_of_switch:has(> .np-codpay){align-items:flex-start}
 .np-codpay__kinds .okay_type_radio_wrap{margin:0}
+/* The core radio is a flex item: a long label would squeeze its circle. */
+.np-codpay .okay_type_radio::before{flex:none}
+.np-codpay .okay_type_radio{gap:6px;padding:6px 0}
+.np-codpay .np_tip[data-hint]:after{width:max-content;max-width:300px;white-space:normal;font-weight:400;font-size:13px;line-height:1.35;text-align:left}
