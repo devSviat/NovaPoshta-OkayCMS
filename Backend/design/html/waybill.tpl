@@ -246,7 +246,7 @@
                     <input class="switch-input" type="checkbox" data-field="cod" value="1" {if $d->cod}checked{/if} {if $w.paid}disabled{/if}>
                     <span class="switch-label"></span><span class="switch-handle"></span>
                 </label>
-                <span class="text_grey font_12">{if $w.paid}{$btr->sviat__novaposhta__waybill_cod_paid|escape}{elseif $w.codPayment}{$btr->sviat__novaposhta__waybill_cod_auto|escape}{else}{$btr->sviat__novaposhta__waybill_cod_manual|escape}{/if}</span>
+                <span class="text_grey font_12">{if $w.paid}{$btr->sviat__novaposhta__waybill_cod_paid|escape}{elseif $w.codPayment && !$d->cod && $d->codAmount <= 0}{$btr->sviat__novaposhta__waybill_cod_covered|escape}{elseif $w.codPayment}{$btr->sviat__novaposhta__waybill_cod_auto|escape}{else}{$btr->sviat__novaposhta__waybill_cod_manual|escape}{/if}</span>
             </div>
             <input type="hidden" data-field="cod_kind" value="{$d->codKind->value|escape}">
             <div class="np-wb__pair">

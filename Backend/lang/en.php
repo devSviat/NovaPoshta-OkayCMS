@@ -229,6 +229,7 @@ $lang['sviat__novaposhta__waybill_address_group'] = 'Address';
 $lang['sviat__novaposhta__waybill_address_note'] = 'Address note (entrance, intercom)';
 $lang['sviat__novaposhta__waybill_payment_group'] = 'Payment';
 $lang['sviat__novaposhta__waybill_cod_paid'] = 'The order is already paid';
+$lang['sviat__novaposhta__waybill_cod_covered'] = 'Nothing to collect: the order is already prepaid';
 $lang['sviat__novaposhta__waybill_cod_auto'] = 'Set by the order\'s payment method';
 $lang['sviat__novaposhta__waybill_cod_manual'] = 'The order is not paid on delivery';
 $lang['sviat__novaposhta__waybill_cod_amount'] = 'Amount to collect, ₴';

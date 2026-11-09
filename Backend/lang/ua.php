@@ -229,6 +229,7 @@ $lang['sviat__novaposhta__waybill_address_group'] = 'Адреса';
 $lang['sviat__novaposhta__waybill_address_note'] = 'Примітка до адреси (під\'їзд, домофон)';
 $lang['sviat__novaposhta__waybill_payment_group'] = 'Оплата';
 $lang['sviat__novaposhta__waybill_cod_paid'] = 'Замовлення вже оплачене';
+$lang['sviat__novaposhta__waybill_cod_covered'] = 'Нічого стягувати: замовлення вже сплачено наперед';
 $lang['sviat__novaposhta__waybill_cod_auto'] = 'За способом оплати замовлення';
 $lang['sviat__novaposhta__waybill_cod_manual'] = 'Замовлення оплачується не при отриманні';
 $lang['sviat__novaposhta__waybill_cod_amount'] = 'До сплати, ₴';
