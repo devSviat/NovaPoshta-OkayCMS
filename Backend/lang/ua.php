@@ -181,7 +181,6 @@ $lang['sviat__novaposhta__waybill_failed_remove'] = 'Накладну не ви�
 $lang['sviat__novaposhta__waybill_what_to_do'] = 'Що зробити:';
 $lang['sviat__novaposhta__waybill_details'] = 'Технічні деталі';
 $lang['sviat__novaposhta__waybill_network'] = 'Немає відповіді від сайту. Перевірте з\'єднання; перед повторним створенням перевірте кабінет НП.';
-$lang['sviat__novaposhta__waybill_attached_note'] = 'Прив\'язана за номером: створена в кабінеті НП, модуль її не звіряв.';
 $lang['sviat__novaposhta__waybill_audit_unverified'] = 'Не вдалося звірити з Новою Поштою. Перевірте накладну в кабінеті НП.';
 $lang['sviat__novaposhta__waybill_find_cod'] = 'Післяплата в накладній не така, як замовлено';
 $lang['sviat__novaposhta__waybill_find_cod_payer'] = 'Комісію за переказ у накладній платить інша сторона';

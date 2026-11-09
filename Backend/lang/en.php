@@ -181,7 +181,6 @@ $lang['sviat__novaposhta__waybill_failed_remove'] = 'The waybill was not deleted
 $lang['sviat__novaposhta__waybill_what_to_do'] = 'What to do:';
 $lang['sviat__novaposhta__waybill_details'] = 'Technical details';
 $lang['sviat__novaposhta__waybill_network'] = 'No answer from the site. Check the connection; before creating again, check the NP account.';
-$lang['sviat__novaposhta__waybill_attached_note'] = 'Attached by number: made in the NP account, the module did not check it.';
 $lang['sviat__novaposhta__waybill_audit_unverified'] = 'Could not check with Nova Poshta — check the waybill in the NP account.';
 $lang['sviat__novaposhta__waybill_find_cod'] = 'Cash on delivery in the waybill differs from the order';
 $lang['sviat__novaposhta__waybill_find_cod_payer'] = 'Another party pays the transfer fee in the waybill';

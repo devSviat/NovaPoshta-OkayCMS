@@ -95,9 +95,7 @@
                     {if $c.payment.method}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_method|escape}</span>{$btr->getTranslation($c.payment.method)|escape}</div>{/if}
                 </div>
             {/if}
-            {if $r.attached}
-                <div class="np-wb__note text_grey">{$btr->sviat__novaposhta__waybill_attached_note|escape}</div>
-            {elseif $r.audit && $r.audit.status != 'verified'}
+            {if !$r.attached && $r.audit && $r.audit.status != 'verified'}
                 <div class="np-wb__note">
                 {if $r.audit.status == 'unverified'}
                     <div class="alert alert--warning"><div class="alert__content"><p>{$btr->sviat__novaposhta__waybill_audit_unverified|escape}</p></div></div>
