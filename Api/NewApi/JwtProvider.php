@@ -8,6 +8,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\Http\HttpTransport;
 use Okay\Modules\Sviat\NovaPoshta\Api\Http\TransportException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
+use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyRejections;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
 /** JWT for the new API: lives about an hour, kept in module state and bound to the key it was issued for. */
@@ -27,6 +28,7 @@ final class JwtProvider
         private readonly StateStorage $state,
         private readonly ApiKey $apiKey,
         ?\Closure $now = null,
+        private readonly ?KeyRejections $rejections = null,
     ) {
         $this->now = $now ?? time(...);
     }
@@ -45,7 +47,14 @@ final class JwtProvider
             return $jwt;
         }
 
-        $jwt = self::issue($this->http, $key, $timeoutSeconds);
+        try {
+            $jwt = self::issue($this->http, $key, $timeoutSeconds);
+        } catch (NpApiException $e) {
+            if ($e->kind === NpErrorKind::InvalidKey) {
+                $this->rejections?->record('new', $key);
+            }
+            throw $e;
+        }
         $this->store($key, $jwt);
 
         return $jwt;

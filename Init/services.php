@@ -38,6 +38,7 @@ use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Store\DbDictionaryStore;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
+use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyRejections;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderParcel;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderPointChange;
@@ -104,7 +105,11 @@ return [
     ],
     JwtProvider::class => [
         'class' => JwtProvider::class,
-        'arguments' => [new SR(CurlTransport::class), new SR(ModuleState::class), new SR(ApiKey::class)],
+        'arguments' => [new SR(CurlTransport::class), new SR(ModuleState::class), new SR(ApiKey::class), null, new SR(KeyRejections::class)],
+    ],
+    KeyRejections::class => [
+        'class' => KeyRejections::class,
+        'arguments' => [new SR(ModuleState::class), new SR(ApiKey::class)],
     ],
     NewApiClient::class => [
         'class' => NewApiClient::class,
@@ -112,7 +117,7 @@ return [
     ],
     OldApiClient::class => [
         'class' => OldApiClient::class,
-        'arguments' => [new SR(CurlTransport::class), new SR(ApiKey::class)],
+        'arguments' => [new SR(CurlTransport::class), new SR(ApiKey::class), null, new SR(KeyRejections::class)],
     ],
     KeyChecker::class => [
         'class' => KeyChecker::class,

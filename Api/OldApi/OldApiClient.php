@@ -8,6 +8,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\Http\HttpTransport;
 use Okay\Modules\Sviat\NovaPoshta\Api\Http\TransportException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
+use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyRejections;
 
 /** JSON API v2.0: only what the new API cannot do yet (COD, payment control, address shipments). */
 final class OldApiClient
@@ -26,6 +27,7 @@ final class OldApiClient
         private readonly HttpTransport $http,
         private readonly ApiKey $apiKey,
         ?\Closure $sleep = null,
+        private readonly ?KeyRejections $rejections = null,
     ) {
         $this->sleep = $sleep ?? static fn() => sleep(1);
     }
@@ -134,6 +136,10 @@ final class OldApiClient
             stripos($joined, 'to many requests') !== false, stripos($joined, 'too many requests') !== false => NpErrorKind::RateLimited,
             default => NpErrorKind::Rejected,
         };
+
+        if ($kind === NpErrorKind::InvalidKey && $this->fixedKey === null) {
+            $this->rejections?->record('old', $key);
+        }
 
         throw NpApiException::fromNp($kind, $texts ?: ['Nova Poshta refused the request'], $codes, $secrets);
     }
