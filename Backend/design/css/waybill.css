@@ -124,10 +124,10 @@
 .np-wb__open { display: inline-flex; color: var(--ok-accent, #135c94); }
 .np-wb__open:hover { color: var(--ok-ink, #212529); }
 .np-wb__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 16px 20px; }
-.np-wb__route { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px 14px; background: var(--ok-sunken, #f6f7f9); border: 1px solid var(--ok-line, #eceff3); border-radius: 8px; }
-.np-wb__route b { font-weight: 600; }
-.np-wb__small { font-size: 13px; color: var(--ok-ink-soft, #343a40); }
-.np-wb__route .np-wb__badge { margin: 0; font-size: 13px; }
+.np-wb__route { display: flex; flex-direction: column; align-items: flex-start; align-self: start; gap: 20px; padding: 8px 10px; font-size: 14px; line-height: 16px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; }
+.np-wb__route b { font-weight: 400; }
+.np-wb__small { margin-top: 4px; font-size: 12px; color: var(--ok-ink-soft, #343a40); }
+.np-wb__route .np-wb__badge { margin: 0; font-size: 13px; line-height: 18px; }
 .np-wb__recip { display: flex; flex-direction: column; gap: 10px; }
 .np-wb__capital { display: inline-block; }
 .np-wb__capital::first-letter { text-transform: uppercase; }
