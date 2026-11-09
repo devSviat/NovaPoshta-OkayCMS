@@ -102,6 +102,7 @@ class Init extends AbstractInit
         $this->addBackendControllerPermission('OrderPointAdmin', 'orders');
 
         $this->addFrontBlock('front_cart_delivery', 'cart_delivery.tpl');
+        $this->addFrontBlock('front_cart_payment', 'cart_cod_fee.tpl');
         $this->addFrontBlock('front_scripts_after_validate', 'cart_validation.tpl');
         $this->registerQueueExtension(
             [DeliveriesHelper::class, 'getCartDeliveriesList'],

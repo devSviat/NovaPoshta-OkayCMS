@@ -1,0 +1,1 @@
+{* One line, no trailing newline: the theme shows the description box whenever this block prints anything. 2 is CodKind::Money; the cart script fills and shows the line. *}{if $payment_method->sviat__novaposhta__cod|default:0 == 2}<span class="np-cod-line np-cod-line--described" data-np-cod-payment="{$payment_method->id|escape}" hidden></span>{/if}
