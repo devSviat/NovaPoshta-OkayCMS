@@ -7,9 +7,19 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\Parcel;
 /** Body of the new API's POST /shipments for a point waybill. */
 final class NewShipmentRequest
 {
+    /**
+     * Documents go as the largest envelope the API docs allow (35 × 25 × 2 cm, up to 1 kg): the API takes any size
+     * and records its volume weight, so a cube of the goods' volume would weigh the documents as a parcel.
+     */
+    private const array DOCUMENTS_MM = [350, 250, 20];
+    private const int DOCUMENTS_MAX_G = 1000;
+
     public static function build(WaybillDraft $draft, SenderParty $sender): array
     {
+        $documents = $draft->cargoType === 'Documents';
         $side = new Parcel($draft->weightKg, $draft->volumeM3, $draft->declaredCost)->cubeSideMm();
+        [$length, $width, $height] = $documents ? self::DOCUMENTS_MM : [$side, $side, $side];
+        $grams = (int)round($draft->weightKg * 1000);
 
         $body = [
             // Lets the module find the shipment by its order when NP did not answer the create.
@@ -23,10 +33,10 @@ final class NewShipmentRequest
                 'parcelDescription' => $draft->description,
                 'insuranceCost' => $draft->declaredCost,
                 // Goods give a volume only: a cube of it, as in the price calculation.
-                'length' => $side,
-                'width' => $side,
-                'height' => $side,
-                'actualWeight' => (int)round($draft->weightKg * 1000),
+                'length' => $length,
+                'width' => $width,
+                'height' => $height,
+                'actualWeight' => $documents ? min($grams, self::DOCUMENTS_MAX_G) : $grams,
             ]],
         ];
 
