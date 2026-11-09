@@ -925,7 +925,7 @@
     /**
      * Колір, яким тема позначає вибрану опцію: позначка вибраного способу доставки (svg-галочка
      * або стилізована радіокнопка), інакше кнопка оформлення замовлення. Не перший .form__button: це
-     * кнопка купона, бліда в broken_new (QA 07.11.2026).
+     * кнопка купона, бліда в деяких темах.
      */
     function themeAccent() {
         var chosen = document.querySelector('input[name="delivery_id"]:checked');
@@ -947,7 +947,7 @@
         var button = found ? null : document.querySelector('[name="checkout"].form__button, button[name="checkout"]');
         if (button) {
             var style = getComputedStyle(button);
-            // Градієнтна кнопка (broken_new) має фірмовий колір у градієнті або на рамці.
+            // Градієнтна кнопка має фірмовий колір у градієнті або на рамці.
             var gradient = (style.backgroundImage.match(/rgba?\([^)]*\)/g) || []);
             found = accentColor(style.backgroundColor) || accentColor(gradient[gradient.length - 1]) || accentColor(gradient[0]) || accentColor(style.borderTopColor);
         }
@@ -955,7 +955,7 @@
     }
 
     /**
-     * Не всі теми на основі okay_shop виставляють свої кольори як CSS-змінні (broken_new і зібрані
+     * Не всі теми на основі okay_shop виставляють свої кольори як CSS-змінні (деякі теми й зібрані
      * стенди прибирають їх під час компіляції), тож колір і заокруглення зчитуються зі сторінки.
      * vibe_shop нічого не потребує: блок використовує його компонент чіпа.
      */
