@@ -29,8 +29,8 @@ final class KeyRejections
             return;
         }
         $last = KeyCheckResult::fromJson((string)$this->state->get(KeyChecker::STATE));
-        $new = $last?->newApi ?? KeyAccess::Unreachable;
-        $old = $last?->oldApi ?? KeyAccess::Unreachable;
+        $new = $last->newApi ?? KeyAccess::Unreachable;
+        $old = $last->oldApi ?? KeyAccess::Unreachable;
         if (($api === 'new' ? $new : $old) === KeyAccess::InvalidKey) {
             return;
         }
