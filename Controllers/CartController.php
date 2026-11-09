@@ -12,6 +12,7 @@ use Okay\Modules\Sviat\NovaPoshta\Cart\UahTotal;
 use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
 use Okay\Core\EntityFactory;
 use Okay\Helpers\DeliveriesHelper;
+use Okay\Helpers\UserHelper;
 use Okay\Entities\PaymentsEntity;
 use Okay\Core\Money;
 use Okay\Entities\CurrenciesEntity;
@@ -36,7 +37,7 @@ class CartController
         $this->json($response, ['settlements' => is_string($query) ? $search->find($query, (string)$languages->getLangLabel(), 10, $pickupOnly) : []]);
     }
 
-    public function divisions(Request $request, Response $response, DivisionList $divisions, Cart $cart, Languages $languages, UahTotal $uahTotal)
+    public function divisions(Request $request, Response $response, DivisionList $divisions, Cart $cart, UserHelper $userHelper, Languages $languages, UahTotal $uahTotal)
     {
         $settlementId = (int)$request->get('settlement_id', 'integer');
         if ($settlementId <= 0) {
@@ -48,7 +49,7 @@ class CartController
         $groupId = $request->get('group_id', 'integer');
         $this->json($response, $divisions->forSettlement(
             $settlementId,
-            $uahTotal->metrics($cart->get()),
+            $uahTotal->metrics(self::visitorCart($cart, $userHelper)),
             (string)$languages->getLangLabel(),
             $groupId ? (int)$groupId : null,
             is_string($query = self::typed($request)) ? $query : '',
@@ -60,11 +61,11 @@ class CartController
      * The method's numbers come from the core's own cart list, so every module extending it
      * (a promo's free shipping) shapes the answer exactly as it shapes the page.
      */
-    public function quote(Request $request, Response $response, CartQuotes $quotes, Cart $cart, EntityFactory $entityFactory, Money $money, DeliveriesHelper $deliveriesHelper, ShippingSettings $shipping, FrontTranslations $translations)
+    public function quote(Request $request, Response $response, CartQuotes $quotes, Cart $cart, UserHelper $userHelper, EntityFactory $entityFactory, Money $money, DeliveriesHelper $deliveriesHelper, ShippingSettings $shipping, FrontTranslations $translations)
     {
         $deliveryId = (int)$request->get('delivery_id', 'integer');
         $delivery = $deliveryId > 0 ? $entityFactory->get(DeliveriesEntity::class)->get($deliveryId) : null;
-        $cartData = $cart->get();
+        $cartData = self::visitorCart($cart, $userHelper);
         $paymentId = (int)$request->get('payment_id', 'integer');
         $quote = null;
         if ($delivery && !empty($delivery->enabled)) {
@@ -117,12 +118,12 @@ class CartController
     }
 
     /** Street suggestions for address delivery (`ajax/novaposhta/streets?settlement_id=&q=`). */
-    public function streets(Request $request, Response $response, StreetSearch $streets, CartQuotes $quotes, Cart $cart, EntityFactory $entityFactory)
+    public function streets(Request $request, Response $response, StreetSearch $streets, CartQuotes $quotes, Cart $cart, UserHelper $userHelper, EntityFactory $entityFactory)
     {
         $settlementId = (int)$request->get('settlement_id', 'integer');
         $settlement = $settlementId > 0 ? $entityFactory->get(SettlementEntity::class)->get($settlementId) : null;
         $query = self::typed($request);
-        if (!$settlement || !is_string($query) || empty($cart->get()->purchases)) {
+        if (!$settlement || !is_string($query) || empty(self::visitorCart($cart, $userHelper)->purchases)) {
             $response->setStatusCode(400);
             $this->json($response, ['error' => 'input']);
 
@@ -157,5 +158,16 @@ class CartController
     private static function typed(Request $request): mixed
     {
         return $request->get('q', null, null, false);
+    }
+
+    /**
+     * The visitor's cart as the cart page sees it. These endpoints skip the core's AbstractController,
+     * whose mergeCart(true) is what loads a signed-in customer's cart: Cart::init() leaves it empty.
+     */
+    private static function visitorCart(Cart $cart, UserHelper $userHelper): Cart
+    {
+        $userHelper->mergeCart(true);
+
+        return $cart->get();
     }
 }
