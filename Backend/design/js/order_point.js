@@ -68,12 +68,34 @@
         }).join(', ');
     }
 
+    /** «смт Калинівка» with the district and region below: namesakes share a region more than once. */
+    function settlementLabel(s) {
+        var box = document.createDocumentFragment();
+        if (s.type) {
+            box.appendChild(el('span', 'np-op__type', s.type + ' '));
+        }
+        box.appendChild(el('b', '', s.title || s.name));
+        var where = [s.district, s.area].filter(Boolean).join(', ');
+        if (where) {
+            box.appendChild(el('span', 'np-op__where', where));
+        }
+
+        return box;
+    }
+
     function Editor(root) {
         this.root = root;
         this.texts = JSON.parse(root.getAttribute('data-texts') || '{}');
         this.mode = root.getAttribute('data-mode');
         this.box = root.querySelector('.np-op__editor');
-        this.settlement = root.getAttribute('data-settlement-id') ? { id: root.getAttribute('data-settlement-id'), name: root.getAttribute('data-settlement-name') } : null;
+        this.settlement = root.getAttribute('data-settlement-id') ? {
+            id: root.getAttribute('data-settlement-id'),
+            name: root.getAttribute('data-settlement-name'),
+            type: root.getAttribute('data-settlement-type') || '',
+            title: root.getAttribute('data-settlement-title') || root.getAttribute('data-settlement-name'),
+            area: root.getAttribute('data-settlement-area') || '',
+            district: root.getAttribute('data-settlement-district') || ''
+        } : null;
         this.group = null;
         this.divisionId = null;
         this.streetRef = '';
@@ -92,12 +114,23 @@
         this.box.textContent = '';
 
         this.city = input(t.op_city_placeholder, 60);
-        this.city.value = this.settlement ? this.settlement.name : '';
         this.citySuggest = el('ul', 'np-op__suggest');
         this.citySuggest.hidden = true;
         var cityField = field(t.op_city, this.city, 'settlement_id');
         cityField.appendChild(this.citySuggest);
+        // A chosen city is a line with «change», not text to edit: names of namesakes differ only by type and region.
+        this.cityChosen = el('div', 'np-op__chosen');
+        this.cityName = el('span', 'np-op__chosen-name');
+        var change = el('button', 'np-op__link', t.op_change || '');
+        change.type = 'button';
+        change.addEventListener('click', function () {
+            self.showCityInput();
+        });
+        this.cityChosen.appendChild(this.cityName);
+        this.cityChosen.appendChild(change);
+        cityField.insertBefore(this.cityChosen, this.city);
         this.box.appendChild(cityField);
+        this.showCity();
         this.city.addEventListener('input', function () {
             self.settlement = null;
             self.debounce('city', function () { self.findCities(); });
@@ -185,10 +218,32 @@
         }
     };
 
+    /** The chosen city as a line: the type plain, the title bold, the region muted. */
+    Editor.prototype.showCity = function () {
+        var s = this.settlement;
+        this.cityName.textContent = '';
+        if (s) {
+            this.cityName.appendChild(settlementLabel(s));
+        }
+        this.cityChosen.hidden = !s;
+        this.city.hidden = !!s;
+    };
+
+    Editor.prototype.showCityInput = function () {
+        this.cityChosen.hidden = true;
+        this.city.hidden = false;
+        this.city.value = '';
+        this.city.focus();
+    };
+
     Editor.prototype.suggest = function (list, items, label, pick) {
         list.textContent = '';
         items.forEach(function (item) {
-            var li = el('li', '', label(item));
+            var text = label(item);
+            var li = typeof text === 'string' ? el('li', '', text) : el('li', '');
+            if (typeof text !== 'string') {
+                li.appendChild(text);
+            }
             li.addEventListener('mousedown', function (event) {
                 event.preventDefault();
                 list.hidden = true;
@@ -208,10 +263,11 @@
         }
         post(this.root, 'settlements', { q: query, mode: this.mode }).then(function (answer) {
             self.suggest(self.citySuggest, answer.settlements || [], function (s) {
-                return [s.name, s.district, s.area].filter(Boolean).join(', ');
+                return settlementLabel(s);
             }, function (s) {
-                self.settlement = { id: String(s.id), name: s.name };
-                self.city.value = [s.name, s.area].filter(Boolean).join(', ');
+                self.settlement = { id: String(s.id), name: s.name, type: s.type || '', title: s.title || s.name, area: s.area || '', district: s.district || '' };
+                self.city.value = '';
+                self.showCity();
                 self.divisionId = null;
                 if (self.mode === 'address') {
                     self.street.value = '';

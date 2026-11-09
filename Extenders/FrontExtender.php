@@ -339,12 +339,24 @@ class FrontExtender implements ExtensionInterface
         $division = $division ? $this->validator->restorable($delivery, $settlement, $division, $cart) : null;
 
         return [
-            'settlement' => $settlement ? [
-                'id' => (int)$settlement->id,
-                'name' => (string)($english && $settlement->name_en ? $settlement->name_en : $settlement->name_uk),
-                'area' => (string)($english && $settlement->area_en ? $settlement->area_en : $settlement->area_uk) ?: null,
-            ] : null,
+            'settlement' => $settlement ? self::settlementView($settlement, $english) : null,
             'division' => $division ? ['id' => (int)$division->id] + DivisionList::describe($division, $english) : null,
+        ];
+    }
+
+    /** @return array{id: int, name: string, type: string, title: string, district: ?string, area: ?string} */
+    private static function settlementView(object $settlement, bool $english): array
+    {
+        $name = (string)($english && $settlement->name_en ? $settlement->name_en : $settlement->name_uk);
+        [$type, $title] = \Okay\Modules\Sviat\NovaPoshta\Cart\SettlementName::split($name);
+
+        return [
+            'id' => (int)$settlement->id,
+            'name' => $name,
+            'type' => $type,
+            'title' => $title,
+            'district' => (string)($english && $settlement->district_en ? $settlement->district_en : $settlement->district_uk) ?: null,
+            'area' => (string)($english && $settlement->area_en ? $settlement->area_en : $settlement->area_uk) ?: null,
         ];
     }
 }

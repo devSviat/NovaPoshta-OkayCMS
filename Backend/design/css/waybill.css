@@ -34,8 +34,13 @@
 .np-op__suggest li { padding: 6px 10px; cursor: pointer; }
 .np-op__suggest li:hover { background: #eef4fb; }
 .np-op__chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.np-op__chip { padding: 4px 12px; border-radius: 999px; border: 1px solid #c9cfd5; background: #fff; font: inherit; font-size: 12px; cursor: pointer; }
-.np-op__chip--on { background: #232f3e; border-color: #232f3e; color: #fff; }
+.np-op__chip { padding: 5px 14px; border-radius: 8px; border: 1px solid var(--ok-accent, #48b0f7); background: #fff; color: var(--ok-accent, #48b0f7); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.np-op__chip--on { background: var(--ok-accent, #48b0f7); color: #fff; }
+.np-op__chosen { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 7px 12px; border: 1px solid #ced4da; border-radius: 4px; line-height: 1.35; }
+.np-op__chosen[hidden] { display: none; }
+.np-op__type { color: #676e75; }
+.np-op__where { display: block; font-size: 12px; color: #676e75; }
+.np-op__link { flex: none; background: none; border: 0; padding: 0; color: var(--ok-accent, #48b0f7); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; }
 .np-op__list { border: 1px solid #e4e6e9; border-radius: 6px; max-height: 260px; overflow: auto; }
 .np-op__option { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; padding: 8px 10px; border: 0; border-bottom: 1px solid #eef0f2; background: #fff; font: inherit; cursor: pointer; }
 .np-op__option--on { background: #eef4fb; }

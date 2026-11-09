@@ -126,7 +126,7 @@ class BackendExtender implements ExtensionInterface
         'op_city', 'op_city_placeholder', 'op_point_search', 'op_point_search_placeholder', 'op_street', 'op_house', 'op_flat', 'op_entrance',
         'op_note', 'op_lifting', 'op_floor', 'op_elevator', 'op_save', 'op_cancel', 'op_saving', 'op_no_points', 'op_shown_of', 'op_all_day',
         'op_weekdays', 'op_day_off', 'op_unfit_too_heavy', 'op_unfit_too_big', 'op_unfit_too_expensive', 'op_choose_point', 'op_network',
-        'op_price_keep', 'op_price_same', 'op_price_free', 'op_price_show', 'op_price_auto', 'op_price_offer', 'op_price_apply', 'op_price_applied', 'op_street_typed',
+        'op_price_keep', 'op_price_same', 'op_price_free', 'op_price_show', 'op_price_auto', 'op_price_offer', 'op_price_apply', 'op_price_applied', 'op_street_typed', 'op_change',
     ];
 
     /** What the point/address editor needs; null when the order's delivery method is not this module's. */
@@ -145,6 +145,11 @@ class BackendExtender implements ExtensionInterface
             'mode' => $mode->value,
             'settlementId' => $snapshot && $snapshot->mode === $mode->value ? (int)$snapshot->settlement_id : null,
             'settlementName' => $snapshot && $snapshot->mode === $mode->value ? (string)$snapshot->settlement_name : null,
+            // Shown as a line, not an editable field: the type before the bold title, the region below.
+            'settlementType' => $snapshot && $snapshot->mode === $mode->value ? \Okay\Modules\Sviat\NovaPoshta\Cart\SettlementName::split((string)$snapshot->settlement_name)[0] : null,
+            'settlementTitle' => $snapshot && $snapshot->mode === $mode->value ? \Okay\Modules\Sviat\NovaPoshta\Cart\SettlementName::split((string)$snapshot->settlement_name)[1] : null,
+            'settlementArea' => $snapshot && $snapshot->mode === $mode->value ? (string)($snapshot->area_name ?? '') : null,
+            'settlementDistrict' => $snapshot && $snapshot->mode === $mode->value ? (string)($snapshot->district_name ?? '') : null,
             'showLifting' => $this->shipping->read()->showLifting,
             'currency' => (string)($this->entityFactory->get(CurrenciesEntity::class)->getMainCurrency()->sign ?? ''),
             'textsJson' => json_encode(array_combine(self::EDITOR_TEXTS, array_map(fn(string $key): string => (string)$this->translations->getTranslation('sviat__novaposhta__' . $key), self::EDITOR_TEXTS)), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
