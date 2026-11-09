@@ -72,6 +72,14 @@ class WaybillRequestTest extends TestCase
         self::assertArrayNotHasKey('OptionsSeat', OldDocumentRequest::forDivision(W::point(['cod' => true]), W::sender()), 'a branch takes the general weight and volume');
     }
 
+    public function testExtraInfoGoesToBothApis(): void
+    {
+        self::assertSame('ZR879A01 (2 шт)', OldDocumentRequest::forDivision(W::point(['extraInfo' => 'ZR879A01 (2 шт)']), W::sender())['AdditionalInformation']);
+        self::assertArrayNotHasKey('AdditionalInformation', OldDocumentRequest::forDivision(W::point(), W::sender()));
+        self::assertSame('ZR879A01 (2 шт)', NewShipmentRequest::build(W::point(['extraInfo' => 'ZR879A01 (2 шт)']), W::sender())['note']);
+        self::assertArrayNotHasKey('note', NewShipmentRequest::build(W::point(), W::sender()));
+    }
+
     public function testOldControl(): void
     {
         $request = OldDocumentRequest::forDivision(W::point(['cod' => true, 'codKind' => CodKind::Control]), W::sender());

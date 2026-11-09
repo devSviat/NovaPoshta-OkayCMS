@@ -70,7 +70,7 @@ class WaybillDraftTest extends TestCase
         self::assertSame('11/1', $draft->divisionNumber);
         self::assertSame('Відділення №1: вул. Пирогівський шлях, 135', $draft->divisionName);
         self::assertSame('07.11.2026', $draft->shipDate);
-        self::assertSame('Товари інтернет-магазину', $draft->description);
+        self::assertSame('Замовлення №990061', $draft->description);
         self::assertSame('Parcel', $draft->cargoType);
     }
 
@@ -282,7 +282,56 @@ class WaybillDraftTest extends TestCase
         $order = self::order(['delivery_price' => 0, 'total_price' => 1200.0]);
 
         self::assertSame('Sender', self::build($order, promisedFree: true)->payerType);
-        self::assertSame('Recipient', self::build($order, promisedFree: true, config: new WaybillConfig(null, null, payerType: 'Recipient'))->payerType);
+        self::assertSame('free', self::build($order, promisedFree: true)->senderPaysBecause);
+    }
+
+    /** The setting is only where the form starts: a set «Recipient» never charges delivery twice. */
+    public function testSenderPaysWhateverTheSettingWhenTheShopAlreadyTookDelivery(): void
+    {
+        $recipient = new WaybillConfig(null, null, payerType: 'Recipient');
+
+        self::assertSame('Sender', self::build(config: $recipient)->payerType);
+        self::assertSame('in_total', self::build(config: $recipient)->senderPaysBecause);
+        self::assertSame('Recipient', self::build(self::order(['separate_delivery' => 1]), config: $recipient)->payerType);
+        self::assertNull(self::build(self::order(['separate_delivery' => 1]), config: $recipient)->senderPaysBecause);
+        self::assertSame('Sender', self::build(self::order(['separate_delivery' => 1]), config: new WaybillConfig(null, null, payerType: 'Sender'))->payerType);
+    }
+
+    public function testDescriptionIsTheOrderNumberOrTheShopText(): void
+    {
+        self::assertSame('Замовлення №990061', self::build()->description);
+        self::assertSame('Запчастини', self::build(config: new WaybillConfig(null, null, descriptionMode: 'text', description: 'Запчастини'))->description);
+    }
+
+    /** As the old module: SKUs (a name where there is none), «(2 шт)» for several, cut to NP's 100 characters. */
+    public function testExtraInfoListsTheGoods(): void
+    {
+        $purchases = [
+            (object)['amount' => 2, 'sku' => 'ZR879A01', 'product_name' => 'Фільтр', 'variant' => (object)['weight' => 1, \Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume::FIELD => null]],
+            (object)['amount' => 1, 'sku' => '', 'product_name' => 'Щітка', 'variant' => (object)['weight' => 1, \Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume::FIELD => null]],
+        ];
+
+        self::assertSame('ZR879A01 (2 шт), Щітка', self::build(purchases: $purchases)->extraInfo);
+        self::assertSame('Фільтр (2 шт), Щітка', self::build(purchases: $purchases, config: new WaybillConfig(null, null, extraInfo: 'names'))->extraInfo);
+        self::assertSame('', self::build(purchases: $purchases, config: new WaybillConfig(null, null, extraInfo: 'none'))->extraInfo);
+        $many = array_fill(0, 30, (object)['amount' => 1, 'sku' => 'ABCDEFGH', 'product_name' => 'x', 'variant' => (object)['weight' => 1, \Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume::FIELD => null]]);
+        self::assertSame(100, mb_strlen(self::build(purchases: [$many[0], ...array_map(static fn(int $i): object => (object)['amount' => 1, 'sku' => 'SKU' . $i, 'product_name' => 'x', 'variant' => $many[0]->variant], range(10, 60))])->extraInfo));
+    }
+
+    public function testExtraInfoInput(): void
+    {
+        self::assertSame('Крихке', self::build()->withInput(['extra_info' => ' Крихке '])->extraInfo);
+        self::assertSame([['field' => 'extra_info', 'key' => 'waybill_error_extra_info']], self::build()->withInput(['extra_info' => str_repeat('я', 101)]));
+    }
+
+    /** NP takes no «Вантаж» to a parcel locker (api-docs-ua «ЕН на поштомат»: Parcel, Documents). */
+    public function testLockerTakesNoCargo(): void
+    {
+        $locker = self::build(division: (object)(['category' => 'Postomat'] + (array)self::division()), config: new WaybillConfig(null, null, cargoType: 'Cargo'));
+
+        self::assertSame('Parcel', $locker->cargoType);
+        self::assertSame([['field' => 'cargo_type', 'key' => 'waybill_error_locker_cargo']], $locker->withInput(['cargo_type' => 'Cargo']));
+        self::assertSame('Cargo', self::build(config: new WaybillConfig(null, null, cargoType: 'Cargo'))->cargoType);
     }
 
     public function testPromisedFreeDelivery(): void
@@ -296,10 +345,5 @@ class WaybillDraftTest extends TestCase
         self::assertFalse(WaybillDrafts::promisedFree((object)['paid' => 1, 'free_from' => 5000, 'price' => 70], $order, (object)['price_source' => 'fallback']), 'NP did not price it');
         self::assertFalse(WaybillDrafts::promisedFree((object)['paid' => 1, 'free_from' => 5000, 'price' => 70], self::order(), (object)['price_source' => 'np']), 'priced, below the threshold');
         self::assertFalse(WaybillDrafts::promisedFree(null, $order, null));
-    }
-
-    public function testFixedPayerWins(): void
-    {
-        self::assertSame('Recipient', self::build(config: new WaybillConfig(null, null, payerType: 'Recipient'))->payerType);
     }
 }

@@ -101,10 +101,11 @@ class SmallStepsTest extends TestCase
         self::assertSame('1.5', $this->ours->settings[ShippingSettings::WEIGHT]);
         // The old module had no «as in the order»: its explicit payer would switch off the safe default.
         self::assertArrayNotHasKey('sviat__novaposhta__waybill_payer_type', $this->ours->settings);
-        self::assertSame('Cargo', $this->ours->settings['sviat__novaposhta__waybill_cargo_type']);
+        // «Вантаж» is for over 30 kg and never for a parcel locker: the module starts from «Посилка».
+        self::assertArrayNotHasKey('sviat__novaposhta__waybill_cargo_type', $this->ours->settings);
         self::assertSame('10', $this->ours->settings[ShippingSettings::SENDER]);
         self::assertSame('380500000000', $this->ours->settings['sviat__novaposhta__waybill_sender_phone']);
-        self::assertSame(['done' => 4, 'existed' => 1, 'failed' => 0], $report->counts('settings'));
+        self::assertSame(['done' => 3, 'existed' => 1, 'failed' => 0], $report->counts('settings'));
     }
 
     public function testInvalidCutoffSkipped(): void

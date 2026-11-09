@@ -11,7 +11,7 @@ final class NewShipmentRequest
     {
         $side = new Parcel($draft->weightKg, $draft->volumeM3, $draft->declaredCost)->cubeSideMm();
 
-        return [
+        $body = [
             // Lets the module find the shipment by its order when NP did not answer the create.
             'clientOrder' => (string)$draft->orderId,
             'payerType' => $draft->payerType,
@@ -29,5 +29,7 @@ final class NewShipmentRequest
                 'actualWeight' => (int)round($draft->weightKg * 1000),
             ]],
         ];
+
+        return $draft->extraInfo !== '' ? $body + ['note' => $draft->extraInfo] : $body;
     }
 }

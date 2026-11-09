@@ -92,7 +92,7 @@ final class OldDocumentRequest
             'SenderWarehouseIndex' => $sender->divisionNumber,
             'RecipientsPhone' => (string)$draft->recipientPhone,
             'InfoRegClientBarcodes' => (string)$draft->orderId,
-        ];
+        ] + ($draft->extraInfo !== '' ? ['AdditionalInformation' => $draft->extraInfo] : []);
     }
 
     private static function recipientByName(WaybillDraft $draft, ?string $ownershipForm = null): array
