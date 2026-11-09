@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 class ApiKeyTest extends TestCase
 {
-    private const string KEY = '76a0a855c068a51254fb19d539fa1e70';
+    private const string KEY = 'fedcba9876543210fedcba9876543210';
 
     public static function pasted(): array
     {
@@ -33,7 +33,7 @@ class ApiKeyTest extends TestCase
 
     public function testMaskedShowsOnlyLastFour(): void
     {
-        self::assertSame('••••1e70', ApiKey::masked(self::KEY));
+        self::assertSame('••••3210', ApiKey::masked(self::KEY));
     }
 
     public function testFingerprintDoesNotRevealTheKey(): void

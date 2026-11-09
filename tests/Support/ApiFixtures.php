@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ApiFixtures
 {
-    public const string KEY = '76a0a855c068a51254fb19d539fa1e70';
+    public const string KEY = 'fedcba9876543210fedcba9876543210';
     public const string OTHER_KEY = '0123456789abcdef0123456789abcdef';
 
     /** Непідписаний JWT із заданим терміном дії; модуль читає лише `exp`. */

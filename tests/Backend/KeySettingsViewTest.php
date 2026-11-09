@@ -24,7 +24,7 @@ class KeySettingsViewTest extends TestCase
         $vars = KeySettingsView::vars(F::KEY, self::checkResult(A::Ok, A::Ok), null);
 
         self::assertStringNotContainsString(F::KEY, json_encode($vars, JSON_UNESCAPED_UNICODE));
-        self::assertSame('••••1e70', $vars['key_masked']);
+        self::assertSame('••••3210', $vars['key_masked']);
     }
 
     public function testNoKey(): void
