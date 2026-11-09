@@ -132,7 +132,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         ));
         $this->design->assign('np_shipping', [
             'config' => $config,
-            'city' => $senderCity ? ['id' => (int)$senderCity->id, 'name' => (string)($lang === 'en' && $senderCity->name_en ? $senderCity->name_en : $senderCity->name_uk)] : null,
+            'city' => $senderCity ? self::cityView($senderCity, $lang) : null,
             'divisions' => $senderCity ? $senderDivisions->forSettlement((int)$senderCity->id, $lang) : [],
         ]);
         try {
@@ -142,6 +142,15 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         }
         $this->design->assign('np_waybill', ['config' => $waybillSettings->read()] + $waybillSender);
         $this->response->setContent($this->design->fetch('settings.tpl'));
+    }
+
+    /** @return array{id: int, name: string, type: string, title: string, area: string} the chosen city as the page shows it */
+    private static function cityView(object $city, string $lang): array
+    {
+        $name = (string)($lang === 'en' && $city->name_en ? $city->name_en : $city->name_uk);
+        [$type, $title] = \Okay\Modules\Sviat\NovaPoshta\Cart\SettlementName::split($name);
+
+        return ['id' => (int)$city->id, 'name' => $name, 'type' => $type, 'title' => $title, 'area' => (string)($lang === 'en' && $city->area_en ? $city->area_en : ($city->area_uk ?? ''))];
     }
 
     /** City suggestions for the popular-cities block (`controller=…@searchSettlements&q=`). */

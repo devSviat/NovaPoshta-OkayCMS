@@ -2,7 +2,7 @@
 {if $np_legacy}
 {$L = $np_legacy}
 <div class="row">
-    <div class="col-lg-8 col-md-12">
+    <div class="col-12">
         <div class="boxed mb-2 np_legacy">
             <div class="heading_box mb-1">{$btr->sviat__novaposhta__legacy_box|escape}</div>
 
@@ -36,7 +36,7 @@
                     <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">
                     <input type="hidden" name="np_action" value="legacy_migrate">
                     {if $L.phase == 'done'}
-                        <button type="submit" class="btn btn_small btn-outline-primary"><span>{$btr->sviat__novaposhta__legacy_again|escape}</span></button>
+                        <button type="submit" class="btn btn_small btn-outline-info"><span>{$btr->sviat__novaposhta__legacy_again|escape}</span></button>
                         <span class="text_grey">{$btr->sviat__novaposhta__legacy_again_note|escape}</span>
                     {else}
                         <button type="submit" class="btn btn_small btn_blue"><span>{$btr->sviat__novaposhta__legacy_start|escape}</span></button>

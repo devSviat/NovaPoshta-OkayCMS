@@ -21,16 +21,20 @@ final class DictionaryStatusView
         $run = $status->lastRun;
         $changes = $run['counts']['divisions'] ?? [];
 
+        $figures = [
+            'divisions' => (int)($counts['divisions'] ?? 0),
+            'postomats' => (int)($counts['postomats'] ?? 0),
+            'settlements' => (int)($counts['settlements'] ?? 0),
+            'boosted' => (int)($counts['boosted'] ?? 0),
+        ];
+
         return [
             'state' => $state,
             'busy' => $state === 'queued' || $state === 'running',
             'has_data' => ($counts['divisions'] ?? 0) > 0,
-            'figures' => [
-                'divisions' => (int)($counts['divisions'] ?? 0),
-                'postomats' => (int)($counts['postomats'] ?? 0),
-                'settlements' => (int)($counts['settlements'] ?? 0),
-                'boosted' => (int)($counts['boosted'] ?? 0),
-            ],
+            'figures' => $figures,
+            // Grouped by a no-break space, as Ukrainian writes large numbers.
+            'shown' => array_map(static fn(int $n): string => number_format($n, 0, '', "\u{00A0}"), $figures),
             'updated_at' => isset($run['finished']) && $run['ok']
                 ? (new \DateTimeImmutable('@' . (int)$run['finished']))
                     ->setTimezone($timezone ?? new \DateTimeZone(date_default_timezone_get()))
