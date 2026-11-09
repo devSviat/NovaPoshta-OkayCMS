@@ -167,6 +167,7 @@ final class WaybillDrafts
             self::extraInfo($purchases, $waybill->extraInfo),
             $senderPaysBecause,
             $locker,
+            cargoTypes: $waybill->cargoTypes,
         );
     }
 

@@ -80,6 +80,8 @@ final readonly class WaybillDraft
         public bool $locker = false,
         /** @var ?array{int, int, int} length, width, height in cm the manager set */
         public ?array $seatCm = null,
+        /** @var list<string> cargo types the settings turn on; the form also keeps the draft's own one */
+        public array $cargoTypes = WaybillConfig::CARGO_TYPES,
     ) {
     }
 
@@ -100,6 +102,12 @@ final readonly class WaybillDraft
     public function with(array $values): self
     {
         return clone($this, $values);
+    }
+
+    /** @return list<string> the types the form offers: those turned on, and the draft's own one */
+    public function cargoChoices(): array
+    {
+        return array_values(array_filter(WaybillConfig::CARGO_TYPES, fn(string $type): bool => $type === $this->cargoType || in_array($type, $this->cargoTypes, true)));
     }
 
     /** The recipient pays Nova Poshta for delivery the order total already includes. */
@@ -204,7 +212,7 @@ final readonly class WaybillDraft
         if (mb_strlen($extraInfo) > self::EXTRA_INFO_MAX) {
             $errors[] = ['field' => 'extra_info', 'key' => 'waybill_error_extra_info'];
         }
-        $cargoType = $choice('cargo_type', $this->cargoType, ['Parcel', 'Cargo', 'Documents']);
+        $cargoType = $choice('cargo_type', $this->cargoType, $this->cargoChoices());
         if ($this->locker && $cargoType === 'Cargo') {
             $errors[] = ['field' => 'cargo_type', 'key' => 'waybill_error_locker_cargo'];
         }

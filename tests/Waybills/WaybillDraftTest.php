@@ -324,6 +324,18 @@ class WaybillDraftTest extends TestCase
         self::assertSame([['field' => 'extra_info', 'key' => 'waybill_error_extra_info']], self::build()->withInput(['extra_info' => str_repeat('я', 101)]));
     }
 
+    /** The form offers the types the settings turn on, and always the draft's own one. */
+    public function testFormTakesTheTypesTurnedOn(): void
+    {
+        $draft = self::build(config: new WaybillConfig(null, null, cargoTypes: ['Parcel', 'Documents']));
+
+        self::assertSame(['Parcel', 'Documents'], $draft->cargoTypes);
+        self::assertSame([['field' => 'cargo_type', 'key' => 'waybill_error_choice']], $draft->withInput(['cargo_type' => 'Cargo']));
+        self::assertSame('Documents', $draft->withInput(['cargo_type' => 'Documents', 'weight' => '1'])->cargoType);
+        $own = self::build(config: new WaybillConfig(null, null, cargoType: 'Cargo', cargoTypes: ['Parcel']));
+        self::assertSame('Cargo', $own->withInput(['cargo_type' => 'Cargo'])->cargoType, 'a type turned off later still fits a draft that has it');
+    }
+
     /** NP refuses documents over 1 kg (live 09.11.2026: «Weight is not allowed for Documents»). */
     public function testDocumentsWeighOneKilogramAtMost(): void
     {

@@ -61,6 +61,26 @@ class WaybillSettingsTest extends TestCase
         self::assertSame('Documents', WaybillSettings::parse(['cargo_type' => 'Documents'])->cargoType);
     }
 
+    /** Nothing stored yet (a new install or an update from before the setting): all three types are on. */
+    public function testCargoTypesDefaultToParcelCargoDocuments(): void
+    {
+        self::assertSame(['Parcel', 'Cargo', 'Documents'], WaybillSettings::parse([])->cargoTypes);
+    }
+
+    public function testCargoTypesFromTheFormAndFromStorage(): void
+    {
+        self::assertSame(['Parcel', 'Documents'], WaybillSettings::parse(['cargo_types' => ['', 'Documents', 'Parcel']])->cargoTypes, 'the form posts an empty marker and the ticked boxes');
+        self::assertSame(['Parcel', 'Documents'], WaybillSettings::parse(['cargo_types' => 'Documents,Parcel'])->cargoTypes, 'storage keeps a comma list');
+    }
+
+    public function testCargoTypesNeedOneAndHoldTheDefault(): void
+    {
+        self::assertSame(['waybill_error_cargo_types'], WaybillSettings::parse(['cargo_types' => ['']]));
+        self::assertSame(['waybill_error_cargo'], WaybillSettings::parse(['cargo_types' => ['', 'Parcel', 'Pallet']]));
+        self::assertSame(['waybill_error_cargo_default'], WaybillSettings::parse(['cargo_types' => ['', 'Parcel'], 'cargo_type' => 'Documents']));
+        self::assertSame('Documents', WaybillSettings::parse(['cargo_types' => ['', 'Documents']])->cargoType, 'no default chosen: the first type on');
+    }
+
     public function testDescriptionIsLimited(): void
     {
         self::assertSame(['waybill_error_description'], WaybillSettings::parse(['description' => str_repeat('я', 101)]));
