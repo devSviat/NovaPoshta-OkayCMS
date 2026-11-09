@@ -36,7 +36,7 @@ final class DictionaryStatusView
             // Розряди розділяються нерозривним пробілом, як пишуть великі числа українською.
             'shown' => array_map(static fn(int $n): string => number_format($n, 0, '', "\u{00A0}"), $figures),
             'updated_at' => isset($run['finished']) && $run['ok']
-                ? (new \DateTimeImmutable('@' . (int)$run['finished']))
+                ? new \DateTimeImmutable('@' . (int)$run['finished'])
                     ->setTimezone($timezone ?? new \DateTimeZone(date_default_timezone_get()))
                     ->format('d.m.Y H:i')
                 : null,

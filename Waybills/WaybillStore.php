@@ -173,7 +173,7 @@ final class WaybillStore implements WaybillRows
 
     public function ordersOfNumber(string $number): array
     {
-        return array_map('intval', array_values($this->entity()->cols(['order_id'])->noLimit()->find(['number' => $number])));
+        return array_map(intval(...), array_values($this->entity()->cols(['order_id'])->noLimit()->find(['number' => $number])));
     }
 
     /** Кожен запис трекінгу також фіксує, коли рядок востаннє перевірено. */

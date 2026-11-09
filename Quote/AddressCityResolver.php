@@ -64,7 +64,7 @@ final class AddressCityResolver
                 }
                 $data = [];
             }
-            $found = array_values(array_filter((array)($data[0]['Addresses'] ?? []), 'is_array'));
+            $found = array_values(array_filter((array)($data[0]['Addresses'] ?? []), is_array(...)));
             $rows = [...$rows, ...$found];
             if ($found === [] || count($rows) >= (int)($data[0]['TotalCount'] ?? 0)) {
                 $complete = true;

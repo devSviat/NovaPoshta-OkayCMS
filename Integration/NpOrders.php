@@ -28,7 +28,7 @@ final class NpOrders
      */
     public function shipments(array $orderIds): array
     {
-        $orderIds = array_values(array_unique(array_filter(array_map('intval', $orderIds))));
+        $orderIds = array_values(array_unique(array_filter(array_map(intval(...), $orderIds))));
         if ($orderIds === []) {
             return [];
         }
