@@ -30,7 +30,7 @@
     {if $np_popular}
         <div class="np-cart__popular {$np_theme.chips|escape}" role="group" aria-label="{$lang->sviat__novaposhta__cart_popular|escape}">
             {foreach $np_popular as $city}
-                <button type="button" class="{$np_theme.chip|escape}" aria-pressed="false" data-np-city="{$city.id|escape}" data-np-city-name="{$city.label|escape}">{$city.label|escape}</button>
+                <button type="button" class="{$np_theme.chip|escape}" aria-pressed="false" data-np-city="{$city.id|escape}" data-np-city-name="{$city.label|escape}" data-np-city-type="{$city.type|escape}">{$city.label|escape}</button>
             {/foreach}
         </div>
     {/if}
@@ -42,7 +42,7 @@
         {* Named only for the theme's jQuery Validate (it skips nameless fields); the server ignores it. *}
         <input id="np_city_{$delivery->id|escape}" class="np-cart__city-input {$np_theme.input|escape}" type="text" autocomplete="off" name="novaposhta[{$delivery->id|escape}][city_q]"
                role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="np_city_list_{$delivery->id|escape}"
-               value="{if $np_choice.settlement}{$np_choice.settlement.name|escape}{/if}"
+               value="{if $np_choice.settlement}{$np_choice.settlement.title|default:$np_choice.settlement.name|escape}{/if}"
                {if $np_theme.family == 'vibe'}placeholder="{$lang->sviat__novaposhta__cart_city_placeholder|escape}"{/if}>
         {if $np_theme.family != 'vibe'}
             <span class="{$np_theme.label|escape}">{$lang->sviat__novaposhta__cart_city|escape}*</span>

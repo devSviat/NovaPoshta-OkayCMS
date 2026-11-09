@@ -38,6 +38,11 @@
     }
 
     /** okay_shop-derived themes float the field label by a `filled` class they set on blur only. */
+    /** The field holds the title alone: the type, district and region are on the line under it. */
+    function cityText(settlement) {
+        return settlement.title || settlement.name;
+    }
+
     function syncFilled(input) {
         if (input.parentNode) {
             input.parentNode.classList.toggle('filled', input.value.trim() !== '');
@@ -269,11 +274,11 @@
         var self = this;
         this.root.querySelectorAll('[data-np-city]').forEach(function (button) {
             button.addEventListener('click', function () {
-                self.chooseSettlement({ id: Number(button.getAttribute('data-np-city')), name: button.getAttribute('data-np-city-name') });
+                self.chooseSettlement({ id: Number(button.getAttribute('data-np-city')), name: button.getAttribute('data-np-city-name'), title: button.getAttribute('data-np-city-name'), type: button.getAttribute('data-np-city-type') || '' });
             });
         });
         this.city.addEventListener('input', function () {
-            if (self.settlement && self.city.value.trim() !== self.settlement.name) {
+            if (self.settlement && self.city.value.trim() !== cityText(self.settlement)) {
                 self.dropSettlement();
             }
             clearTimeout(self.cityTimer);
@@ -393,7 +398,7 @@
         }
         var changed = !this.settlement || this.settlement.id !== settlement.id;
         this.settlement = settlement;
-        this.city.value = settlement.name;
+        this.city.value = cityText(settlement);
         syncFilled(this.city);
         this.settlementInput.value = settlement.id;
         this.closeSuggest();

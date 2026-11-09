@@ -55,10 +55,19 @@ final class PopularCities
         return $list;
     }
 
-    /** @return list<array{id:int, label:string}> buttons for the cart */
+    /** @return list<array{id:int, label:string, type:string}> buttons for the cart */
     public function buttons(string $lang): array
     {
-        return array_map(static fn(array $city): array => ['id' => $city['id'], 'label' => self::label($city['name'])], $this->list($lang));
+        return array_map(self::button(...), $this->list($lang));
+    }
+
+    /**
+     * @param array{id:int, name:string} $city
+     * @return array{id:int, label:string, type:string}
+     */
+    public static function button(array $city): array
+    {
+        return ['id' => $city['id'], 'label' => self::label($city['name']), 'type' => SettlementName::split($city['name'])[0]];
     }
 
     /**

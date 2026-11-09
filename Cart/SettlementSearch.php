@@ -67,7 +67,7 @@ final class SettlementSearch
             $found[] = [
                 'id' => (int)$row->id,
                 'name' => $name,
-                // Shown apart: the title bold, the type before it only where it tells namesakes apart.
+                // Shown apart: the type plain, the title bold.
                 'type' => $type,
                 'title' => $title,
                 'district' => $english && $row->district_en ? $row->district_en : $row->district_uk,
