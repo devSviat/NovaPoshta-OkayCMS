@@ -9,8 +9,8 @@
 .np-wb__line { margin: 4px 0; }
 .np-wb__form .np-wb__line { margin: 2px 0 6px; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
 /* Group headings of the waybill form, styled as the card's «ДОДАТКОВІ ПОСЛУГИ». */
-.np-wb__group { display: block; margin: 18px 0 8px; padding-top: 12px; border-top: 1px solid var(--ok-line, #e4e6e9); font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); }
-.np-wb__group--first { margin-top: 4px; padding-top: 0; border-top: 0; }
+.np-wb__group { display: block; margin: 16px 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); }
+.np-wb__group--first { margin-top: 4px; }
 .np-wb__actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
 .np-wb__number { font-size: 18px; font-weight: 600; letter-spacing: .02em; margin: 6px 0; }
 .np-wb__issue { margin-top: 10px; }
