@@ -360,6 +360,7 @@ $lang['sviat__novaposhta__card_payment'] = 'Оплата доставки';
 $lang['sviat__novaposhta__card_cost'] = 'Стоимость доставки';
 $lang['sviat__novaposhta__card_more'] = 'Показать больше';
 $lang['sviat__novaposhta__card_less'] = 'Скрыть';
+$lang['sviat__novaposhta__card_details'] = 'Подробная информация';
 $lang['sviat__novaposhta__card_type'] = 'Тип';
 $lang['sviat__novaposhta__card_weight'] = 'Вес';
 $lang['sviat__novaposhta__card_volume_weight'] = 'Объёмный вес';

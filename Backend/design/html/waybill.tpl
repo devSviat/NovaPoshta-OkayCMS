@@ -113,7 +113,9 @@
                 </div>
             {/if}
             {if $c.more}
-                <div class="np-wb__more-body" hidden>
+                <div class="np-wb__more" hidden><div class="np-wb__more-inner">
+                    <div class="np-wb__more-title">{$btr->sviat__novaposhta__card_details|escape}</div>
+                    <div class="np-wb__more-body">
                         {if $c.more.type}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_type|escape}</span>{$btr->getTranslation($c.more.type)|escape}</div>{/if}
                         {if $c.more.weight}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_weight|escape}</span>{$c.more.weight|escape}</div>{/if}
                         {if $c.more.volumeWeight}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_volume_weight|escape}</span>{$c.more.volumeWeight|escape}</div>{/if}
@@ -121,7 +123,8 @@
                         {if $c.more.barcode}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_barcode|escape}</span>{$c.more.barcode|escape}</div>{/if}
                         {if $c.more.factualWeight}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_factual_weight|escape}</span>{$c.more.factualWeight|escape}</div>{/if}
                         {if $c.more.serviceType}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_service_type|escape}</span>{$btr->getTranslation($c.more.serviceType)|escape}</div>{/if}
-                </div>
+                    </div>
+                </div></div>
             {/if}
             <div class="np-wb__issues" role="alert"></div>
             <div class="np-wb__footer">

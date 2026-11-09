@@ -134,10 +134,13 @@
 .np-wb__pay { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 0 20px 16px; }
 .np-wb__big { font-size: 20px; font-weight: 600; }
 .np-wb__note { padding: 0 20px 12px; }
-.np-wb__card .np-wb__more-body { padding: 10px 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; text-align: left; }
+.np-wb__card .np-wb__more { margin: 12px 0 -12px; overflow: hidden; background: #f2f4f4; }
+.np-wb__card .np-wb__more[hidden] { display: none; }
+.np-wb__more-inner { padding: 16px 20px; }
+.np-wb__more-title { margin-bottom: 8px; font-size: 14px; font-weight: 600; text-transform: uppercase; color: var(--ok-ink, #212529); }
+.np-wb__card .np-wb__more-body { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; text-align: left; }
 .np-wb__card .np-wb__more-body > div { display: block; text-align: left; }
 .np-wb__card .np-wb__more-body .np-wb__label { display: block; }
-.np-wb__card .np-wb__more-body[hidden] { display: none; }
 .np-wb__card .np-wb__issues { padding: 0 20px; }
 .np-wb__card .np-wb__footer { margin: 12px 0 0; padding: 10px 20px; border-top: 1px solid var(--ok-line, #e4e6e9); font-size: 13px; }
 .np-wb__tools { display: inline-flex; align-items: center; gap: 4px; }

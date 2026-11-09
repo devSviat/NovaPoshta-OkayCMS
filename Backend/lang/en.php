@@ -360,6 +360,7 @@ $lang['sviat__novaposhta__card_payment'] = 'Delivery payment';
 $lang['sviat__novaposhta__card_cost'] = 'Delivery cost';
 $lang['sviat__novaposhta__card_more'] = 'Show more';
 $lang['sviat__novaposhta__card_less'] = 'Hide';
+$lang['sviat__novaposhta__card_details'] = 'Details';
 $lang['sviat__novaposhta__card_type'] = 'Type';
 $lang['sviat__novaposhta__card_weight'] = 'Weight';
 $lang['sviat__novaposhta__card_volume_weight'] = 'Volumetric weight';
