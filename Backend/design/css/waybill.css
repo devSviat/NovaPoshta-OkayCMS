@@ -119,10 +119,11 @@
 .np-wb__num { display: flex; flex-direction: column; gap: 2px; }
 .np-wb__muted { font-size: 12px; color: var(--ok-ink-muted, #676e75); }
 .np-wb__card .np-wb__number { display: inline-flex; align-items: center; gap: 12px; margin: 0; white-space: nowrap; font-size: 26px; font-weight: 600; letter-spacing: 0; }
-.np-wb__card .np-wb__copy { color: inherit; text-decoration: none; }
+.np-wb__card .np-wb__copy { line-height: 1.2; color: inherit; text-decoration: none; }
 .np-wb__card .np-wb__copy:hover, .np-wb__card .np-wb__copy.is-copied { color: var(--ok-accent, #135c94); }
-.np-wb__open { display: inline-flex; color: var(--ok-accent, #135c94); }
-.np-wb__open:hover { color: var(--ok-ink, #212529); }
+.np-wb__open { display: inline-flex; align-items: center; color: #757575; }
+.np-wb__open:hover { color: var(--ok-accent, #135c94); }
+.np-wb__open svg { display: block; }
 .np-wb__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 16px 20px; }
 .np-wb__route { display: flex; flex-direction: column; align-items: flex-start; align-self: start; gap: 20px; padding: 8px 10px; font-size: 14px; line-height: 16px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; }
 .np-wb__route b { font-weight: 400; }
