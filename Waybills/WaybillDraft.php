@@ -192,6 +192,11 @@ final readonly class WaybillDraft
         if ($codKind === null) {
             $errors[] = ['field' => 'cod_kind', 'key' => 'waybill_error_choice'];
         }
+        // НП не приймає оголошену цінність, меншу за грошовий переказ, і мовчки піднімає її (перевірено лише для
+        // переказу: контроль оплати тестовий кабінет без договору відкидає): форма показує те, що НП запише.
+        if ($cod && $codKind === CodKind::Money && $codAmount !== null && $declared !== null && round($codAmount) > $declared) {
+            $declared = round($codAmount);
+        }
         $lifting = $this->mode === DeliveryMode::Address && (array_key_exists('lifting', $form) ? !empty($form['lifting']) : $this->lifting);
         $floor = $number('floor', $this->floor === null ? null : (float)$this->floor);
         if ($lifting && ($floor === null || $floor < 1 || $floor > self::FLOOR_MAX || $floor != (int)$floor)) {

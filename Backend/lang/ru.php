@@ -420,6 +420,7 @@ $lang['sviat__novaposhta__waybill_who_org'] = 'Контактное лицо:';
 $lang['sviat__novaposhta__waybill_who_source'] = 'из данных покупателя выше';
 $lang['sviat__novaposhta__waybill_company_tip'] = 'Необязательно: Новая Почта берёт название из реестра по ЕГРПОУ.';
 $lang['sviat__novaposhta__waybill_declared_tip'] = 'Сумма, на которую застрахована посылка. По умолчанию — товары без доставки.';
+$lang['sviat__novaposhta__waybill_declared_raised'] = 'НП не принимает объявленную стоимость меньше суммы наложенного платежа';
 $lang['sviat__novaposhta__waybill_cod_amount_tip'] = 'Сколько Новая Почта возьмёт с получателя при получении, в целых гривнах (копейки НП округляет). Аванс и оплаченное уже вычтены.';
 $lang['sviat__novaposhta__waybill_cod_control_title'] = 'Контроль оплаты';
 $lang['sviat__novaposhta__waybill_cod_control_tip'] = 'Получатель платит при получении, деньги поступают на счёт магазина по договору с NovaPay.';

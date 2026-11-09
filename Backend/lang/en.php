@@ -420,6 +420,7 @@ $lang['sviat__novaposhta__waybill_who_org'] = 'Contact person:';
 $lang['sviat__novaposhta__waybill_who_source'] = 'from the customer details above';
 $lang['sviat__novaposhta__waybill_company_tip'] = 'Optional: Nova Poshta takes the name from its registry by EDRPOU.';
 $lang['sviat__novaposhta__waybill_declared_tip'] = 'The amount the parcel is insured for. By default: goods without delivery.';
+$lang['sviat__novaposhta__waybill_declared_raised'] = 'NP takes no declared value below the cash on delivery amount';
 $lang['sviat__novaposhta__waybill_cod_amount_tip'] = 'How much Nova Poshta collects from the recipient at pickup, in whole hryvnias (NP rounds kopecks). Advances and payments are already deducted.';
 $lang['sviat__novaposhta__waybill_cod_control_title'] = 'Payment control';
 $lang['sviat__novaposhta__waybill_cod_control_tip'] = 'The recipient pays on delivery and the money goes to the shop\'s account under the NovaPay contract.';

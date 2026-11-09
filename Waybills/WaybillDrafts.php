@@ -132,6 +132,9 @@ final class WaybillDrafts
         // Що лишає стягнути інший модуль (передоплата); якщо нічого не лишилось — післяплати немає, ніколи не «0» чи від'ємна.
         $due = max(0.0, round($amountDue ? $amountDue($totalUah) : $totalUah));
         $cod = $codKind !== null && empty($order->paid) && $due > 0;
+        // Оголошена цінність — вартість товарів; НП не приймає меншу за грошовий переказ і підняла б її сама
+        // (коли доставка входить у суму замовлення, переказ більший за товари на ціну доставки).
+        $goodsUah = round(max(0.0, $goods) * $uahRate, 2);
         $address = $mode === DeliveryMode::Address;
         $locker = !$address && ($division->category ?? null) === DivisionCategory::Postomat->value;
         // Доставку магазин уже взяв (у сумі) або пообіцяв безкоштовною: НП не має стягувати з отримувача.
@@ -159,7 +162,7 @@ final class WaybillDrafts
             $phone,
             $parcel->weightKg,
             $parcel->volumeM3,
-            round(max(0.0, $goods) * $uahRate, 2),
+            $cod && $codKind === CodKind::Money ? max($goodsUah, $due) : $goodsUah,
             $waybill->descriptionMode === 'text' ? $waybill->description : 'Замовлення №' . (int)$order->id,
             // Поштомат не приймає «Вантаж» (api-docs-ua, «ЕН на поштомат»).
             $locker && $waybill->cargoType === 'Cargo' ? 'Parcel' : $waybill->cargoType,

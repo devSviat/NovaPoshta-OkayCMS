@@ -382,6 +382,22 @@ class WaybillDraftTest extends TestCase
         self::assertFalse(self::build(self::order(['paid' => 0]), cod: CodKind::Money, amountDue: static fn(float $total): float => 0.0)->awaitsPayment, 'prepaid in full by another module');
     }
 
+    /** НП не приймає оголошену цінність, меншу за післяплату, і мовчки піднімає її (жива перевірка 09.11.2026: 1799 → 1958). */
+    public function testDeclaredValueIsNotBelowWhatNpCollects(): void
+    {
+        $inTotal = self::build(cod: CodKind::Money);
+        self::assertSame(2454.0, $inTotal->codAmount, 'товари й доставка в сумі замовлення');
+        self::assertSame(2454.0, $inTotal->declaredCost);
+
+        $apart = self::build(self::order(['separate_delivery' => 1, 'total_price' => 2359.0]), cod: CodKind::Money);
+        self::assertSame(2359.0, $apart->codAmount, 'доставка окремо: лише товари');
+        self::assertSame(2359.0, $apart->declaredCost);
+
+        self::assertSame(2359.0, self::build()->declaredCost, 'без післяплати — вартість товарів');
+        self::assertSame(3000.0, self::build()->withInput(['cod' => '1', 'cod_amount' => '3000', 'declared_cost' => '2359'])->declaredCost);
+        self::assertSame(2500.0, self::build()->withInput(['cod' => '1', 'cod_amount' => '1000', 'declared_cost' => '2500'])->declaredCost, 'більша цінність лишається');
+    }
+
     /** Форма пропонує типи, увімкнені в налаштуваннях, і завжди власний тип чернетки. */
     public function testFormTakesTheTypesTurnedOn(): void
     {
