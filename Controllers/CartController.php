@@ -25,7 +25,7 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
 
 /**
  * Public cart endpoints. They read only the Nova Poshta dictionary and the visitor's own
- * cart: no orders, no personal data (design §11).
+ * cart: no orders, no personal data.
  */
 class CartController
 {
@@ -88,7 +88,7 @@ class CartController
         }
 
         $answer = ['price' => null, 'unpriced' => false, 'priceText' => null, 'totalWithDelivery' => null, 'free' => false, 'codFee' => null, 'codFeeText' => null, 'term' => $quote->term?->format('Y-m-d'), 'problem' => $quote->problem, 'liftingOffered' => false, 'liftingFeeText' => null];
-        // Lifting is offered only when it costs extra, or when the weight of some goods is unknown (design §6).
+        // Lifting is offered only when it costs extra, or when the weight of some goods is unknown.
         if ($request->get('mode') === 'address' && $shipping->read()->showLifting && !$quote->liftingRefused
             && ($quote->liftingFee !== null || CartMetrics::fromCart($cartData)->weightUnknown)) {
             $answer['liftingOffered'] = true;

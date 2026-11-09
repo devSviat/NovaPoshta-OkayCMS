@@ -6,7 +6,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 
 /**
- * Turns a refusal into what the waybill form shows (design §3а, §7): the field to mark, Nova
+ * Turns a refusal into what the waybill form shows: the field to mark, Nova
  * Poshta's own text, our advice on what to do (a language key) and the technical details.
  * Field rules are ported from NovaPoshtaTracking DocumentIssueTranslator, with the new API's names.
  */

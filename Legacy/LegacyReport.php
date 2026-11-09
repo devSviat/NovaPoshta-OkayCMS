@@ -20,8 +20,11 @@ final class LegacyReport
         $this->counts[$step][$kind]++;
     }
 
-    /** Counted as failed; the row itself may still be carried over with its names. */
-    /** @param ?int $record id of the old module's row, for a failure the shop has no order to link */
+    /**
+     * Counted as failed; the row itself may still be carried over with its names.
+     *
+     * @param ?int $record id of the old module's row, for a failure the shop has no order to link
+     */
     public function fail(string $step, ?int $orderId, string $key, ?string $name = null, ?int $record = null): void
     {
         $this->add($step, 'failed');

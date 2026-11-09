@@ -73,7 +73,7 @@ final class OrderDeliveryStore
         $existing ? $entity->update((int)$existing->id, $row) : $entity->add($row + ['created_at' => $now]);
     }
 
-    /** The delivery price the manager set from the admin (stage 4a2). */
+    /** The delivery price the manager set from the admin. */
     public function setPrice(int $orderId, float $price, string $source): void
     {
         $entity = $this->entityFactory->get(OrderDeliveryEntity::class);
@@ -133,7 +133,7 @@ final class OrderDeliveryStore
     }
 
     /**
-     * A row carried over from NovaposhtaCost (stage 5). Never replaces what the module already has.
+     * A row carried over from NovaposhtaCost. Never replaces what the module already has.
      * @return bool false when the order already has a row
      */
     public function importLegacy(int $orderId, int $deliveryId, array $values): bool

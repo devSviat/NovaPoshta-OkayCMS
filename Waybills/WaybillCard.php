@@ -3,7 +3,7 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 /**
- * The waybill card as NovaPoshtaTracking drew it (author's choice): values formatted from the
+ * The waybill card as NovaPoshtaTracking drew it: values formatted from the
  * last getStatusDocuments answer. Words NP sends as codes (payer, cargo type) become language keys.
  */
 final class WaybillCard

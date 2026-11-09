@@ -101,7 +101,6 @@
 }
 .np-chip--selected .np-cart__count { opacity: .85; }
 
-/* Address delivery */
 .np-cart__address { display: flex; flex-direction: column; gap: 12px; }
 .np-cart__address[hidden] { display: none; }
 .np-cart__street { position: relative; }

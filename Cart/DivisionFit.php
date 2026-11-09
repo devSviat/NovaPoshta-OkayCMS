@@ -3,7 +3,7 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
 /**
- * Only what certainly does not fit (design §6): the known weight alone is over the limit, or
+ * Only what certainly does not fit: the known weight alone is over the limit, or
  * the cart costs more than the point accepts, or the known volume does not fit its largest place. A guessed weight never hides a point.
  */
 final class DivisionFit
@@ -13,7 +13,7 @@ final class DivisionFit
     private const float MAX_REAL_COST = 1e9;
     /** Sizes come in cm; anything outside (0; 1000] is treated as unknown. */
     private const float MAX_REAL_SIZE = 1000;
-    /** The largest locker cell, 40×60×30 cm (§6): used when a locker has no sizes. */
+    /** The largest locker cell, 40×60×30 cm: used when a locker has no sizes. */
     public const float POSTOMAT_CELL_M3 = 0.072;
 
     /** @return list<FitProblem> */

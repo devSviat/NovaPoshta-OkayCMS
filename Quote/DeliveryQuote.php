@@ -22,7 +22,7 @@ final readonly class DeliveryQuote
 
     /**
      * Nova Poshta was asked and gave no price: the customer is not charged for delivery, the manager
-     * states it later (user decision 06.11.2026). "busy" is not one: checkout prices it anyway.
+     * states it later. "busy" is not one: checkout prices it anyway.
      */
     public function unpriced(): bool
     {

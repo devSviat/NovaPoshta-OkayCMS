@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
 /**
  * Reads the address fields one delivery method posted. Entrance and note share the old API's
- * 50-character address note, so the shipment (stage 4) must shorten them when both are long.
+ * 50-character address note, so the shipment must shorten them when both are long.
  */
 final class AddressInput
 {

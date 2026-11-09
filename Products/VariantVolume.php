@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Products;
 
-/** Packed volume of a product variant, m³ — own field on the core variants table (§9). */
+/** Packed volume of a product variant, m³ — own field on the core variants table. */
 final class VariantVolume
 {
     public const string FIELD = 'sviat__novaposhta__volume';

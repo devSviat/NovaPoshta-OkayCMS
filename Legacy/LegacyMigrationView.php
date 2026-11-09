@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
-/** What the "move from the old modules" block shows (settings page; mockup «НП: простий перехід», 08.11.2026). */
+/** What the "move from the old modules" block on the settings page shows. */
 final class LegacyMigrationView
 {
     /**

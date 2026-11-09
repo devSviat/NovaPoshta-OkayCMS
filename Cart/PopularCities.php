@@ -6,7 +6,7 @@ use Okay\Core\EntityFactory;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
-/** City buttons above the cart's city field: chosen and ordered by the manager only (design §6). */
+/** City buttons above the cart's city field: chosen and ordered by the manager only. */
 final class PopularCities
 {
     public const int MAX = 20;

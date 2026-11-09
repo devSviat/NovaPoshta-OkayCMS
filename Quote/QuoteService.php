@@ -8,7 +8,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 
 /**
- * Delivery price and term for the cart (design §4, plan 3b). The new calculator prices branch to
+ * Delivery price and term for the cart. The new calculator prices branch to
  * branch without services; the old one is needed when the customer pays a COD commission or the
  * shop hands parcels to a courier. The term only comes from the old API: the new one returns
  * no date (checked live 06.11.2026).
@@ -43,7 +43,7 @@ final class QuoteService
             try {
                 if ($request->address?->offerLifting) {
                     // NP has no "lifting price" method: the extra is the difference of two calculations,
-                    // so the weight limit for lifting stays NP's, not ours (design §6).
+                    // so the weight limit for lifting stays NP's, not ours.
                     $base = $this->oldPrice($request, false);
                     try {
                         $lifted = $this->oldPrice($request, true);

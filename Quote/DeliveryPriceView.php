@@ -23,13 +23,10 @@ final class DeliveryPriceView
     }
 
     /**
-     * No point or address chosen yet: the method's own price is not what NP will charge, so none is
-     * shown or added to the total; a free delivery (threshold, promo) stays free.
-     */
-    /**
      * What the cart shows for a method: `price` — the quote; `unpriced` — NP gave none; `free` — the
      * order will be free though the core's cart says otherwise (it compares free_from strictly);
-     * `awaiting` — no point chosen yet; `kept` — what the core or an earlier extender set.
+     * `awaiting` — no point or address chosen yet: the method's own price is not what NP will charge,
+     * so none is shown or added to the total; `kept` — what the core or an earlier extender set.
      */
     public static function cartState(object $delivery, ?DeliveryQuote $quote, bool $own, bool $dictionaryReady, float $cartTotal): string
     {

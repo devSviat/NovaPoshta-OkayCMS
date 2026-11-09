@@ -20,10 +20,10 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryQuote;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillRows;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
 
-/** The manager changes the point or address of an order in the admin (stage 4a2). */
+/** The manager changes the point or address of an order in the admin. */
 final class OrderPointChange
 {
-    /** A point that does not take the parcel is still the manager's call (design §6). */
+    /** A point that does not take the parcel is still the manager's call. */
     private const array FIT_PROBLEMS = ['error_point_too_heavy', 'error_point_too_big', 'error_point_too_expensive'];
 
     public function __construct(

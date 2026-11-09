@@ -10,7 +10,7 @@ use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 
 /**
  * Creates, attaches and removes the waybill of an order. A create or delete is sent exactly once:
- * after a broken connection Nova Poshta may already have done it (design §4).
+ * after a broken connection Nova Poshta may already have done it.
  */
 final class WaybillService
 {

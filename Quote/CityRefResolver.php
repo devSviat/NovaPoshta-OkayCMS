@@ -9,7 +9,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 /**
  * The old API's city Ref for a settlement of the new dictionary. The bridge is the point number:
  * new `number` = old `WarehouseIndex` (checked live 06.11.2026), and `getWarehouses` by index
- * returns the point's `CityRef`. `externalId` is not used (design §2).
+ * returns the point's `CityRef`. `externalId` is not used.
  */
 final class CityRefResolver
 {

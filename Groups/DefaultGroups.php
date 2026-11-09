@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Groups;
 
-/** The groups a fresh install starts with (design §6). */
+/** The groups a fresh install starts with. */
 final class DefaultGroups
 {
     /** @return list<array{position:int, enabled:bool, categories:array<string,bool>, names:array{uk:string, en:string}}> */

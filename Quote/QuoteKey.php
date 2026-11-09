@@ -2,10 +2,10 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
-/** Identifies what a quote was made for; any change in the cart makes a new key (design: no stale prices). */
+/** Identifies what a quote was made for; any change in the cart makes a new key, so no stale price is shown. */
 final class QuoteKey
 {
-    /** Bumped when a cached quote's meaning changes; 0.6.0 took the COD commission out of the price. */
+    /** Bumped when a cached quote's meaning changes. */
     private const string FORMAT = 'v2';
 
     /** @param string $target "d:<division id>" or "a:<settlement id>" */

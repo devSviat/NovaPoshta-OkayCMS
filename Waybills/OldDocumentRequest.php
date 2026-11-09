@@ -21,7 +21,7 @@ final class OldDocumentRequest
         ] + self::lockerSeat($draft) + self::recipientByName($draft) + self::money($draft);
     }
 
-    /** An address by refs: the NP account shows every address field (design §2). */
+    /** An address by refs: the NP account shows every address field. */
     public static function forAddressRef(WaybillDraft $draft, SenderParty $sender, string $cityRef, string $recipientRef, string $contactRef, string $addressRef): array
     {
         return self::common($draft, $sender) + [

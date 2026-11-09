@@ -8,7 +8,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
 /**
- * Statuses of waybills (design §8). The scheduler asks the new API about unfinished waybills in
+ * Statuses of waybills. The scheduler asks the new API about unfinished waybills in
  * batches; the card's full data comes from the old getStatusDocuments, which the new API lacks.
  */
 final class WaybillTracking
