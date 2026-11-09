@@ -164,17 +164,27 @@
         if (!this.root.getAttribute('data-open')) {
             var cancel = el('button', 'btn btn_small btn_border_blue', t.op_cancel);
             cancel.type = 'button';
-            cancel.addEventListener('click', function () { self.box.hidden = true; self.box.textContent = ''; });
+            cancel.addEventListener('click', function () { self.box.hidden = true; self.box.textContent = ''; self.root.classList.remove('is-editing'); });
             actions.appendChild(cancel);
         }
         this.box.appendChild(actions);
         this.box.hidden = false;
+        // The editor holds the same city and address: the summary above would only repeat it.
+        this.root.classList.add('is-editing');
     };
 
     Editor.prototype.buildAddress = function () {
         var self = this;
         var t = this.texts;
-        this.street = input('', 100);
+        var filled = function (value, maxLength) {
+            var node = input('', maxLength);
+            node.value = value;
+            return node;
+        };
+        // The editor starts from the address the order has: the manager corrects a part, not retypes it all.
+        var current = function (name) { return self.root.getAttribute('data-' + name) || ''; };
+        this.street = filled(current('street'), 100);
+        this.streetRef = current('street-ref');
         this.streetSuggest = el('ul', 'np-op__suggest');
         this.streetSuggest.hidden = true;
         var streetField = field(t.op_street, this.street, 'street');
@@ -185,36 +195,37 @@
             self.streetRef = '';
             self.debounce('street', function () { self.findStreets(); });
         });
-        var row = el('div', 'np-op__grid');
-        this.house = input('', 10);
-        this.flat = input('', 10);
-        this.entrance = input('', 5);
+        var row = el('div', 'np-op__grid np-op__grid--four');
+        this.house = filled(current('house'), 10);
+        this.flat = filled(current('flat'), 10);
+        this.entrance = filled(current('entrance'), 5);
+        // Always offered, as in the cart: the courier needs it whether or not lifting is paid for.
+        this.floor = filled(current('floor'), 3);
+        this.floor.inputMode = 'numeric';
         row.appendChild(field(t.op_house, this.house, 'house'));
         row.appendChild(field(t.op_flat, this.flat, 'flat'));
         row.appendChild(field(t.op_entrance, this.entrance, 'entrance'));
+        row.appendChild(field(t.op_floor, this.floor, 'floor'));
         this.box.appendChild(row);
-        this.note = input('', 40);
+        this.note = filled(current('note'), 40);
         this.box.appendChild(field(t.op_note, this.note, 'note'));
         if (this.root.getAttribute('data-lifting')) {
             var lifting = el('label', 'np_check');
             this.lifting = el('input');
             this.lifting.type = 'checkbox';
+            this.lifting.checked = !!current('lifting-on');
             lifting.appendChild(this.lifting);
             lifting.appendChild(el('span', '', ' ' + t.op_lifting));
             this.box.appendChild(lifting);
-            var floorRow = el('div', 'np-op__grid');
-            floorRow.hidden = true;
-            this.floor = input('', 3);
-            this.floor.inputMode = 'numeric';
-            floorRow.appendChild(field(t.op_floor, this.floor, 'floor'));
             var elevator = el('label', 'np_check');
+            elevator.hidden = !this.lifting.checked;
             this.elevator = el('input');
             this.elevator.type = 'checkbox';
+            this.elevator.checked = !!current('elevator');
             elevator.appendChild(this.elevator);
             elevator.appendChild(el('span', '', ' ' + t.op_elevator));
-            floorRow.appendChild(elevator);
-            this.box.appendChild(floorRow);
-            this.lifting.addEventListener('change', function () { floorRow.hidden = !self.lifting.checked; });
+            this.box.appendChild(elevator);
+            this.lifting.addEventListener('change', function () { elevator.hidden = !self.lifting.checked; });
         }
     };
 
@@ -365,10 +376,10 @@
             data.house = this.house.value;
             data.flat = this.flat.value;
             data.entrance = this.entrance.value;
+            data.floor = this.floor.value;
             data.note = this.note.value;
             if (this.lifting && this.lifting.checked) {
                 data.lifting = '1';
-                data.floor = this.floor.value;
                 if (this.elevator.checked) {
                     data.elevator = '1';
                 }

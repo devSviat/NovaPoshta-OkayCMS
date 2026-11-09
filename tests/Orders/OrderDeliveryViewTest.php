@@ -48,10 +48,11 @@ class OrderDeliveryViewTest extends TestCase
     {
         $lines = OrderDeliveryView::lines((object)[
             'mode' => 'address', 'settlement_name' => 'місто Київ', 'area_name' => 'Київська область',
-            'street_name' => 'вул. Хрещатик', 'house' => '1', 'flat' => '5', 'entrance' => '', 'floor' => '7', 'elevator' => '1', 'address_note' => 'домофон 5', 'lifting' => '1',
+            'street_name' => 'вул. Хрещатик', 'street_ref' => '0f0d85b0-4143-11dd-9198-001d60451983', 'house' => '1', 'flat' => '5', 'entrance' => '', 'floor' => '7', 'elevator' => '1', 'address_note' => 'домофон 5', 'lifting' => '1',
         ]);
 
-        self::assertSame(['street' => 'вул. Хрещатик', 'house' => '1', 'flat' => '5', 'entrance' => null, 'floor' => 7, 'elevator' => true, 'note' => 'домофон 5'], $lines['address']);
+        // streetRef: the manager's address editor starts from it, so an unchanged street keeps its NP ref.
+        self::assertSame(['street' => 'вул. Хрещатик', 'streetRef' => '0f0d85b0-4143-11dd-9198-001d60451983', 'house' => '1', 'flat' => '5', 'entrance' => null, 'floor' => 7, 'elevator' => true, 'note' => 'домофон 5'], $lines['address']);
         self::assertTrue($lines['lifting']);
         self::assertSame('', $lines['point']);
     }
@@ -96,6 +97,14 @@ class OrderDeliveryViewTest extends TestCase
         $lines = OrderDeliveryView::lines((object)['settlement_name' => 'місто Київ', 'division_name' => 'Поштомат "Нова Пошта" №1001', 'division_address' => 'вул. Сім\'ї Кульженків, 31а']);
 
         self::assertSame('Поштомат №1001: вул. Сім\'ї Кульженків, 31а', $lines['point']);
+    }
+
+    /** A branch name already carries its street («Відділення №2: вул. Богатирська, 11»): the address would repeat it. */
+    public function testBranchAddressIsNotRepeated(): void
+    {
+        $lines = OrderDeliveryView::lines((object)['settlement_name' => 'місто Київ', 'division_name' => 'Відділення №2: вул. Богатирська, 11', 'division_address' => 'Київ, Богатирська, 11']);
+
+        self::assertSame('Відділення №2: вул. Богатирська, 11', $lines['point']);
     }
 
     public function testWaybillLinkForTheCustomer(): void

@@ -32,6 +32,12 @@
 .np-op__error { display: block; color: #c0392b; font-size: 12px; }
 .np-op__error:empty { display: none; }
 .np-op__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 0 8px; align-items: end; }
+/* House, flat, entrance, floor: short values, one row as in the cart. */
+.np-op__row { margin-bottom: 8px; color: var(--ok-ink, #212529); font-size: 14px; line-height: 1.35; }
+.np-op__label { display: block; margin-bottom: 1px; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
+.fn_np_order_point.is-editing > .np-op__row { display: none; }
+.np-op__hint { display: block; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
+.np-op__grid--four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .np-op__suggest { position: absolute; z-index: 20; left: 0; right: 0; margin: 2px 0 0; padding: 0; list-style: none; background: #fff; border: 1px solid #d0d5da; border-radius: 6px; max-height: 220px; overflow: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, .08); }
 .np-op__suggest li { padding: 6px 10px; cursor: pointer; }
 .np-op__suggest li:hover { background: #eef4fb; }
