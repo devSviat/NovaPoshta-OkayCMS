@@ -247,6 +247,17 @@
     });
 
     document.addEventListener('click', function (event) {
+        var toggle = event.target.closest('.fn_np_wb_more');
+        var body = toggle ? toggle.closest('.np-wb__card') && toggle.closest('.np-wb__card').querySelector('.np-wb__more-body') : null;
+        if (!body) {
+            return;
+        }
+        body.hidden = !body.hidden;
+        toggle.setAttribute('aria-expanded', body.hidden ? 'false' : 'true');
+        toggle.querySelector('span').textContent = toggle.getAttribute(body.hidden ? 'data-more' : 'data-less');
+    });
+
+    document.addEventListener('click', function (event) {
         var hide = event.target.closest('.fn_np_mass_hide');
         if (hide) {
             hide.closest('.fn_np_mass_report').hidden = true;

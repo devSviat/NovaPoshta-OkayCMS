@@ -10,7 +10,6 @@
 .np-wb__line { margin: 4px 0; }
 .np-wb__actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
 .np-wb__number { font-size: 18px; font-weight: 600; letter-spacing: .02em; margin: 6px 0; }
-.np-wb__ok { color: #1e7e34; margin: 6px 0; }
 .np-wb__issue { margin-top: 10px; }
 .np-wb__issue details { margin-top: 4px; }
 .np-wb__issue summary { cursor: pointer; }
@@ -64,15 +63,15 @@
 .np-wb__section { margin-top: 10px; padding-top: 8px; border-top: 1px solid #eef0f2; }
 .np-wb__label { display: block; font-size: 12px; color: #676e75; }
 .np-wb__status { margin: 6px 0; color: #545b62; }
-.np-wb__more { margin-top: 10px; }
-.np-wb__more summary { cursor: pointer; color: #2a76c6; }
-.np-wb__more > div { margin-top: 6px; }
+/* As the old tracking module drew it: a quiet grey button at the footer's left. */
+.np-wb__more-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 0; border-radius: 4px; background: #f5f5f5; color: #757575; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color .2s; }
+.np-wb__more-toggle:hover { background: #e7e7e7; }
+.np-wb__more-toggle svg { transition: transform .3s ease; }
+.np-wb__more-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.np-wb__tools .np-wb__muted { margin-right: 6px; }
 .np-wb__footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; margin-top: 10px; font-size: 12px; }
 .np-wb__footer .np-wb__link { flex: none; }
 .np-wb__link { background: none; border: 0; padding: 0; color: #2a76c6; text-decoration: underline; cursor: pointer; font: inherit; }
-.np-wb__more > div { display: flex; justify-content: space-between; gap: 12px; }
-.np-wb__more > div > .np-wb__label { display: inline; flex: none; font-size: 13px; }
-.np-wb__more > div { text-align: right; }
 .np-list-status { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
 .np-list-status__logo { flex: none; }
 .np-list-status__number { color: inherit; white-space: nowrap; text-decoration: none; }
@@ -135,12 +134,10 @@
 .np-wb__pay { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 0 20px 16px; }
 .np-wb__big { font-size: 20px; font-weight: 600; }
 .np-wb__note { padding: 0 20px 12px; }
-.np-wb__card .np-wb__more { margin: 0; padding: 0 20px; }
-.np-wb__more-toggle { display: inline-block; list-style: none; padding: 8px 14px; border-radius: 8px; background: var(--ok-sunken, #eef0f3); color: var(--ok-ink-soft, #343a40); cursor: pointer; }
-.np-wb__more-toggle::-webkit-details-marker { display: none; }
-.np-wb__card .np-wb__more-body { padding: 10px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; text-align: left; }
+.np-wb__card .np-wb__more-body { padding: 10px 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; text-align: left; }
 .np-wb__card .np-wb__more-body > div { display: block; text-align: left; }
 .np-wb__card .np-wb__more-body .np-wb__label { display: block; }
+.np-wb__card .np-wb__more-body[hidden] { display: none; }
 .np-wb__card .np-wb__issues { padding: 0 20px; }
 .np-wb__card .np-wb__footer { margin: 12px 0 0; padding: 10px 20px; border-top: 1px solid var(--ok-line, #e4e6e9); font-size: 13px; }
 .np-wb__tools { display: inline-flex; align-items: center; gap: 4px; }
