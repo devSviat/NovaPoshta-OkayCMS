@@ -2,6 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Orders;
 
+use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyOrders;
 use Okay\Core\EntityFactory;
 use Okay\Entities\OrdersEntity;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelection;
@@ -136,15 +137,17 @@ final class OrderDeliveryStore
      * Рядок, перенесений з NovaposhtaCost. Ніколи не замінює те, що в модулі вже є.
      * @return bool false, коли замовлення вже має рядок
      */
-    public function importLegacy(int $orderId, int $deliveryId, array $values): bool
+    /** @return LegacyOrders::DONE|LegacyOrders::EXISTED|LegacyOrders::FAILED */
+    public function importLegacy(int $orderId, int $deliveryId, array $values): string
     {
         $entity = $this->entityFactory->get(OrderDeliveryEntity::class);
         if ($entity->findOne(['order_id' => $orderId])) {
-            return false;
+            return LegacyOrders::EXISTED;
         }
         $now = date('Y-m-d H:i:s');
-        $entity->add(['order_id' => $orderId, 'delivery_id' => $deliveryId, 'created_at' => $now, 'updated_at' => $now] + self::legacyValues($values));
+        // Ядро ковтає помилку SQL і повертає false: без перевірки перенесення рахувало б незаписане як перенесене.
+        $added = $entity->add(['order_id' => $orderId, 'delivery_id' => $deliveryId, 'created_at' => $now, 'updated_at' => $now] + self::legacyValues($values));
 
-        return true;
+        return $added ? LegacyOrders::DONE : LegacyOrders::FAILED;
     }
 }

@@ -285,6 +285,9 @@ class WaybillServiceTest extends TestCase
         self::assertSame('waybill_not_saved', $outcome->issues[0]['advice']);
         self::assertSame(W::fixture('old_save_ok')['data'][0]['IntDocNumber'], $outcome->issues[0]['message']);
         self::assertCount(1, $this->http->requests());
+        // Накладна в НП є: без перевірки наступне «Створити» зробило б дублікат.
+        self::assertSame('waybill_uncertain_check', $this->service()->create(self::ORDER, W::point(['cod' => true]))->issues[0]['advice']);
+        self::assertCount(1, $this->http->requests(), 'другого запиту до НП немає');
     }
 
     public function testUnlinkKeepsTheWaybillAtNovaPoshta(): void

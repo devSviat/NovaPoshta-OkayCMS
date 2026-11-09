@@ -140,7 +140,15 @@ final class WaybillService
             'floor' => $draft->floor,
         ]);
         if (!$saved) {
-            $this->rows->release($orderId);
+            $owner = $this->rows->orderOfNumber($number);
+            if ($owner !== null && $owner !== $orderId) {
+                // Номер уже прив'язаний до іншого замовлення: менеджер бачить його, резерв знімається.
+                $this->rows->release($orderId);
+            } else {
+                // Накладна в НП є, а запис не вдався: резерв лишається «невідомим», і наступне створення
+                // спершу вимагає перевірки в НП, яка знайде цю накладну, замість дубліката.
+                $this->rows->markUncertain($orderId);
+            }
 
             return WaybillOutcome::refused('waybill_not_saved', $number);
         }

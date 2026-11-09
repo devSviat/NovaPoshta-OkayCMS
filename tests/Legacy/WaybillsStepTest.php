@@ -67,6 +67,18 @@ class WaybillsStepTest extends TestCase
         self::assertSame(['done' => 1, 'existed' => 0, 'failed' => 0], $report->counts('waybills'));
     }
 
+    public function testFailedWriteIsReportedAsFailed(): void
+    {
+        $this->old->tracking = [self::row(1, 204, ['status_code' => '9'])];
+        $this->orders->failWrites = true;
+        $report = new LegacyReport();
+
+        $this->migrate($report);
+
+        self::assertSame(['done' => 0, 'existed' => 0, 'failed' => 1], $report->counts('waybills'));
+        self::assertSame('legacy_fail_write', $report->fails()[0]['key']);
+    }
+
     /** status_at на кожному шляху означає дату статусу в НП; час оновлення старого модуля — лише запасний варіант. */
     public function testStatusDateIsTheScanDate(): void
     {

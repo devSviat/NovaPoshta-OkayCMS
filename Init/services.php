@@ -57,6 +57,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\AmountDue;
 use Okay\Modules\Sviat\NovaPoshta\Integration\NpOrders;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillSettings;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderContacts;
+use Okay\Modules\Sviat\NovaPoshta\Storage\DbMutex;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
@@ -135,6 +136,10 @@ return [
         'class' => BackendExtender::class,
         'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Request::class), new SR(OrdersMassAction::class), new SR(OrderRowsCleanup::class)],
     ],
+    DbMutex::class => [
+        'class' => DbMutex::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class)],
+    ],
     OrderRowsCleanup::class => [
         'class' => OrderRowsCleanup::class,
         'arguments' => [new SR(EntityFactory::class), new SR(ModuleState::class)],
@@ -161,7 +166,7 @@ return [
     ],
     CartQuotes::class => [
         'class' => CartQuotes::class,
-        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class), new SR(Money::class), new SR(ModuleState::class), new SR(AddressCityResolver::class)],
+        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class), new SR(Money::class), new SR(ModuleState::class), new SR(AddressCityResolver::class), new SR(DbMutex::class)],
     ],
     CodPayments::class => [
         'class' => CodPayments::class,
@@ -211,7 +216,7 @@ return [
     ],
     DictionaryRunner::class => [
         'class' => DictionaryRunner::class,
-        'arguments' => [new SR(CdnDictionarySteps::class), new SR(ModuleState::class)],
+        'arguments' => [new SR(CdnDictionarySteps::class), new SR(ModuleState::class), null, new SR(DbMutex::class)],
     ],
     DictionaryCounts::class => [
         'class' => DictionaryCounts::class,

@@ -97,7 +97,12 @@ final class WaybillsStep implements LegacyStep
             'tracking' => $document !== null ? WaybillTrackingDocument::merge($document, null, $fetchedAt ?? date('Y-m-d H:i:s')) : null,
             'tracked_at' => $fetchedAt,
         ];
-        $report->add(self::NAME, $this->orders->importWaybill($orderId, $values) ? 'done' : 'existed');
+        $written = $this->orders->importWaybill($orderId, $values);
+        if ($written === LegacyOrders::FAILED) {
+            $report->fail(self::NAME, $orderId, 'legacy_fail_write', $number);
+        } else {
+            $report->add(self::NAME, $written === LegacyOrders::DONE ? 'done' : 'existed');
+        }
     }
 
     private static function date(mixed $value): ?string

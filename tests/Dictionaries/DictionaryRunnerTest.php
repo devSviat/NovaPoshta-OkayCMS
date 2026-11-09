@@ -4,7 +4,9 @@ namespace Modules\Sviat\NovaPoshta\Dictionaries;
 
 require_once __DIR__ . '/../Support/InMemoryState.php';
 require_once __DIR__ . '/../Support/RecordingSteps.php';
+require_once __DIR__ . '/../Support/InMemoryMutex.php';
 
+use Modules\Sviat\NovaPoshta\Support\InMemoryMutex;
 use Modules\Sviat\NovaPoshta\Support\InMemoryState;
 use Modules\Sviat\NovaPoshta\Support\RecordingSteps;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
@@ -23,10 +25,13 @@ class DictionaryRunnerTest extends TestCase
     private InMemoryState $state;
     private int $now = self::T0;
 
+    private InMemoryMutex $mutex;
+
     protected function setUp(): void
     {
         $this->steps = new RecordingSteps();
         $this->state = new InMemoryState();
+        $this->mutex = new InMemoryMutex();
         $this->publish(base: self::T0 - 1000, deltaTills: [self::T0 - 3000, self::T0 - 2000, self::T0 - 1000], settlements: self::T0 - 500);
     }
 
@@ -47,7 +52,7 @@ class DictionaryRunnerTest extends TestCase
 
     private function runner(): DictionaryRunner
     {
-        return new DictionaryRunner($this->steps, $this->state, fn(): int => $this->now);
+        return new DictionaryRunner($this->steps, $this->state, fn(): int => $this->now, $this->mutex);
     }
 
     private function dictStatus(): DictionaryStatus
@@ -61,6 +66,18 @@ class DictionaryRunnerTest extends TestCase
         $this->runner()->tick();
 
         return $this->steps->calls;
+    }
+
+    /** Другий процес планувальника стартував одночасно (сток ігнорує блокування планувальника): він не починає. */
+    public function testRunHeldByAnotherProcessIsSkipped(): void
+    {
+        $this->mutex->held['dictionaries'] = true;
+
+        self::assertSame([], $this->tick());
+        self::assertNull($this->dictStatus()->runningSince, 'стан не чіпається');
+        unset($this->mutex->held['dictionaries']);
+        self::assertNotSame([], $this->tick());
+        self::assertSame([], $this->mutex->held, 'блокування знято після запуску');
     }
 
     public function testFirstRunLoadsEverything(): void

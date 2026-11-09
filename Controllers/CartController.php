@@ -31,15 +31,27 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
  */
 class CartController
 {
-    public function settlements(Request $request, Response $response, SettlementSearch $search, Languages $languages)
+    public function settlements(Request $request, Response $response, SettlementSearch $search, Languages $languages, CartQuotes $quotes)
     {
+        if (!$quotes->allowSearch()) {
+            $response->setStatusCode(429);
+            $this->json($response, ['settlements' => [], 'problem' => 'busy']);
+
+            return;
+        }
         $query = self::typed($request);
         $pickupOnly = $request->get('mode') !== 'address';
         $this->json($response, ['settlements' => is_string($query) ? $search->find($query, (string)$languages->getLangLabel(), 10, $pickupOnly) : []]);
     }
 
-    public function divisions(Request $request, Response $response, DivisionList $divisions, Cart $cart, UserHelper $userHelper, Languages $languages, UahTotal $uahTotal)
+    public function divisions(Request $request, Response $response, DivisionList $divisions, Cart $cart, UserHelper $userHelper, Languages $languages, UahTotal $uahTotal, CartQuotes $quotes)
     {
+        if (!$quotes->allowSearch()) {
+            $response->setStatusCode(429);
+            $this->json($response, ['divisions' => [], 'problem' => 'busy']);
+
+            return;
+        }
         $settlementId = (int)$request->get('settlement_id', 'integer');
         if ($settlementId <= 0) {
             $response->setStatusCode(400);

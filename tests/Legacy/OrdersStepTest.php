@@ -82,6 +82,19 @@ class OrdersStepTest extends TestCase
         self::assertSame(['done' => 1, 'existed' => 0, 'failed' => 0], $report->counts('orders'));
     }
 
+    /** Запис у базу не вдався: перенесення не рахує замовлення ні перенесеним, ні таким, що вже було. */
+    public function testFailedWriteIsReportedAsFailed(): void
+    {
+        $this->old->delivery = [self::row(1, 101, ['city_id' => 'kyiv-ref', 'warehouse_id' => 'w13'])];
+        $this->orders->failWrites = true;
+        $report = new LegacyReport();
+
+        $this->migrate($report);
+
+        self::assertSame(['done' => 0, 'existed' => 0, 'failed' => 1], $report->counts('orders'));
+        self::assertSame('legacy_fail_write', $report->fails()[0]['key']);
+    }
+
     public function testGonePointIsKeptWithNames(): void
     {
         $this->old->delivery = [self::row(1, 101, ['city_id' => 'kyiv-ref', 'warehouse_id' => 'w5']), self::row(2, 102, ['city_id' => 'x', 'warehouse_id' => 'unknown-ref'])];
