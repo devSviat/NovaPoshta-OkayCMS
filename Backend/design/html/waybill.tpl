@@ -170,7 +170,7 @@
             {/if}
 
             {$org = $d->recipientType == 'Organization'}
-            <div class="heading_label np-wb__label">{$btr->sviat__novaposhta__waybill_recipient_group|escape}</div>
+            <div class="np-wb__group np-wb__group--first">{$btr->sviat__novaposhta__waybill_recipient_group|escape}</div>
             {np_wb_radios field='recipient_type' value=$d->recipientType options=['PrivatePerson' => $btr->sviat__novaposhta__waybill_recipient_private, 'Organization' => $btr->sviat__novaposhta__waybill_recipient_org]}
             <div class="np-wb__org" {if !$org}hidden{/if}>
                 {if $d->fromInvoice}<div class="text_grey font_12">{$btr->sviat__novaposhta__waybill_from_invoice|escape}</div>{/if}
@@ -188,6 +188,7 @@
             </div>
 
             {* Parcel, then who pays NP for delivery, then the money NP collects from the recipient. *}
+            <div class="np-wb__group">{$btr->sviat__novaposhta__waybill_group_parcel|escape}</div>
             <div class="np-wb__pair">
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cargo|escape}</span><select class="selectpicker form-control" data-field="cargo_type">
                     {foreach $d->cargoChoices() as $np_cargo}
@@ -223,6 +224,7 @@
                     {np_wb_switch field='elevator' on=$d->elevator label=$btr->sviat__novaposhta__order_elevator}
                 </div>
             {/if}
+            <div class="np-wb__group">{$btr->sviat__novaposhta__waybill_group_delivery|escape}</div>
             <div class="np-wb__pair">
                 {np_wb_select field='payer_type' value=$d->payerType label=$btr->sviat__novaposhta__waybill_payer options=['Sender' => $btr->sviat__novaposhta__waybill_sender_party, 'Recipient' => $btr->sviat__novaposhta__waybill_recipient]}
                 {np_wb_select field='payment_method' value=$d->paymentMethod label=$btr->sviat__novaposhta__waybill_payment options=['Cash' => $btr->sviat__novaposhta__waybill_cash, 'NonCash' => $btr->sviat__novaposhta__waybill_noncash]}
@@ -231,14 +233,14 @@
                 <div class="np-wb__line text_grey">{$btr->sviat__novaposhta__waybill_payer_free|escape}</div>
             {/if}
             {if $d->deliveryInTotal > 0}
-                {$np_wb_delivery = $d->deliveryInTotal|string_format:'%.2f'|replace:'.':','}
+                {$np_wb_delivery = $d->deliveryInTotal|string_format:'%.2f'|replace:'.00':''|replace:'.':','}
                 <div class="np-wb__line text_grey">{$btr->sviat__novaposhta__waybill_payer_in_total|replace:'%sum%':$np_wb_delivery|escape}</div>
                 <div class="alert alert--warning np-wb__double" role="alert" {if $d->payerType != 'Recipient'}hidden{/if}><div class="alert__content">{$btr->sviat__novaposhta__waybill_double_delivery|replace:'%sum%':$np_wb_delivery|escape}</div></div>
             {/if}
             {* The block name NovaPoshtaTracking had: Checkbox warns here that part of the order is prepaid. *}
             {get_design_block block="novaposhta_document_payment"}
             {$control = $d->codKind->value == 'control'}
-            <div class="heading_label np-wb__label">{if $control}{$btr->sviat__novaposhta__waybill_cod_control_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_control_tip}{else}{$btr->sviat__novaposhta__waybill_cod_money_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_money_tip}{/if}</div>
+            <div class="np-wb__group">{if $control}{$btr->sviat__novaposhta__waybill_cod_control_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_control_tip}{else}{$btr->sviat__novaposhta__waybill_cod_money_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_money_tip}{/if}</div>
             <div class="np-wb__switch">
                 <label class="switch switch-default{if $w.paid} switch-disabled{/if}">
                     <input class="switch-input" type="checkbox" data-field="cod" value="1" {if $d->cod}checked{/if} {if $w.paid}disabled{/if}>

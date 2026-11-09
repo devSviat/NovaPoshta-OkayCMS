@@ -1,6 +1,5 @@
 .np-wb { margin-top: 12px; padding-top: 12px; border-top: 1px solid #e4e6e9; }
 .np-wb__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.np-wb__group { margin: 14px 0 6px; font-weight: 600; }
 .np-wb__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0 10px; }
 .np-wb__field { display: block; margin-bottom: 8px; }
 .np-wb__field .heading_label { display: block; margin-bottom: 2px; }
@@ -8,6 +7,10 @@
 .np-wb__error:empty { display: none; }
 .np-wb .form-control.np-wb__invalid { border-color: #c0392b; }
 .np-wb__line { margin: 4px 0; }
+.np-wb__form .np-wb__line { margin: 2px 0 6px; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
+/* Group headings of the waybill form, styled as the card's «ДОДАТКОВІ ПОСЛУГИ». */
+.np-wb__group { display: block; margin: 16px 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); }
+.np-wb__group--first { margin-top: 4px; }
 .np-wb__actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
 .np-wb__number { font-size: 18px; font-weight: 600; letter-spacing: .02em; margin: 6px 0; }
 .np-wb__issue { margin-top: 10px; }
