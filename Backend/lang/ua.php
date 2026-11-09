@@ -518,3 +518,5 @@ $lang['sviat__novaposhta__codpay_money_note'] = 'без договору, гро
 $lang['sviat__novaposhta__codpay_money_tip'] = 'Для відправника-фізособи. Гроші надходять на картку відправника після вручення. Комісію НП платить той, кого вказано в накладній; якщо покупець, кошик показує її під цим способом оплати.';
 $lang['sviat__novaposhta__service_ww'] = 'Відділення або поштомат';
 $lang['sviat__novaposhta__service_wd'] = 'Адреса (кур\'єр до дверей)';
+$lang['sviat__novaposhta__list_copy'] = 'Скопіювати номер';
+$lang['sviat__novaposhta__list_copied'] = 'Скопійовано';

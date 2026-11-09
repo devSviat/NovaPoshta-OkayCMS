@@ -228,6 +228,7 @@ class BackendExtender implements ExtensionInterface
             $code = isset($row->status_code) ? (int)$row->status_code : null;
             $number = (string)$row->number;
             $order->np_waybill = [
+                'number' => $number,
                 'numberSpaced' => strlen($number) === 14 ? substr($number, 0, 2) . ' ' . implode(' ', str_split(substr($number, 2), 4)) : $number,
                 'group' => WaybillStatus::group($code),
                 'statusKey' => $code ? 'sviat__novaposhta__' . WaybillStatus::textKey($code) : null,

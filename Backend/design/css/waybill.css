@@ -68,8 +68,11 @@
 .np-wb__more > div { display: flex; justify-content: space-between; gap: 12px; }
 .np-wb__more > div > .np-wb__label { display: inline; flex: none; font-size: 13px; }
 .np-wb__more > div { text-align: right; }
-.np-list-status { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; }
-.np-list-status__number { color: #545b62; white-space: nowrap; }
+.np-list-status { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
+.np-list-status__logo { flex: none; }
+.np-list-status__number { color: inherit; white-space: nowrap; text-decoration: none; }
+.np-list-status__number:hover { color: var(--ok-accent, #135c94); }
+.np-list-status .np-wb__badge { padding: 1px 7px; font-size: 12px; }
 .np-list-status .np-wb__badge { margin-left: 0; }
 .np-mass { display: flex; flex-direction: column; gap: 6px; }
 .np-mass__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }

@@ -518,3 +518,5 @@ $lang['sviat__novaposhta__codpay_money_note'] = 'no agreement, money to a card';
 $lang['sviat__novaposhta__codpay_money_tip'] = 'For a private sender. The money reaches the sender\'s card after delivery. NP\'s commission is paid by the side named in the waybill; if it is the customer, the cart shows it under this payment method.';
 $lang['sviat__novaposhta__service_ww'] = 'Branch or parcel locker';
 $lang['sviat__novaposhta__service_wd'] = 'Address (courier to the door)';
+$lang['sviat__novaposhta__list_copy'] = 'Copy the number';
+$lang['sviat__novaposhta__list_copied'] = 'Copied';
