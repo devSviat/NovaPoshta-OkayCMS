@@ -301,6 +301,20 @@
     });
 
     document.addEventListener('click', function (event) {
+        var toggle = event.target.closest('.fn_np_wb_attach_toggle');
+        var root = toggle ? rootOf(toggle) : null;
+        var panel = root ? root.querySelector('.np-wb__attach') : null;
+        if (!panel) {
+            return;
+        }
+        panel.hidden = !panel.hidden;
+        toggle.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true');
+        if (!panel.hidden) {
+            panel.querySelector('[data-attach="number"]').focus();
+        }
+    });
+
+    document.addEventListener('click', function (event) {
         var toggle = event.target.closest('.fn_np_wb_more');
         var panel = toggle ? toggle.closest('.np-wb__card') && toggle.closest('.np-wb__card').querySelector('.np-wb__more') : null;
         if (!panel) {

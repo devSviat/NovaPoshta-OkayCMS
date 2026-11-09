@@ -13,8 +13,8 @@
 .np-wb__issue { margin-top: 10px; }
 .np-wb__issue details { margin-top: 4px; }
 .np-wb__issue summary { cursor: pointer; }
-.np-wb__attach { margin-top: 12px; }
-.np-wb__attach summary { cursor: pointer; color: #2a76c6; }
+.np-wb__attach { margin-top: 10px; }
+.np-wb__attach[hidden] { display: none; }
 .np-wb__attach-row { display: flex; gap: 8px; margin: 8px 0 4px; }
 .np-wb__attach-row .form-control { flex: 1 1 auto; min-width: 0; }
 .np-wb__notices .alert { margin: 8px 0 0; }
@@ -99,8 +99,6 @@
 .np-wb__who .np-wb__error:empty { display: none; }
 .np-wb__switch { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .np-wb__switch .switch { margin: 0; flex: none; }
-.np-wb__attach > summary.btn { display: inline-block; list-style: none; margin-top: 6px; }
-.np-wb__attach > summary.btn::-webkit-details-marker { display: none; }
 
 .np-codpay__kinds{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 /* The core centres the switches of a row; with the COD kinds open, the neighbours would slide down. */
@@ -163,9 +161,7 @@
 
 /* Create and attach side by side; the attach row opens below them. */
 .np-wb__actions--form { align-items: center; }
-.np-wb__actions--form .np-wb__attach { margin: 0; }
-.np-wb__actions--form .np-wb__attach[open] { flex-basis: 100%; }
 .np-wb__field .bootstrap-select { width: 100% !important; }
-/* Both fit one row of the right column, as in the old module. */
-.np-wb__actions--form { gap: 6px; }
-.np-wb__actions--form > .btn, .np-wb__actions--form .np-wb__attach > summary { padding-left: 8px; padding-right: 8px; font-size: 13px; white-space: nowrap; }
+/* Full-size buttons side by side, as in the old module. */
+.np-wb__actions--form { gap: 8px; }
+.np-wb__actions > .btn { white-space: nowrap; }
