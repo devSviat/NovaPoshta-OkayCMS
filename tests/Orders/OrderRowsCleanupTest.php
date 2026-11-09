@@ -2,7 +2,11 @@
 
 namespace Modules\Sviat\NovaPoshta\Orders;
 
+require_once __DIR__ . '/../Support/InMemoryState.php';
+
+use Modules\Sviat\NovaPoshta\Support\InMemoryState;
 use Okay\Core\EntityFactory;
+use Okay\Entities\OrdersEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 use Okay\Modules\Sviat\NovaPoshta\Init\Init;
@@ -37,6 +41,50 @@ class OrderRowsCleanupTest extends TestCase
 
         self::assertSame([5, 6], $deleted[OrderDeliveryEntity::class]);
         self::assertSame([8], $deleted[WaybillEntity::class]);
+    }
+
+    /** Orders deleted while the module was off keep their rows: once a day they go, and tracking stops asking NP about them. */
+    public function testRowsWithoutAnOrderGoOnceADay(): void
+    {
+        $deleted = [];
+        $rows = static fn(array $list): array => array_map(static fn(array $r): object => (object)$r, $list);
+        $entity = function (string $class, array $list) use (&$deleted, $rows) {
+            $e = $this->createStub($class);
+            $e->method('noLimit')->willReturnSelf();
+            $e->method('cols')->willReturnSelf();
+            $e->method('find')->willReturn($rows($list));
+            $e->method('delete')->willReturnCallback(static function ($ids) use (&$deleted, $class): bool {
+                $deleted[$class] = (array)$ids;
+
+                return true;
+            });
+
+            return $e;
+        };
+        $delivery = $entity(OrderDeliveryEntity::class, [['id' => 5, 'order_id' => 10], ['id' => 6, 'order_id' => 11]]);
+        $waybill = $entity(WaybillEntity::class, [['id' => 8, 'order_id' => 11], ['id' => 9, 'order_id' => 12]]);
+        $orders = $this->createStub(OrdersEntity::class);
+        $orders->method('noLimit')->willReturnSelf();
+        $orders->method('cols')->willReturnSelf();
+        $orders->method('find')->willReturnCallback(static fn(array $f): array => array_values(array_intersect([10], $f['id'])));
+        $factory = $this->createStub(EntityFactory::class);
+        $factory->method('get')->willReturnCallback(static fn(string $c) => match ($c) {
+            WaybillEntity::class => $waybill,
+            OrdersEntity::class => $orders,
+            default => $delivery,
+        });
+        $state = new InMemoryState();
+        $cleanup = new OrderRowsCleanup($factory, $state, static fn(): string => '2026-11-09');
+
+        $cleanup->tick();
+
+        self::assertSame([6], $deleted[OrderDeliveryEntity::class]);
+        self::assertSame([8, 9], $deleted[WaybillEntity::class]);
+        $deleted = [];
+        $cleanup->tick();
+        self::assertSame([], $deleted, 'once a day');
+        new OrderRowsCleanup($factory, $state, static fn(): string => '2026-11-10')->tick();
+        self::assertSame([6], $deleted[OrderDeliveryEntity::class], 'the next day again');
     }
 
     public function testNothingToDelete(): void

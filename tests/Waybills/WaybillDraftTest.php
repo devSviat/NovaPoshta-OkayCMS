@@ -41,7 +41,7 @@ class WaybillDraftTest extends TestCase
         return (object)['id' => 7162, 'number' => '11/1', 'name_uk' => 'Відділення №1: вул. Пирогівський шлях, 135', 'settlement_id' => 118064];
     }
 
-    private static function build(?object $order = null, ?object $snapshot = null, object|false|null $division = false, ?CodKind $cod = null, float $rate = 1.0, ?array $purchases = null, ?array $invoice = null, ?WaybillConfig $config = null, bool $promisedFree = false): WaybillDraft|string
+    private static function build(?object $order = null, ?object $snapshot = null, object|false|null $division = false, ?CodKind $cod = null, float $rate = 1.0, ?array $purchases = null, ?array $invoice = null, ?WaybillConfig $config = null, bool $promisedFree = false, ?\Closure $amountDue = null): WaybillDraft|string
     {
         return WaybillDrafts::build(
             $order ?? self::order(),
@@ -53,7 +53,7 @@ class WaybillDraftTest extends TestCase
             $cod,
             $rate,
             new \DateTimeImmutable('2026-11-07 10:00'),
-            null,
+            $amountDue,
             $invoice,
             $promisedFree,
         );
@@ -322,6 +322,39 @@ class WaybillDraftTest extends TestCase
     {
         self::assertSame('Крихке', self::build()->withInput(['extra_info' => ' Крихке '])->extraInfo);
         self::assertSame([['field' => 'extra_info', 'key' => 'waybill_error_extra_info']], self::build()->withInput(['extra_info' => str_repeat('я', 101)]));
+    }
+
+    /** Another module (a prepayment) lowers what NP collects; nothing or less than nothing left is no COD at all (audit: «RedeliveryString '0'/'-10'»). */
+    public function testNothingLeftToCollectTurnsCodOff(): void
+    {
+        foreach ([0.0, -10.0] as $due) {
+            $draft = self::build(cod: CodKind::Money, amountDue: static fn(float $total): float => $due);
+
+            self::assertFalse($draft->cod, (string)$due);
+            self::assertSame(0.0, $draft->codAmount, (string)$due);
+        }
+        $draft = self::build(cod: CodKind::Money, amountDue: static fn(float $total): float => $total - 100);
+        self::assertTrue($draft->cod);
+        self::assertSame(round((float)self::order()->total_price - 100), $draft->codAmount);
+    }
+
+    /** NP takes up to 60 characters of a name and refuses a cut word as an abbreviation (live 09.11.2026); a mass run has no form. */
+    public function testLongNameIsCutAtAWordForNovaPoshta(): void
+    {
+        $draft = self::build(self::order(['last_name' => 'Довгоприходько-Святополк-Мирська', 'name' => 'Олександра-Вікторія Іванівна']));
+
+        self::assertSame('Довгоприходько-Святополк-Мирська Олександра-Вікторія', $draft->recipientName);
+        self::assertInstanceOf(WaybillDraft::class, $draft->withInput([]), 'the cut name passes the form check');
+        self::assertSame(60, mb_strlen(self::build(self::order(['last_name' => str_repeat('я', 70), 'name' => '']))->recipientName), 'one endless word: cut at the limit');
+    }
+
+    /** An online payment not made yet: NP collects nothing on pickup. A COD order, or one paid, does not wait. */
+    public function testDraftKnowsTheOrderAwaitsPayment(): void
+    {
+        self::assertTrue(self::build(self::order(['paid' => 0]))->awaitsPayment);
+        self::assertFalse(self::build(self::order(['paid' => 1]))->awaitsPayment);
+        self::assertFalse(self::build(self::order(['paid' => 0]), cod: CodKind::Money)->awaitsPayment);
+        self::assertFalse(self::build(self::order(['paid' => 0]), cod: CodKind::Money, amountDue: static fn(float $total): float => 0.0)->awaitsPayment, 'prepaid in full by another module');
     }
 
     /** The form offers the types the settings turn on, and always the draft's own one. */

@@ -10,7 +10,8 @@ final readonly class WaybillDraft
 {
     private const float MAX_WEIGHT = 1000.0;
     private const float MAX_VOLUME = 10.0;
-    private const int NAME_MAX = 60;
+    /** The longest recipient name NP takes. */
+    public const int NAME_MAX = 60;
     private const int DESCRIPTION_MAX = 100;
     private const int NOTE_MAX = 50;
     private const int FLOOR_MAX = 200;
@@ -82,6 +83,8 @@ final readonly class WaybillDraft
         public ?array $seatCm = null,
         /** @var list<string> cargo types the settings turn on; the form also keeps the draft's own one */
         public array $cargoTypes = WaybillConfig::CARGO_TYPES,
+        /** Not paid, and its payment method collects nothing on pickup: a mass run leaves it to the form. */
+        public bool $awaitsPayment = false,
     ) {
     }
 

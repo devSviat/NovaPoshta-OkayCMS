@@ -121,6 +121,15 @@ final class WaybillDrafts
         ]));
         $phone = NpPhone::normalize((string)($order->phone ?? ''));
         $name = trim(preg_replace('/\s+/u', ' ', trim((string)($order->last_name ?? '')) . ' ' . trim((string)($order->name ?? ''))));
+        // The form refuses a longer name; a mass run has no form. NP takes a cut word for an abbreviation and refuses it.
+        if (mb_strlen($name) > WaybillDraft::NAME_MAX) {
+            $cut = mb_substr($name, 0, WaybillDraft::NAME_MAX + 1);
+            $space = mb_strrpos($cut, ' ');
+            $name = $space !== false ? rtrim(mb_substr($cut, 0, $space)) : mb_substr($name, 0, WaybillDraft::NAME_MAX);
+        }
+        // What another module (a prepayment) leaves to collect; nothing left is no COD, never a «0» or negative one.
+        $due = max(0.0, round($amountDue ? $amountDue($totalUah) : $totalUah));
+        $cod = $codKind !== null && empty($order->paid) && $due > 0;
         $address = $mode === DeliveryMode::Address;
         $locker = !$address && ($division->category ?? null) === DivisionCategory::Postomat->value;
         // Delivery the shop already took (in the total) or promised free: NP must not charge the recipient.
@@ -154,8 +163,8 @@ final class WaybillDrafts
             $locker && $waybill->cargoType === 'Cargo' ? 'Parcel' : $waybill->cargoType,
             $senderPaysBecause !== null ? 'Sender' : $waybill->payerType,
             $waybill->paymentMethod,
-            $codKind !== null && empty($order->paid),
-            round($amountDue ? $amountDue($totalUah) : $totalUah),
+            $cod,
+            $due,
             $codKind ?? CodKind::Money,
             $waybill->codPayer,
             ShipDate::for($now, $waybill->cutoff),
@@ -168,6 +177,7 @@ final class WaybillDrafts
             $senderPaysBecause,
             $locker,
             cargoTypes: $waybill->cargoTypes,
+            awaitsPayment: $codKind === null && empty($order->paid),
         );
     }
 
