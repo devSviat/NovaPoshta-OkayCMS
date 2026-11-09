@@ -40,7 +40,7 @@ class UpdatersTest extends TestCase
     {
         return $override + [
             'id' => $id, 'countryCode' => 'UA', 'name' => "Відділення №{$id}", 'shortName' => "№{$id}",
-            'settlement' => ['id' => 100 + $id], 'number' => "{$id}", 'status' => 'Working', 'divisionCategory' => 'PostBranch',
+            'settlement' => ['id' => 100 + $id], 'number' => "{$id}", 'status' => 'Working', 'customerServiceAvailable' => true, 'divisionCategory' => 'PostBranch',
             'address' => "Адреса {$id}", 'addressParts' => ['postCode' => '01001'], 'deletedAt' => null,
         ];
     }
@@ -120,22 +120,31 @@ class UpdatersTest extends TestCase
         self::assertCount(2, $this->store->tables['divisions']);
     }
 
-    public function testDeltaDeletesAndKeepsStatuses(): void
+    /** The CDN base holds only working points open to customers; a delta also carries the rest (live CDN, 09.11.2026). */
+    public function testFullSkipsPointsClosedToCustomers(): void
     {
-        $this->divisions()->full($this->gz([self::division(1), self::division(2), self::division(3)]), null, 10);
+        $this->divisions()->full($this->gz([self::division(1), self::division(2, ['customerServiceAvailable' => false]), self::division(3, ['status' => 'NotWorking'])]), null, 10);
+
+        self::assertSame([1], array_keys($this->store->tables['divisions']));
+    }
+
+    public function testDeltaKeepsOnlyWhatTheBaseWouldHold(): void
+    {
+        $this->divisions()->full($this->gz([self::division(1), self::division(2), self::division(3), self::division(5)]), null, 10);
         $this->store->calls = [];
 
         $counts = $this->divisions()->delta($this->gz([
             self::division(1, ['deletedAt' => '2026-11-05T10:00:00Z']),
             self::division(2, ['status' => 'NotWorkingTemporary']),
+            self::division(3, ['customerServiceAvailable' => false]),
             self::division(4, ['status' => 'InProcessOpening']),
+            self::division(6, ['customerServiceAvailable' => false]),
+            self::division(7),
             self::division(9, ['countryCode' => 'PL', 'deletedAt' => '2026-11-05T10:00:00Z']),
         ]), null, 11);
 
-        self::assertSame([2, 3, 4], array_keys($this->store->tables['divisions']));
-        self::assertSame('NotWorkingTemporary', $this->store->tables['divisions'][2]['status']);
-        self::assertSame('InProcessOpening', $this->store->tables['divisions'][4]['status']);
-        self::assertSame(['added' => 1, 'changed' => 1, 'deleted' => 1, 'unchanged' => 0], $counts->toArray());
+        self::assertSame([5, 7], array_keys($this->store->tables['divisions']));
+        self::assertSame(['added' => 1, 'changed' => 0, 'deleted' => 3, 'unchanged' => 0], $counts->toArray());
         self::assertNotContains('deleteNotSeen divisions', $this->store->calls);
     }
 
