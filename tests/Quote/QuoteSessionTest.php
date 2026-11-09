@@ -83,8 +83,8 @@ class QuoteSessionTest extends TestCase
         QuoteSession::choose($bag, 4, 'd:7162', true);
         QuoteSession::choose($bag, 9, 'a:118064', false, true);
 
-        self::assertSame(['target' => 'd:7162', 'cod' => true, 'lifting' => false], QuoteSession::chosen($bag, 4));
-        self::assertSame(['target' => 'a:118064', 'cod' => false, 'lifting' => true], QuoteSession::chosen($bag, 9));
+        self::assertSame(['target' => 'd:7162', 'cod' => true, 'lifting' => false, 'floor' => null, 'elevator' => false], QuoteSession::chosen($bag, 4));
+        self::assertSame(['target' => 'a:118064', 'cod' => false, 'lifting' => true, 'floor' => null, 'elevator' => false], QuoteSession::chosen($bag, 9));
         self::assertNull(QuoteSession::chosen($bag, 5));
     }
 
@@ -137,5 +137,24 @@ class QuoteSessionTest extends TestCase
         self::assertSame([], QuoteSession::targetIds('x:1'));
         self::assertSame([], QuoteSession::targetIds('d:'));
         self::assertSame([], QuoteSession::targetIds('d:-5'));
+    }
+
+    /** NP prices lifting by floor and elevator: a quote for one floor must not price another. */
+    public function testLiftingKeyCoversFloorAndElevator(): void
+    {
+        $cart = self::cart([[1, 2]], 300.0);
+        $key = QuoteKey::for(4, 'a:118064', false, $cart, true, 1, true);
+
+        self::assertNotSame($key, QuoteKey::for(4, 'a:118064', false, $cart, true, 200, true));
+        self::assertNotSame($key, QuoteKey::for(4, 'a:118064', false, $cart, true, 1, false));
+        self::assertSame(QuoteKey::for(4, 'a:118064', false, $cart), QuoteKey::for(4, 'a:118064', false, $cart, false, 9, true), 'without lifting the floor does not change the price');
+    }
+
+    public function testChoiceKeepsFloorAndElevator(): void
+    {
+        $bag = [];
+        QuoteSession::choose($bag, 9, 'a:118064', false, true, 5, true);
+
+        self::assertSame(['target' => 'a:118064', 'cod' => false, 'lifting' => true, 'floor' => 5, 'elevator' => true], QuoteSession::chosen($bag, 9));
     }
 }

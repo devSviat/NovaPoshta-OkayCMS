@@ -18,8 +18,9 @@ final class WaybillInput
         'recipient_type' => 16,
         'edrpou' => 20,
         'company_name' => 100,
+        'extra_info' => WaybillDraft::EXTRA_INFO_MAX,
     ];
-    private const array NUMBERS = ['weight', 'volume', 'declared_cost', 'cod_amount', 'floor'];
+    private const array NUMBERS = ['weight', 'volume', 'declared_cost', 'cod_amount', 'floor', 'seat_length', 'seat_width', 'seat_height'];
     private const array SWITCHES = ['cod', 'lifting', 'elevator'];
 
     /** @return array<string, string|float|bool> */

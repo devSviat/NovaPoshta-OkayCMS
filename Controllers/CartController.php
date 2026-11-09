@@ -7,6 +7,7 @@ use Okay\Core\Languages;
 use Okay\Core\Request;
 use Okay\Core\Response;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
+use Okay\Modules\Sviat\NovaPoshta\Cart\CrossSiteRequest;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DivisionList;
 use Okay\Modules\Sviat\NovaPoshta\Cart\UahTotal;
 use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
@@ -63,6 +64,12 @@ class CartController
      */
     public function quote(Request $request, Response $response, CartQuotes $quotes, Cart $cart, UserHelper $userHelper, EntityFactory $entityFactory, Money $money, DeliveriesHelper $deliveriesHelper, ShippingSettings $shipping, FrontTranslations $translations)
     {
+        if (CrossSiteRequest::is($_SERVER)) {
+            $response->setStatusCode(403);
+            $this->json($response, ['error' => 'origin']);
+
+            return;
+        }
         $deliveryId = (int)$request->get('delivery_id', 'integer');
         $delivery = $deliveryId > 0 ? $entityFactory->get(DeliveriesEntity::class)->get($deliveryId) : null;
         $cartData = self::visitorCart($cart, $userHelper);

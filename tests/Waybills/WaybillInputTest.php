@@ -38,4 +38,13 @@ class WaybillInputTest extends TestCase
     {
         self::assertSame([], WaybillInput::fromPost(['recipient_name' => ['x'], 'weight' => ['1'], 'cod' => ['1']]));
     }
+
+    /** The form sends these too; dropping them silently lost the manager's edits. */
+    public function testExtraInfoAndLockerSeatPass(): void
+    {
+        $input = WaybillInput::fromPost(['extra_info' => ' Крихке ', 'seat_length' => '55', 'seat_width' => '35,5', 'seat_height' => 'x']);
+
+        self::assertSame(['extra_info' => 'Крихке', 'seat_length' => 55.0, 'seat_width' => 35.5, 'seat_height' => 'x'], $input);
+        self::assertSame(100, mb_strlen(WaybillInput::fromPost(['extra_info' => str_repeat('я', 150)])['extra_info']));
+    }
 }
