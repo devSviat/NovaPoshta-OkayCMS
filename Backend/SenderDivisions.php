@@ -6,7 +6,7 @@ use Okay\Core\Database;
 use Okay\Core\QueryFactory;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 
-/** Points a shop can hand parcels in at: working ones except parcel lockers (thousands in big cities). */
+/** Пункти видачі, де магазин може здати посилки: робочі, крім поштоматів (їх тисячі у великих містах). */
 final class SenderDivisions
 {
     public function __construct(
@@ -28,7 +28,7 @@ final class SenderDivisions
             ->where("d.status = 'Working'")
             ->where("d.category <> 'Postomat'")
             ->bindValue('settlement', $settlementId)
-            // `+ 0`: aura reads CAST(… AS …) in ORDER BY as an alias.
+            // `+ 0`: aura читає CAST(… AS …) в ORDER BY як аліас.
             ->orderBy(["SUBSTRING_INDEX(d.number, '/', -1) + 0", 'd.number']);
         if ($this->db->query($select) === false) {
             return [];

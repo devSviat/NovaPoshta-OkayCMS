@@ -23,7 +23,7 @@ class OrderPriceRuleTest extends TestCase
         self::assertSame('keep', OrderPriceRule::decide(self::order(), self::delivery(), null, false)['action']);
     }
 
-    /** The core's rule: 0 is free for every order, and the threshold itself is free. */
+    /** Правило ядра: 0 — безкоштовно для будь-якого замовлення, і сам поріг теж безкоштовний. */
     public function testFreeLikeTheCore(): void
     {
         self::assertSame('free', OrderPriceRule::decide(self::order(), self::delivery(['free_from' => 0]), 105.0, false)['action']);

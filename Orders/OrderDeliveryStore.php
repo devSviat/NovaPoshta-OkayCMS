@@ -15,7 +15,7 @@ final class OrderDeliveryStore
     }
 
     /**
-     * Names are copied in Ukrainian: the order keeps what was chosen even if the dictionary changes.
+     * Назви копіюються українською: замовлення зберігає те, що обрали, навіть якщо довідник зміниться.
      *
      * @param array{delivery_price: mixed, price_source: ?string, delivery_term: ?string, cod: int, cod_fee: ?float}|null $pricing
      */
@@ -73,7 +73,7 @@ final class OrderDeliveryStore
         $existing ? $entity->update((int)$existing->id, $row) : $entity->add($row + ['created_at' => $now]);
     }
 
-    /** The delivery price the manager set from the admin. */
+    /** Ціна доставки, яку менеджер задав в адмінці. */
     public function setPrice(int $orderId, float $price, string $source): void
     {
         $entity = $this->entityFactory->get(OrderDeliveryEntity::class);
@@ -88,7 +88,7 @@ final class OrderDeliveryStore
         return $this->entityFactory->get(OrderDeliveryEntity::class)->findOne(['order_id' => $orderId]) ?: null;
     }
 
-    /** The customer's last choice, offered again in the cart. */
+    /** Останній вибір покупця, який знову пропонується в кошику. */
     public function lastForUser(int $userId): ?object
     {
         if ($userId <= 0) {
@@ -103,13 +103,13 @@ final class OrderDeliveryStore
         return $rows ? reset($rows) : null;
     }
 
-    /** A point or address chosen again from the dictionary: a carried-over row is now matched. */
+    /** Пункт видачі чи адресу знову обрано з довідника: перенесений рядок тепер зіставлено. */
     public static function legacyAfterChoice(?string $was): ?string
     {
         return $was === null ? null : 'migrated';
     }
 
-    /** Column lengths of the order table: values from old modules are cut to fit, never rejected. */
+    /** Довжини колонок таблиці замовлень: значення зі старих модулів обрізаються під них, а не відхиляються. */
     private const array LEGACY_COLUMNS = [
         'mode' => 16, 'settlement_id' => null, 'settlement_name' => 255, 'district_name' => 255, 'area_name' => 255,
         'division_id' => null, 'division_number' => 32, 'division_category' => 32, 'division_name' => 255, 'division_address' => 255,
@@ -117,7 +117,7 @@ final class OrderDeliveryStore
         'floor' => null, 'elevator' => null, 'address_note' => 40, 'lifting' => null, 'legacy' => 16,
     ];
 
-    /** @return array<string, mixed> only the columns a migrated row may set, strings cut to their column */
+    /** @return array<string, mixed> лише колонки, які може задати перенесений рядок; текст обрізано під свою колонку */
     public static function legacyValues(array $values): array
     {
         $row = [];
@@ -133,8 +133,8 @@ final class OrderDeliveryStore
     }
 
     /**
-     * A row carried over from NovaposhtaCost. Never replaces what the module already has.
-     * @return bool false when the order already has a row
+     * Рядок, перенесений з NovaposhtaCost. Ніколи не замінює те, що в модулі вже є.
+     * @return bool false, коли замовлення вже має рядок
      */
     public function importLegacy(int $orderId, int $deliveryId, array $values): bool
     {

@@ -63,7 +63,7 @@ class DivisionFitTest extends TestCase
 
     public function testDeclaredCostLimitIsComparedInHryvnias(): void
     {
-        // Main currency USD: a 1000 USD cart is 41 000 UAH, over a locker's 29 000 UAH.
+        // Основна валюта USD: кошик на 1000 USD — це 41 000 UAH, більше за 29 000 UAH поштомата.
         $cart = new CartMetrics(1.0, false, 1000.0)->inUah(41000.0);
 
         self::assertSame([FitProblem::TooExpensive], DivisionFit::problems($cart, self::point('20.00', '29000.00')));

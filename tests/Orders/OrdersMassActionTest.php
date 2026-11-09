@@ -155,7 +155,7 @@ class OrdersMassActionTest extends TestCase
         $session = [];
         try {
             $handled = $this->action()->handleRequest(static function (): bool {
-                // Stock 4.5.3 Request::checkSession() on a bad token.
+                // Request::checkSession() стоку 4.5.3 на хибному токені.
                 unset($_POST);
 
                 return false;

@@ -5,9 +5,9 @@ namespace Okay\Modules\Sviat\NovaPoshta\Orders;
 use Okay\Modules\Sviat\NovaPoshta\Quote\FreeDelivery;
 
 /**
- * What happens to an order's delivery price after the manager changes its point or address:
- * a price paid apart follows the tariff, a price inside the order total is only offered,
- * a paid order is never repriced.
+ * Що відбувається з ціною доставки замовлення, коли менеджер змінює його пункт видачі чи адресу:
+ * ціна, що сплачується окремо, йде за тарифом, ціна в сумі замовлення лише пропонується,
+ * оплачене замовлення ніколи не переоцінюється.
  */
 final class OrderPriceRule
 {

@@ -6,18 +6,18 @@ use Okay\Modules\Sviat\NovaPoshta\Api\ApiKey;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\NpPhone;
 
-/** Old settings that have a place in the module, checked by the same rules as the module's forms. */
+/** Старі налаштування, яким є місце в модулі, перевірені за тими самими правилами, що й форми модуля. */
 final class LegacySettingsMap
 {
     private const string WAYBILL = 'sviat__novaposhta__waybill_';
     private const array MAP = [
-        // The key is not checked: whether it works is Nova Poshta's answer, as on the settings page.
+        // Ключ не перевіряється: чи він працює, відповідає Нова Пошта, як і на сторінці налаштувань.
         [ApiKey::SETTING, 'newpost_key', 'any'],
         [ShippingSettings::WEIGHT, 'newpost_weight', 'weight'],
         [ShippingSettings::VOLUME, 'newpost_volume', 'volume'],
-        // No payer: the old module had no «as in the order», so its explicit choice would switch off the safe default.
+        // Без платника: старий модуль не мав «як у замовленні», тож його явний вибір вимкнув би безпечне типове значення.
         [self::WAYBILL . 'payment_method', 'novapost_payment_method', ['Cash', 'NonCash']],
-        // No cargo type: the old default «Вантаж» means over 30 kg and is refused by parcel lockers.
+        // Без типу вантажу: старе типове значення «Вантаж» означає понад 30 кг, і поштомати його не приймають.
         [self::WAYBILL . 'cod_payer', 'novapost_back_payer_type', ['Recipient', 'Sender']],
         [self::WAYBILL . 'sender_phone', 'novapost_sender_phone', 'phone'],
         [self::WAYBILL . 'cutoff', 'novapost_time_today_date', 'time'],

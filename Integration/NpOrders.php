@@ -7,11 +7,11 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 
 /**
- * Read-only contract for other modules (Checkbox, Messaging, OrdersExport, LiqPay). Everything
- * outside Integration\ may change without notice; this class and its value objects do not.
+ * Контракт лише на читання для інших модулів (Checkbox, Messaging, OrdersExport, LiqPay). Усе поза
+ * Integration\ може змінитися без попередження; цей клас і його value objects — ні.
  *
- * Use it only when the module is active: class_exists(NpOrders::class) and
- * Modules::isActiveModule('Sviat', 'NovaPoshta'); a disabled module registers no services.
+ * Використовуйте його лише тоді, коли модуль активний: class_exists(NpOrders::class) і
+ * Modules::isActiveModule('Sviat', 'NovaPoshta'); вимкнений модуль не реєструє сервісів.
  */
 final class NpOrders
 {
@@ -24,7 +24,7 @@ final class NpOrders
 
     /**
      * @param list<int> $orderIds
-     * @return array<int, NpShipment> by order id; orders without a waybill number are left out
+     * @return array<int, NpShipment> за id замовлення; замовлення без номера накладної пропущено
      */
     public function shipments(array $orderIds): array
     {
@@ -36,15 +36,15 @@ final class NpOrders
         return $this->build($this->entityFactory->get(WaybillEntity::class)->noLimit()->cols(self::WAYBILL_COLUMNS)->find(['order_id' => $orderIds]));
     }
 
-    /** @return array<int, NpShipment> waybills Nova Poshta still moves (not final, number known) */
+    /** @return array<int, NpShipment> накладні, які Нова Пошта ще везе (не фінальні, номер відомий) */
     public function unfinished(): array
     {
         return $this->build($this->entityFactory->get(WaybillEntity::class)->noLimit()->cols(self::WAYBILL_COLUMNS)->find(['due' => 1]));
     }
 
     /**
-     * Orders whose parcel was received on or after $since, by the date of the status at Nova Poshta.
-     * The row's own update time is not used: a migration or a refresh rewrites it for old parcels.
+     * Замовлення, чию посилку отримано $since або пізніше, за датою статусу в Новій Пошті.
+     * Власний час оновлення рядка не використовується: перенесення чи оновлення переписує його для старих посилок.
      *
      * @return list<int>
      */
@@ -65,7 +65,7 @@ final class NpOrders
         return WaybillEntity::getTable();
     }
 
-    /** @param ?object $delivery the order's snapshot row: its `cod` decides for waybills that keep no services */
+    /** @param ?object $delivery рядок знімка доставки замовлення: його `cod` вирішує для накладних, що не зберігають послуг */
     public static function shipment(object $waybill, ?object $delivery): ?NpShipment
     {
         $number = trim((string)($waybill->number ?? ''));

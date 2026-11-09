@@ -7,8 +7,8 @@ use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
 /**
- * The key owner's sender counterparty and its contact persons (old API: the new one has no
- * such list). Kept for an hour: the settings page and every waybill need them.
+ * Контрагент-відправник власника ключа та його контактні особи (старий API: новий такого
+ * списку не має). Зберігаються годину: вони потрібні сторінці налаштувань і кожній накладній.
  */
 final class SenderContacts
 {

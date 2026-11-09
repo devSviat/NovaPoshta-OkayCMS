@@ -55,8 +55,8 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         LegacyData $legacyData,
     ) {
         $submission = null;
-        // Stock 4.5.3 checks session_id only after the controller has run, so a forged
-        // POST would already have acted; check it here before acting.
+        // Сток 4.5.3 перевіряє session_id лише після виконання контролера, тож підроблений
+        // POST уже встиг би спрацювати; перевіряємо тут, до дії.
         if ($this->request->method('post') && $this->request->checkSession()) {
             switch ($this->request->post('np_action')) {
                 case 'dictionaries':
@@ -144,7 +144,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         $this->response->setContent($this->design->fetch('settings.tpl'));
     }
 
-    /** @return array{id: int, name: string, type: string, title: string, area: string} the chosen city as the page shows it */
+    /** @return array{id: int, name: string, type: string, title: string, area: string} обране місто так, як його показує сторінка */
     private static function cityView(object $city, string $lang): array
     {
         $name = (string)($lang === 'en' && $city->name_en ? $city->name_en : $city->name_uk);
@@ -153,7 +153,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         return ['id' => (int)$city->id, 'name' => $name, 'type' => $type, 'title' => $title, 'area' => (string)($lang === 'en' && $city->area_en ? $city->area_en : ($city->area_uk ?? ''))];
     }
 
-    /** City suggestions for the popular-cities block (`controller=…@searchSettlements&q=`). */
+    /** Підказки міст для блоку популярних міст (`controller=…@searchSettlements&q=`). */
     public function searchSettlements(SettlementSearch $search, Languages $languages)
     {
         $query = $this->request->get('q');
@@ -161,7 +161,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         $this->response->setContent(json_encode(['settlements' => $found], JSON_UNESCAPED_UNICODE), RESPONSE_JSON);
     }
 
-    /** Points of the sender's settlement for the sender dropdown (`controller=…@senderDivisions&settlement_id=`). */
+    /** Пункти видачі в населеному пункті відправника для випадного списку відправника (`controller=…@senderDivisions&settlement_id=`). */
     public function senderDivisions(SenderDivisions $divisions, Languages $languages)
     {
         $id = $this->request->get('settlement_id', 'integer');

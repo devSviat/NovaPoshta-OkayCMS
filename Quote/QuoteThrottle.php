@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
-/** A visitor's session may start at most this many new calculations at Nova Poshta per window. */
+/** Сесія відвідувача може почати щонайбільше стільки нових розрахунків у Новій Пошті за одне вікно. */
 final class QuoteThrottle
 {
     private const int LIMIT = 20;

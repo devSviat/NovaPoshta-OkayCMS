@@ -11,8 +11,8 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillNumber;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTrackingDocument;
 
 /**
- * NovaPoshtaTracking's waybills. Its tracking_response is one getStatusDocuments item, the format the
- * module keeps too, so the card shows the history without asking Nova Poshta.
+ * Накладні NovaPoshtaTracking. Його tracking_response — один елемент getStatusDocuments, у тому самому форматі,
+ * що зберігає й модуль, тож картка показує історію, не питаючи Нову Пошту.
  */
 final class WaybillsStep implements LegacyStep
 {
@@ -47,7 +47,7 @@ final class WaybillsStep implements LegacyStep
     {
         $orderId = (int)($row->order_id ?? 0);
         if ($orderId <= 0 || $this->orders->order($orderId) === null) {
-            // No such order in the shop: the old record is named, a link would lead nowhere.
+            // Такого замовлення в магазині немає: старий запис названо, посилання вело б у нікуди.
             $report->fail(self::NAME, null, $orderId > 0 ? 'legacy_fail_no_order' : 'legacy_fail_no_order_id', $orderId > 0 ? (string)$orderId : null, (int)($row->id ?? 0) ?: null);
 
             return;
@@ -76,22 +76,22 @@ final class WaybillsStep implements LegacyStep
             return;
         }
         $fetchedAt = self::date($row->tracking_update_at ?? null);
-        // Only the old module's own ref proves the shop made it: getStatusDocuments carries RefEW, and an attached
-        // waybill taken for ours would be deleted at NP by «remove».
+        // Лише власний ref старого модуля доводить, що накладну створив магазин: getStatusDocuments містить RefEW, а прикріплену
+        // накладну, прийняту за нашу, «remove» видалив би в НП.
         $ref = trim((string)($row->ref_id ?? '')) ?: null;
         $code = $document !== null ? WaybillTrackingDocument::status($document) : null;
-        // The old tracker kept the code in its own column too; its response may be gone.
+        // Старий трекер теж зберігав код у власній колонці; його відповіді вже може не бути.
         $code ??= is_numeric($row->status_code ?? null) && (int)$row->status_code > 0 ? (int)$row->status_code : null;
         $values = [
             'number' => $number,
             'ref' => $ref,
-            // A Ref means the shop created it: deleting then goes through NP, as for the module's own.
+            // Ref означає, що накладну створив магазин: тоді видалення йде через НП, як і для власних накладних модуля.
             'api' => $ref !== null ? 'old' : 'attached',
             'status_code' => $code,
             'status_text' => $code !== null ? mb_substr(trim((string)($document['Status'] ?? '')), 0, 255) : null,
-            // The date of the status at NP, as the tracker writes it; the old module's refresh time only without one.
+            // Дата статусу в НП, як її пише трекер; час оновлення старого модуля — лише коли її немає.
             'status_at' => $code !== null ? (WaybillTrackingDocument::scanDate($document['DateScan'] ?? null) ?? $fetchedAt) : null,
-            // Tracking counts its days from it: null leaves the time of the move.
+            // Від неї Tracking рахує свої дні: null лишає час перенесення.
             'created_at' => self::date($row->created_at ?? null),
             'scheduled_at' => self::date($document['ScheduledDeliveryDate'] ?? null),
             'tracking' => $document !== null ? WaybillTrackingDocument::merge($document, null, $fetchedAt ?? date('Y-m-d H:i:s')) : null,

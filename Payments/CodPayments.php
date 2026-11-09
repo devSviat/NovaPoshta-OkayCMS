@@ -7,25 +7,25 @@ use Okay\Entities\PaymentsEntity;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 
 /**
- * Payment methods marked "cash on delivery by Nova Poshta", each with its kind. Choosing one in the
- * cart is the customer's choice of cash on delivery; the cart has no separate checkbox.
+ * Способи оплати, позначені "післяплата Новою Поштою", кожен зі своїм видом. Вибір такого способу в
+ * кошику — це вибір покупцем післяплати; окремого чекбокса в кошику немає.
  */
 final class CodPayments
 {
-    /** Own field on the core payments table; values are CodKind flags. */
+    /** Власне поле в таблиці оплат ядра; значення — прапорці CodKind. */
     public const string FIELD = 'sviat__novaposhta__cod';
 
     public function __construct(private readonly EntityFactory $entityFactory)
     {
     }
 
-    /** "Manual" in the payment's type select: the core keeps it as the string 'null'. */
+    /** "Manual" у селекті типу оплати: ядро зберігає його як рядок 'null'. */
     public static function isManual(mixed $module): bool
     {
         return $module === null || $module === '' || $module === 'null';
     }
 
-    /** Online payments (any payment module) are never cash on delivery, whatever the column holds. */
+    /** Онлайн-оплати (будь-який модуль оплати) ніколи не є післяплатою, хоч би що було в колонці. */
     public static function kindOf(object $payment): ?CodKind
     {
         if (!self::isManual($payment->module ?? null)) {
@@ -35,7 +35,7 @@ final class CodPayments
         return CodKind::fromFlag((int)($payment->{self::FIELD} ?? 0));
     }
 
-    /** @return list<object> every payment method with `cod_kind` ('money'|'control'|null) and `manual` */
+    /** @return list<object> кожен спосіб оплати з `cod_kind` ('money'|'control'|null) і `manual` */
     public function all(): array
     {
         $methods = array_values($this->entityFactory->get(PaymentsEntity::class)->noLimit()->find());
@@ -67,15 +67,15 @@ final class CodPayments
         return $this->kind($paymentId) !== null;
     }
 
-    /** @return list<int> enabled payment methods whose cash on delivery is a money transfer (the cart shows its commission) */
+    /** @return list<int> увімкнені способи оплати, чия післяплата — грошовий переказ (кошик показує її комісію) */
     public function moneyIds(): array
     {
         return $this->idsOf(static fn(object $m): bool => !empty($m->enabled) && $m->cod_kind === CodKind::Money->value);
     }
 
     /**
-     * Whether a delivery method can be paid by cash on delivery: then the cart shows the commission
-     * under that payment before the customer picks it.
+     * Чи можна оплатити спосіб доставки післяплатою: тоді кошик показує комісію
+     * під цією оплатою, перш ніж покупець її обере.
      * @param list<int|string> $deliveryPaymentIds DeliveriesEntity::getDeliveryPayments
      * @param list<int> $codIds
      */

@@ -5,7 +5,7 @@ namespace Modules\Sviat\NovaPoshta\Groups;
 use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsInput;
 use PHPUnit\Framework\TestCase;
 
-/** POST of the groups form → groups to save, or errors. */
+/** POST форми груп → групи для збереження або помилки. */
 class GroupsInputTest extends TestCase
 {
     private static function post(): array

@@ -9,7 +9,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 
 class OrdersEntityFilters extends AbstractModuleEntityFilter
 {
-    /** @param list<int> $codes orders whose waybill has one of these NP statuses */
+    /** @param list<int> $codes замовлення, чия накладна має один із цих статусів НП */
     public function filter__np_status_codes($codes, $filter)
     {
         $codes = array_values(array_filter(array_map(intval(...), (array)$codes)));
@@ -18,7 +18,7 @@ class OrdersEntityFilters extends AbstractModuleEntityFilter
         $this->select->where("{$orders}.id IN (SELECT order_id FROM {$waybills} WHERE status_code IN (" . ($codes === [] ? '0' : implode(',', $codes)) . '))');
     }
 
-    /** Orders delivered by this module (a point or address is saved) that have no waybill yet. */
+    /** Замовлення з доставкою цим модулем (пункт видачі чи адресу збережено), що ще не мають накладної. */
     public function filter__np_without_waybill($value, $filter)
     {
         if (empty($value)) {
@@ -27,7 +27,7 @@ class OrdersEntityFilters extends AbstractModuleEntityFilter
         $orders = OrdersEntity::getTableAlias();
         $snapshots = OrderDeliveryEntity::getTable();
         $waybills = WaybillEntity::getTable();
-        // Plain IN subqueries: Aura quotes alias.column pairs inside EXISTS (…) into broken SQL.
+        // Прості підзапити IN: Aura бере пари alias.column у лапки всередині EXISTS (…), і SQL ламається.
         $this->select->where("{$orders}.id IN (SELECT order_id FROM {$snapshots})")
             ->where("{$orders}.id NOT IN (SELECT order_id FROM {$waybills} WHERE number IS NOT NULL)");
     }

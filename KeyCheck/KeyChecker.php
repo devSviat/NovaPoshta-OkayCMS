@@ -10,12 +10,12 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
-/** Checks a key against both Nova Poshta APIs before the manager relies on it. */
+/** Перевіряє ключ в обох API Нової Пошти, перш ніж менеджер на нього покладеться. */
 final class KeyChecker
 {
     public const string STATE = 'key_check';
 
-    /** Both checks run while the manager waits for the page; keep them well under proxy timeouts (60 s). */
+    /** Обидві перевірки виконуються, поки менеджер чекає на сторінку; тримати їх значно нижче тайм-аутів проксі (60 s). */
     public const int TIMEOUT_SECONDS = 8;
 
     private readonly \Closure $now;
@@ -64,7 +64,7 @@ final class KeyChecker
     private function checkOldApi(string $key): KeyAccess
     {
         try {
-            // Needs a valid key and touches nothing: the shop's own sender counterparties.
+            // Потребує дійсного ключа й нічого не змінює: власні контрагенти-відправники магазину.
             $this->oldApi->withKey($key)->quick(self::TIMEOUT_SECONDS)->call('Counterparty', 'getCounterparties', ['CounterpartyProperty' => 'Sender', 'Page' => 1]);
 
             return KeyAccess::Ok;

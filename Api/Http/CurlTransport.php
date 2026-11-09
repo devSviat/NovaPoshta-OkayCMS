@@ -8,7 +8,7 @@ final class CurlTransport implements HttpTransport
 
     public function send(HttpRequest $request): HttpResponse
     {
-        // One handle per process keeps the TLS connection to Nova Poshta alive between calls.
+        // Один handle на процес тримає TLS-з'єднання з Новою Поштою відкритим між викликами.
         $this->handle ??= curl_init();
         curl_reset($this->handle);
 
@@ -34,7 +34,7 @@ final class CurlTransport implements HttpTransport
 
         $body = curl_exec($this->handle);
         if ($body === false) {
-            // curl_error() text carries only the host, never the query string with the key.
+            // Текст curl_error() містить лише хост, ніколи не рядок запиту з ключем.
             throw new TransportException(curl_error($this->handle) ?: 'Nova Poshta did not answer');
         }
 

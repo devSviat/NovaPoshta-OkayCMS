@@ -3,17 +3,17 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries\Stream;
 
 /**
- * Reads `{"items":[{…},{…}]}` from a .gz file one item at a time.
+ * Reads `{"items":[{…},{…}]}` з файлу .gz по одному елементу.
  *
- * The Nova Poshta divisions base is ~400 MB of JSON with every country mixed in, so it can
- * not be decoded whole. The scanner only tracks strings and nesting; each item is decoded
- * on its own, and items without $mustContain are skipped before decoding.
+ * База пунктів Нової Пошти — це ~400 MB JSON з усіма країнами впереміш, тож її не можна
+ * декодувати цілком. Сканер відстежує лише рядки та вкладеність; кожен елемент декодується
+ * окремо, а елементи без $mustContain пропускаються до декодування.
  */
 final class JsonItemStream
 {
     /**
      * @return \Generator<int, array>
-     * @throws \UnexpectedValueException missing file, broken item, or file cut off mid-way
+     * @throws \UnexpectedValueException відсутній файл, зламаний елемент або файл, обірваний посередині
      */
     public static function items(string $gzPath, ?string $mustContain = null, int $chunkBytes = 1048576): \Generator
     {
@@ -23,7 +23,7 @@ final class JsonItemStream
         }
 
         try {
-            /** @var list<string> $containers open `{` / `[` from the outside in */
+            /** @var list<string> $containers відкриті `{` / `[` ззовні всередину */
             $containers = [];
             $inString = false;
             $escaped = false;
@@ -68,7 +68,7 @@ final class JsonItemStream
                     if ($char === '"') {
                         $inString = true;
                     } elseif ($char === '{' || $char === '[') {
-                        // An item is an object directly inside the top-level "items" array.
+                        // Елемент — це об'єкт безпосередньо в масиві "items" верхнього рівня.
                         if ($char === '{' && $containers === ['{', '[']) {
                             $item = '';
                             $itemStart = $position;

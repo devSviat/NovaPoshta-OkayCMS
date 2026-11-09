@@ -379,7 +379,7 @@ return [
     ],
     LegacyMigration::class => [
         'class' => LegacyMigration::class,
-        // Orders before waybills: a waybill's card reads the order's point.
+        // Замовлення перед накладними: картка накладної читає пункт видачі замовлення.
         'arguments' => [new SR(ModuleState::class), new SR(LegacyGate::class), new SR(OrdersStep::class), new SR(WaybillsStep::class), new SR(PaymentsStep::class), new SR(VolumesStep::class), new SR(SettingsStep::class)],
     ],
     NpOrders::class => [

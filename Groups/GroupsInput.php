@@ -3,8 +3,8 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Groups;
 
 /**
- * The groups form as posted: `groups[i][id|name|enabled|delete]` (id "new…" for a group added
- * on the page) and `categories[Category][group|shown]`, where `group` refers to a form id.
+ * Форма груп у надісланому вигляді: `groups[i][id|name|enabled|delete]` (id "new…" для групи, доданої
+ * на сторінці) і `categories[Category][group|shown]`, де `group` посилається на id у формі.
  */
 final class GroupsInput
 {
@@ -28,7 +28,7 @@ final class GroupsInput
             $formId = (string)($raw['id'] ?? '');
             $name = mb_substr(trim((string)($raw['name'] ?? '')), 0, self::NAME_LENGTH);
             $delete = !empty($raw['delete']);
-            // The page always carries one blank "new group" row; left blank, it is not a group.
+            // Сторінка завжди містить один порожній рядок нової групи; якщо його лишено порожнім, це не група.
             if (!ctype_digit($formId) && $name === '' && !in_array($formId, $referenced, true)) {
                 continue;
             }

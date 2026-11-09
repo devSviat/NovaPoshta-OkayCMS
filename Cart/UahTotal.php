@@ -6,7 +6,7 @@ use Okay\Core\EntityFactory;
 use Okay\Core\Money;
 use Okay\Entities\CurrenciesEntity;
 
-/** Cart metrics with the total in hryvnias, the currency of Nova Poshta's limits. */
+/** Метрики кошика із сумою в гривнях — валюті лімітів Нової Пошти. */
 final class UahTotal
 {
     public function __construct(

@@ -7,7 +7,7 @@ use Okay\Core\Settings;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
 
-/** The "Sender and calculation" block of the settings page. */
+/** Блок «Відправлення й розрахунок ціни» сторінки налаштувань. */
 final class ShippingSettings
 {
     public const string SENDER = 'sviat__novaposhta__sender_division_id';
@@ -30,7 +30,7 @@ final class ShippingSettings
         return ShippingConfig::fromSettings(fn(string $name) => $this->settings->get($name));
     }
 
-    /** @return list<string> language keys of the errors; nothing is saved when there are any */
+    /** @return list<string> мовні ключі помилок; якщо вони є, нічого не зберігається */
     public function save(array $post): array
     {
         $parsed = self::parse($post, fn(int $id): bool => (bool)$this->entityFactory->get(DivisionEntity::class)->get($id));
@@ -75,7 +75,7 @@ final class ShippingSettings
         ];
     }
 
-    /** Accepts "1,5" as typed in Ukrainian locale; anything else that is not a number gives null. */
+    /** Приймає "1,5", як вводять в українській локалі; будь-що інше, що не є числом, дає null. */
     private static function number(mixed $raw): ?float
     {
         if (!is_string($raw) && !is_int($raw) && !is_float($raw)) {

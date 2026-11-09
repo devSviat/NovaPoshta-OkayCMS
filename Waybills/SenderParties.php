@@ -6,7 +6,7 @@ use Okay\Core\EntityFactory;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 
-/** The sender of a waybill from the settings and the NP account. */
+/** Відправник накладної з налаштувань і кабінету НП. */
 final class SenderParties implements SenderSource
 {
     public function __construct(

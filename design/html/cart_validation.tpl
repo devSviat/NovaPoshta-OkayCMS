@@ -1,2 +1,2 @@
-{* Inserted by the theme inside its own <script>, right after it set up jQuery Validate: plain JS only, no tags. *}
+{* Тема вставляє це у свій <script> одразу після налаштування jQuery Validate: лише чистий JS, без тегів. *}
 window.SviatNovaPoshtaCart && window.SviatNovaPoshtaCart.addRules();

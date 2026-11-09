@@ -44,7 +44,7 @@ final class LegacyPlacesDb implements LegacyPlaces
             ->bindValue('ref', $cityRef)
             ->limit(2));
 
-        // A city Ref shared by two settlements is not a pair to trust.
+        // Ref міста, спільний для двох населених пунктів, — не та пара, якій можна довіряти.
         return count($rows) === 1 ? (int)$rows[0]->settlement_id : null;
     }
 
@@ -58,7 +58,7 @@ final class LegacyPlacesDb implements LegacyPlaces
         return $this->select($this->queryFactory->newSelect()
             ->cols(['s.id', 's.name_uk', 's.area_uk', 's.district_uk', 's.has_pickup'])
             ->from(SettlementEntity::getTable() . ' AS s')
-            // Our names carry the type ("село Іванівка"): the place is the whole name or its last words.
+            // Наші назви містять тип ("село Іванівка"): місце — це вся назва або її останні слова.
             ->where('(s.name_uk = :exact OR s.name_uk LIKE :tail)')
             ->bindValues(['exact' => $place, 'tail' => '% ' . addcslashes($place, '%_\\')])
             ->limit(self::NAMED_MAX));
@@ -92,8 +92,8 @@ final class LegacyPlacesDb implements LegacyPlaces
     }
 
     /**
-     * Whether the row should wait for a later tick. A refused or unreadable answer will not change;
-     * a bad key or an outage may be fixed, and guessing "not found" then would leave orders unmatched.
+     * Чи має рядок чекати наступного тіку. Відмова чи нерозбірлива відповідь не зміниться;
+     * хибний ключ чи збій можуть виправити, і вгадане тоді "не знайдено" лишило б замовлення не зіставленими.
      */
     public static function worthRetrying(NpErrorKind $kind): bool
     {

@@ -2,34 +2,34 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
-/** Who sends the waybills and what a new waybill form starts with. */
+/** Хто відправляє накладні і з чого починається форма нової накладної. */
 final readonly class WaybillConfig
 {
     public const string DEFAULT_CUTOFF = '16:00';
     public const string DEFAULT_DESCRIPTION = 'Товари інтернет-магазину';
-    /** Cargo types the module can make, in the order the form lists them; all are on until the settings say otherwise. */
+    /** Типи вантажу, які модуль уміє створювати, у порядку форми; усі ввімкнені, доки налаштування не скажуть інакше. */
     public const array CARGO_TYPES = ['Parcel', 'Cargo', 'Documents'];
 
     /**
-     * @param 'Recipient'|'Sender' $payerType where the form starts; a draft still makes the sender pay when the order total holds delivery
+     * @param 'Recipient'|'Sender' $payerType з чого починає форма; чернетка однаково робить платником відправника, коли сума замовлення містить доставку
      * @param 'Cash'|'NonCash' $paymentMethod
      * @param 'Parcel'|'Cargo'|'Documents' $cargoType
-     * @param 'Recipient'|'Sender' $codPayer who pays the money-transfer commission
-     * @param list<'Parcel'|'Cargo'|'Documents'> $cargoTypes the types the waybill form offers; holds $cargoType
+     * @param 'Recipient'|'Sender' $codPayer хто платить комісію за грошовий переказ
+     * @param list<'Parcel'|'Cargo'|'Documents'> $cargoTypes типи, які пропонує форма накладної; містить $cargoType
      */
     public function __construct(
         public ?string $contactRef,
         public ?string $senderPhone,
-        /** HH:MM; a waybill made at or after it is dated tomorrow. */
+        /** HH:MM; накладна, створена о цій порі чи пізніше, датується завтрашнім днем. */
         public string $cutoff = self::DEFAULT_CUTOFF,
         public string $payerType = 'Recipient',
         public string $paymentMethod = 'Cash',
         public string $cargoType = 'Parcel',
         public string $codPayer = 'Recipient',
         public string $description = self::DEFAULT_DESCRIPTION,
-        /** 'order' — «Замовлення №…», as the old module; 'text' — $description */
+        /** 'order' — «Замовлення №…», як у старому модулі; 'text' — $description */
         public string $descriptionMode = 'order',
-        /** AdditionalInformation: 'skus', 'names' or 'none' */
+        /** AdditionalInformation: 'skus', 'names' або 'none' */
         public string $extraInfo = 'skus',
         public array $cargoTypes = self::CARGO_TYPES,
     ) {

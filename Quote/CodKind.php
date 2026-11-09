@@ -2,15 +2,15 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
-/** How the shop's cash on delivery is issued, which decides who pays its commission. */
+/** Як оформлено післяплату магазину — від цього залежить, хто платить її комісію. */
 enum CodKind: string
 {
-    /** Money transfer: the recipient pays the commission at the branch; the cart shows it apart from the price. */
+    /** Грошовий переказ: комісію платить отримувач у відділенні; кошик показує її окремо від ціни. */
     case Money = 'money';
-    /** Payment control (contract with NP): the sender pays, the customer's price does not change. */
+    /** Контроль оплати (договір з НП): платить відправник, ціна для покупця не змінюється. */
     case Control = 'control';
 
-    /** The kind kept on a payment method (CodPayments::FIELD); 0 and anything unknown — none. */
+    /** Вид, збережений у способі оплати (CodPayments::FIELD); 0 і все невідоме — жоден. */
     public static function fromFlag(int $flag): ?self
     {
         return match ($flag) {

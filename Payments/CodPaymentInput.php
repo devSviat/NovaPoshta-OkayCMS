@@ -4,18 +4,18 @@ namespace Okay\Modules\Sviat\NovaPoshta\Payments;
 
 use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 
-/** The "Nova Poshta cash on delivery" block of the core payment method page (payment_cod.tpl). */
+/** Блок "Nova Poshta cash on delivery" на сторінці способу оплати ядра (payment_cod.tpl). */
 final class CodPaymentInput
 {
-    /** Hidden input of the block: without it the POST came from elsewhere and the column is left as it is. */
+    /** Приховане поле блоку: без нього POST прийшов з іншого місця, і колонку лишаємо як є. */
     public const string MARKER = 'sviat_np_cod_form';
     public const string SWITCH = 'sviat_np_cod';
     public const string KIND = 'sviat_np_cod_kind';
 
     /**
      * @param array<string, mixed> $post
-     * @param mixed $module the payment's posted module; an online payment is never cash on delivery
-     * @return int|null CodKind flag to store, or null to leave the column untouched
+     * @param mixed $module надісланий модуль оплати; онлайн-оплата ніколи не є післяплатою
+     * @return int|null прапорець CodKind для збереження або null, щоб не чіпати колонку
      */
     public static function flag(array $post, mixed $module): ?int
     {

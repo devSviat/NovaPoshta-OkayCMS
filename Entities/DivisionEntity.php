@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Entities;
 
 use Okay\Core\Entity\Entity;
 
-/** Branches, PUDO points and parcel lockers of Ukraine; `id` is Nova Poshta's id. */
+/** Відділення, пункти видачі PUDO і поштомати України; `id` — id Нової Пошти. */
 class DivisionEntity extends Entity
 {
     protected static $fields = [

@@ -5,7 +5,7 @@ namespace Modules\Sviat\NovaPoshta\Backend;
 use Okay\Modules\Sviat\NovaPoshta\Backend\DeliveryWarnings;
 use PHPUnit\Framework\TestCase;
 
-/** The settings page names this module's methods the core makes free for every cart. */
+/** Сторінка налаштувань називає способи доставки цього модуля, які ядро робить безкоштовними для будь-якого кошика. */
 class DeliveryWarningsTest extends TestCase
 {
     public function testOnlyOwnPaidMethodsWithZeroThreshold(): void

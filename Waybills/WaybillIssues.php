@@ -6,17 +6,17 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 
 /**
- * Turns a refusal into what the waybill form shows: the field to mark, Nova
- * Poshta's own text, our advice on what to do (a language key) and the technical details.
- * Field rules are ported from NovaPoshtaTracking DocumentIssueTranslator, with the new API's names.
+ * Перетворює відмову на те, що показує форма накладної: поле для позначки, власний текст Нової
+ * Пошти, нашу пораду, що робити (мовний ключ), і технічні деталі.
+ * Правила полів перенесено з NovaPoshtaTracking DocumentIssueTranslator, з назвами нового API.
  */
 final class WaybillIssues
 {
-    /** More specific names first: RecipientAddressName before RecipientAddress. */
+    /** Конкретніші назви спершу: RecipientAddressName перед RecipientAddress. */
     private const array RULES = [
         ['~shipment_was_deleted|already deleted|was deleted~i', null, 'deleted'],
         ['~AfterpaymentOnGoodsCost is unavailable~i', 'cod_kind', 'control_unavailable'],
-        // An unknown code also brings «counterparty person creation problem»: the code is the cause.
+        // Невідомий код також тягне «counterparty person creation problem»: причина — код.
         ['~EDRPOU|OwnershipForm~i', 'edrpou', 'edrpou'],
         ['~RecipientContactName|RecipientName|recipient\.name|Empty user name|counterparty person creation|contains invalid words~i', 'recipient_name', 'recipient_name'],
         ['~RecipientsPhone|RecipientPhone|recipient\.phone|Invalid phone~i', 'phone', 'phone'],
@@ -41,7 +41,7 @@ final class WaybillIssues
     ];
 
     /**
-     * @param NpApiException|string $problem Nova Poshta's refusal, or a language key of the module's own
+     * @param NpApiException|string $problem відмова Нової Пошти або мовний ключ власної відмови модуля
      * @return array{field: ?string, message: ?string, advice: string, details: string}
      */
     public static function explain(NpApiException|string $problem): array
@@ -79,7 +79,7 @@ final class WaybillIssues
     }
 
     /**
-     * Warnings of a waybill Nova Poshta accepted, as language keys; ones we cannot explain are left out.
+     * Попередження до накладної, яку Нова Пошта прийняла, як мовні ключі; ті, що ми не можемо пояснити, пропускаються.
      *
      * @param list<string> $warnings
      * @return list<string>

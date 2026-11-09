@@ -30,7 +30,7 @@ class DictionaryRunnerTest extends TestCase
         $this->publish(base: self::T0 - 1000, deltaTills: [self::T0 - 3000, self::T0 - 2000, self::T0 - 1000], settlements: self::T0 - 500);
     }
 
-    /** CDN state: a base at $base and consecutive deltas ending at each of $deltaTills. */
+    /** Стан CDN: база на $base і послідовні дельти, що закінчуються на кожному з $deltaTills. */
     private function publish(int $base, array $deltaTills, int $settlements): void
     {
         foreach (['uk', 'en'] as $lang) {

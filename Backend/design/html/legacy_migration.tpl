@@ -1,4 +1,4 @@
-{* Moving from the old Nova Poshta modules: a one-time action. *}
+{* Перенесення зі старих модулів Нової Пошти: одноразова дія. *}
 {if $np_legacy}
 {$L = $np_legacy}
 <div class="row">

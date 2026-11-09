@@ -2,13 +2,13 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
-/** A checked delivery address from the cart. */
+/** Перевірена адреса доставки з кошика. */
 final readonly class AddressFields
 {
     public function __construct(
         public int $settlementId,
         public string $street,
-        /** Old API street Ref when the customer picked a suggestion; typed streets have none. */
+        /** Ref вулиці зі старого API, коли покупець обрав підказку; у вулиць, введених вручну, його немає. */
         public ?string $streetRef,
         public string $house,
         public ?string $flat,

@@ -4,16 +4,16 @@ namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries;
 
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
-/** What the dictionaries hold and how the last run went; kept as JSON in module state. */
+/** Що містять довідники і як пройшов останній запуск; зберігається як JSON у стані модуля. */
 final class DictionaryStatus
 {
     private const string STATE = 'dict_status';
 
-    /** Unix time the stored divisions are current to (base time or last applied delta's `till`). */
+    /** Unix-час, на який актуальні збережені пункти (час бази або `till` останньої застосованої дельти). */
     public ?int $divisionsTill = null;
     public ?int $settlementsTime = null;
     public ?int $boostAt = null;
-    /** Whether the stored rows carry English names. */
+    /** Чи мають збережені рядки англійські назви. */
     public bool $english = false;
     public ?int $requestedAt = null;
     public ?int $runningSince = null;

@@ -9,7 +9,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 
-/** What the waybill block of an order page shows: the waybill card, or the form for a new one. */
+/** Що показує блок накладної на сторінці замовлення: картку накладної або форму для нової. */
 final class WaybillView
 {
 
@@ -22,7 +22,7 @@ final class WaybillView
     ) {
     }
 
-    /** @return ?array null when the order is not delivered by this module: the block is not shown */
+    /** @return ?array null, коли замовлення доставляється не цим модулем: блок не показується */
     public function forOrder(int $orderId): ?array
     {
         $order = $orderId > 0 ? $this->entityFactory->get(OrdersEntity::class)->get($orderId) : null;
@@ -33,7 +33,7 @@ final class WaybillView
 
         $row = $this->rows->forOrder($orderId);
         if (WaybillService::needsCheck($row, time())) {
-            // NP may hold a waybill of this order: the manager asks it before anything new is made.
+            // НП може мати накладну цього замовлення: менеджер запитує її, перш ніж створювати щось нове.
             $view['check'] = true;
 
             return $view;
@@ -78,7 +78,7 @@ final class WaybillView
         return $view;
     }
 
-    /** Old-API waybills go by point number, and a few numbers repeat inside one settlement. */
+    /** Накладні старого API йдуть за номером пункту видачі, а деякі номери повторюються в межах одного населеного пункту. */
     private function numberRepeats(WaybillDraft $draft): bool
     {
         $division = $this->entityFactory->get(DivisionEntity::class)->get((int)$draft->divisionId);

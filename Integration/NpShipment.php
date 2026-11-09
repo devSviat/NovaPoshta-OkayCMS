@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Integration;
 
-/** An order's waybill as other modules see it; dates are 'Y-m-d H:i:s' in the shop's time. */
+/** Накладна замовлення такою, як її бачать інші модулі; дати — 'Y-m-d H:i:s' за часом магазину. */
 final readonly class NpShipment
 {
     public function __construct(
@@ -10,9 +10,9 @@ final readonly class NpShipment
         public string $number,
         public ?int $statusCode,
         public ?string $statusAt,
-        /** When the parcel reached the branch; set only while it waits there (statuses 7 and 8). */
+        /** Коли посилка прибула у відділення; задано лише поки вона там чекає (статуси 7 і 8). */
         public ?string $arrivedAt,
-        /** The recipient pays on pickup: payment control or money transfer. */
+        /** Отримувач платить при отриманні: контроль оплати або грошовий переказ. */
         public bool $cod,
     ) {
     }

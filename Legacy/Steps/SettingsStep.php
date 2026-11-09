@@ -13,7 +13,7 @@ use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacySettingsMap;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTargets;
 
-/** Old settings only where the module has none; the sender's point goes through the same matching as orders. */
+/** Старі налаштування лише там, де в модулі їх немає; пункт видачі відправника проходить те саме зіставлення, що й замовлення. */
 final class SettingsStep implements LegacyStep
 {
     public const string NAME = 'settings';
@@ -60,7 +60,7 @@ final class SettingsStep implements LegacyStep
         return self::DONE;
     }
 
-    /** @return ?string our division id, 'existed', 'failed', BUDGET, or null when there is nothing to carry */
+    /** @return ?string id нашого пункту видачі, 'existed', 'failed', BUDGET або null, коли переносити нічого */
     private function sender(LegacyBudget $budget): ?string
     {
         $ref = $this->old->setting('novapost_sender_warehouse');

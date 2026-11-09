@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
-/** A checked pickup point or address for one order, or nothing when the delivery is not this module's. */
+/** Перевірений пункт видачі чи адреса для одного замовлення або нічого, коли доставка не цього модуля. */
 final readonly class CartSelection
 {
     public function __construct(

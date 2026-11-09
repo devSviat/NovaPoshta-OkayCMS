@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries;
 
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Store\DictionaryStore;
 
-/** Writes only rows whose hash changed, in batches, and counts what happened. */
+/** Записує пакетами лише рядки, чий хеш змінився, і рахує, що сталося. */
 final class TableLoader
 {
     private const int BATCH = 500;
@@ -53,7 +53,7 @@ final class TableLoader
         }
     }
 
-    /** A full file must hold at least half of what is stored: anything less is a broken or reformatted file. */
+    /** Повний файл мусить містити щонайменше половину збереженого: менше — це зламаний або переформатований файл. */
     public function assertPlausibleFullFile(): void
     {
         $seen = $this->added + $this->changed + $this->unchanged;

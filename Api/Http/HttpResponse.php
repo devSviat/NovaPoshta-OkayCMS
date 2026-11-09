@@ -10,7 +10,7 @@ final readonly class HttpResponse
     ) {
     }
 
-    /** Decoded JSON object or array; null when the body is not JSON of that shape. */
+    /** Декодований JSON-об'єкт або масив; null, коли тіло не є JSON такої форми. */
     public function json(): ?array
     {
         $decoded = json_decode($this->body, true);

@@ -2,22 +2,22 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
-/** What the "move from the old modules" block on the settings page shows. */
+/** Що показує блок "перенесення зі старих модулів" на сторінці налаштувань. */
 final class LegacyMigrationView
 {
     /**
      * @param array{status: ?string, step: int, report: array, finished_at: ?string} $state LegacyMigration::state()
      * @param array<string, int> $counts LegacyData::counts()
-     * @param list<string> $enabled old modules still on
+     * @param list<string> $enabled старі модулі, що досі увімкнені
      * @param list<object> $deliveries LegacyData::legacyDeliveries()
-     * @param list<string> $steps step names in run order
+     * @param list<string> $steps назви кроків у порядку виконання
      * @param ?string $problem LegacyGate::problem()
-     * @return array<string, mixed>|null null — nothing to show
+     * @return array<string, mixed>|null null — нічого показувати
      */
     public static function vars(array $state, array $counts, array $enabled, array $deliveries, array $steps, ?string $problem = null, bool $stalled = false): ?array
     {
         $status = $state['status'];
-        // A one-time move: once done and the old modules are gone, the card goes too.
+        // Одноразове перенесення: щойно воно завершене й старих модулів немає, картка теж зникає.
         if ($enabled === [] && ($status === null || $status === 'done')) {
             return null;
         }

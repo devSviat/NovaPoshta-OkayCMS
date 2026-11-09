@@ -27,7 +27,7 @@ class WaybillsStepTest extends TestCase
 
     protected function setUp(): void
     {
-        // NP's DateScan is Kyiv time; the expectations below are in the same zone.
+        // DateScan від НП — київський час; очікування нижче в тій самій зоні.
         $this->zone = date_default_timezone_get();
         date_default_timezone_set('Europe/Kyiv');
         $this->old = new FakeLegacyData();
@@ -67,7 +67,7 @@ class WaybillsStepTest extends TestCase
         self::assertSame(['done' => 1, 'existed' => 0, 'failed' => 0], $report->counts('waybills'));
     }
 
-    /** status_at means the date of the status at NP on every path; the old module's refresh time is only a fallback. */
+    /** status_at на кожному шляху означає дату статусу в НП; час оновлення старого модуля — лише запасний варіант. */
     public function testStatusDateIsTheScanDate(): void
     {
         $doc = ['Number' => '20450000000045', 'StatusCode' => '9', 'Status' => 'Відправлення отримано', 'DateScan' => '12:30 02.11.2026'];
@@ -86,7 +86,10 @@ class WaybillsStepTest extends TestCase
         self::assertSame('2026-11-01 10:00:00', $this->orders->waybills[201]['status_at']);
     }
 
-    /** One waybill, one order: a number the old module kept on two orders goes to the first only, with a reason. */
+    /**
+     * Одна накладна — одне замовлення: номер, який старий модуль тримав на двох замовленнях, іде лише до першого, з
+     * причиною.
+     */
     public function testNumberOfAnotherOrderIsFailed(): void
     {
         $this->old->tracking = [self::row(1, 201), self::row(2, 202)];
@@ -99,7 +102,7 @@ class WaybillsStepTest extends TestCase
         self::assertSame(['step' => 'waybills', 'order' => 202, 'key' => 'legacy_fail_number_taken', 'name' => '20450000000045', 'record' => null], $report->fails()[0] ?? null);
     }
 
-    /** Tracking counts its 60 days and the 30-day «not found» from it: the move is not the waybill's birthday. */
+    /** Трекінг відлічує від неї свої 60 днів і 30-денне «не знайдено»: перенесення — не день народження накладної. */
     public function testCreatedDateIsTheOldOne(): void
     {
         $this->old->tracking = [self::row(1, 201, ['created_at' => '2025-03-01 10:00:00']), self::row(2, 202, ['int_doc_number' => '20450000000046', 'created_at' => null])];
@@ -109,7 +112,7 @@ class WaybillsStepTest extends TestCase
         self::assertNull($this->orders->waybills[202]['created_at'], 'unknown: the store puts the time of the move');
     }
 
-    /** The old tracker kept the code in its own column; the response may be gone. */
+    /** Старий трекер зберігав код у власній колонці; відповіді може вже не бути. */
     public function testStatusFromTheOldRowWithoutDocument(): void
     {
         $this->old->tracking = [self::row(1, 201, ['status_code' => '9', 'tracking_response' => null])];
@@ -119,7 +122,10 @@ class WaybillsStepTest extends TestCase
         self::assertSame('2026-11-01 10:00:00', $this->orders->waybills[201]['status_at']);
     }
 
-    /** getStatusDocuments carries RefEW, not Ref: a Ref there is no proof the shop made the waybill, so it stays attached and is never deleted at NP. */
+    /**
+     * getStatusDocuments несе RefEW, а не Ref: Ref там не доводить, що накладну створив магазин, тож вона лишається
+     * прив'язаною й ніколи не видаляється в НП.
+     */
     public function testRefFromTheTrackingAnswerDoesNotMakeItOurs(): void
     {
         $doc = ['Number' => '20450000000046', 'StatusCode' => '9', 'Ref' => 'doc-ref'];

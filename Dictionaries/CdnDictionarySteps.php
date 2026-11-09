@@ -7,7 +7,7 @@ use Okay\Entities\LanguagesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Cdn\CdnClient;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Cdn\CdnVersions;
 
-/** Dictionary steps on real CDN files: each file is downloaded, applied and deleted. */
+/** Кроки довідників на справжніх файлах CDN: кожен файл завантажується, застосовується й видаляється. */
 final class CdnDictionarySteps implements DictionarySteps
 {
     public function __construct(

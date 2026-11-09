@@ -3,9 +3,9 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries\Store;
 
 /**
- * Bulk writes of dictionary rows. $table is 'divisions' or 'settlements'.
- * Every method throws on a failed query: a silently failed write followed by
- * deleteNotSeen() would wipe rows that are still valid.
+ * Масові записи рядків довідників. $table — 'divisions' або 'settlements'.
+ * Кожен метод кидає виняток на невдалому запиті: тихо провалений запис, а за ним
+ * deleteNotSeen() стерли б рядки, які ще дійсні.
  */
 interface DictionaryStore
 {
@@ -15,21 +15,21 @@ interface DictionaryStore
     /** @return array<int, string> id → row_hash */
     public function hashes(string $table): array;
 
-    /** @param list<array> $rows inserted or replaced; `boost` of settlements is kept */
+    /** @param list<array> $rows вставлені або замінені; `boost` населених пунктів зберігається */
     public function upsert(string $table, array $rows, int $run): void;
 
-    /** Marks unchanged rows as present in run $run. @param list<int> $ids */
+    /** Позначає незмінені рядки як присутні в запуску $run. @param list<int> $ids */
     public function touch(string $table, array $ids, int $run): void;
 
-    /** Deletes rows the full run $run did not see; call only after the run read everything. */
+    /** Видаляє рядки, яких повний запуск $run не побачив; викликати лише після того, як запуск прочитав усе. */
     public function deleteNotSeen(string $table, int $run): int;
 
     /** @param list<int> $ids */
     public function delete(string $table, array $ids): int;
 
-    /** Marks the settlements that have a working pickup point (the cart searches only those). */
+    /** Позначає населені пункти, що мають робочий пункт видачі (кошик шукає лише серед них). */
     public function refreshPickup(): void;
 
-    /** @param array<int, int> $boostById settlements not listed get 0 */
+    /** @param array<int, int> $boostById населені пункти поза списком отримують 0 */
     public function setBoost(array $boostById): void;
 }

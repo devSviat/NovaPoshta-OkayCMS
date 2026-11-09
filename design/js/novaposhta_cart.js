@@ -1,6 +1,6 @@
 /*
- * Nova Poshta pickup point choice in the cart. Everything that comes from the dictionary is
- * put into the page with textContent only: names are third-party data.
+ * Вибір пункту видачі Нової Пошти в кошику. Усе, що приходить із довідника, потрапляє на
+ * сторінку лише через textContent: назви — сторонні дані.
  */
 (function () {
     'use strict';
@@ -8,7 +8,7 @@
     var DEBOUNCE_MS = 200;
 
     function route(name) {
-        // Themes declare `okay` with let/const: it is global but not a property of window.
+        // Теми оголошують `okay` через let/const: він глобальний, але не є властивістю window.
         return typeof okay !== 'undefined' && okay.router ? okay.router[name] : null;
     }
 
@@ -37,8 +37,8 @@
         return node;
     }
 
-    /** okay_shop-derived themes float the field label by a `filled` class they set on blur only. */
-    /** The field holds the title alone: the type, district and region are on the line under it. */
+    /** Теми на основі okay_shop піднімають label поля класом `filled`, який ставлять лише на blur. */
+    /** Поле містить лише назву: тип, район і область — у рядку під ним. */
     function cityText(settlement) {
         return settlement.title || settlement.name;
     }
@@ -118,7 +118,7 @@
             }
             this.markPopular();
             this.showChoice();
-            // A choice restored from the session or the last order is shown as chosen, not as a list.
+            // Вибір, відновлений із сесії або останнього замовлення, показується як вибраний, а не списком.
             if (this.mode === 'points' && this.division) {
                 this.setStep('chosen');
             } else {
@@ -132,8 +132,8 @@
     }
 
     /**
-     * city: popular cities and the city field; points: the city in one line, groups, search, list
-     * (address mode: the address form); chosen: only the chosen point.
+     * city: популярні міста й поле міста; points: місто одним рядком, групи, пошук, список
+     * (режим адреси: форма адреси); chosen: лише вибраний пункт видачі.
      */
     Block.prototype.setStep = function (step) {
         this.step = step;
@@ -144,7 +144,7 @@
         this.cityBox.hidden = step !== 'city';
         this.cityLine.hidden = step !== 'points';
         if (step === 'points' && this.settlement) {
-            // The type plain before the bold title; district and region tell namesakes apart.
+            // Тип звичайним шрифтом перед жирною назвою; район і область розрізняють тезок.
             this.cityLine.querySelector('.np-cart__city-line-type').textContent = this.settlement.type || '';
             this.cityLine.querySelector('.np-cart__city-line-name').textContent = this.settlement.title || this.settlement.name;
             this.cityLine.querySelector('.np-cart__city-line-area').textContent = [this.settlement.district, this.settlement.area].filter(Boolean).join(', ');
@@ -159,16 +159,15 @@
     };
 
     /**
-     * The commission line of each "cash on delivery" payment: Nova Poshta takes it at the branch, apart
-     * from the total. The module puts the line into the payment's description box (front_cart_payment);
-     * a theme without that block gets it inside the label, as themes show the description only right
-     * after the label.
+     * Рядок комісії кожної оплати "післяплата": Нова Пошта бере її у відділенні, окремо від суми.
+     * Модуль ставить рядок у блок опису оплати (front_cart_payment); тема без цього блоку отримує
+     * його всередині label, бо теми показують опис лише одразу після label.
      */
     Block.prototype.showCodLines = function () {
         var self = this;
         var input = this.themeInput();
         var mine = input && input.length && input.is(':checked');
-        // Two methods may share one COD payment: a method hides only a line it filled.
+        // Два способи доставки можуть ділити одну оплату з післяплатою: спосіб ховає лише рядок, який заповнив сам.
         document.querySelectorAll('.np-cod-line[data-np-delivery="' + this.deliveryId + '"]').forEach(function (line) {
             if (!mine) {
                 if (line.hasAttribute('data-np-cod-payment')) {
@@ -207,7 +206,7 @@
         });
     };
 
-    /** Clears a message the theme's validator showed, once the field is right. */
+    /** Прибирає повідомлення, яке показав валідатор теми, щойно поле стає правильним. */
     Block.prototype.revalidate = function (element) {
         var $ = window.jQuery;
         if (element && $ && $(element).hasClass('error') && $(element.form).data('validator')) {
@@ -245,13 +244,13 @@
     };
 
     /**
-     * A week from the dictionary as "Пн–Пт 08:00–21:00, Сб–Нд 08:00–19:00": groups of
-     * [first day, last day, hours] (0 = Monday, null hours = day off) or true for round the clock.
-     * Each group stays on one line.
+     * Тиждень із довідника як "Пн–Пт 08:00–21:00, Сб–Нд 08:00–19:00": групи
+     * [перший день, останній день, години] (0 = понеділок, null години = вихідний) або true — цілодобово.
+     * Кожна група лишається в одному рядку.
      */
     Block.prototype.scheduleNode = function (schedule) {
         if (schedule === true) {
-            // Same look as working hours: small and muted.
+            // Такий самий вигляд, як у годин роботи: дрібно й приглушено.
             return el('span', 'np-cart__schedule np-cart__day', this.texts.cart_all_day || '');
         }
         if (!Array.isArray(schedule) || schedule.length === 0) {
@@ -413,7 +412,7 @@
                 syncFilled(this.search);
             }
             if (this.street) {
-                // Streets belong to one settlement: a street of the previous one must not travel along.
+                // Вулиці належать одному населеному пункту: вулиця попереднього не повинна переходити далі.
                 this.street.value = '';
                 this.streetRef.value = '';
                 syncFilled(this.street);
@@ -424,7 +423,7 @@
             this.address.hidden = false;
         }
         this.showChoice();
-        // Before the field is hidden: jQuery Validate does not hide the message of a hidden field.
+        // До того, як поле сховано: jQuery Validate не ховає повідомлення прихованого поля.
         this.revalidate(this.city);
         this.setStep('points');
         this.load();
@@ -433,7 +432,7 @@
         }
     };
 
-    /** Edited city text no longer names the chosen place: the order must not go there silently. */
+    /** Змінений текст міста вже не називає вибраний населений пункт: замовлення не повинне тихо піти туди. */
     Block.prototype.dropSettlement = function () {
         if (this.pointsRequest) {
             this.pointsRequest.abort();
@@ -506,7 +505,7 @@
             this.say(this.texts.cart_no_points);
             return;
         }
-        // A list that arrives while the chosen point is shown stays hidden until "Змінити".
+        // Список, що приходить, поки показано вибраний пункт видачі, лишається прихованим до "Змінити".
         this.points.hidden = this.step !== 'points';
         this.groupId = data.group;
 
@@ -571,7 +570,7 @@
         (point.problems || []).forEach(function (problem) {
             var text = self.texts['cart_' + problem] || '';
             var prefix = (text.match(/^[^:]*:\s*/) || [''])[0];
-            // "Не вміщається: …" once: a reason with the same lead-in continues the previous one.
+            // "Не вміщається: …" один раз: причина з тим самим початком продовжує попередню.
             notes.push(lead !== null && prefix !== '' && prefix === lead ? text.slice(prefix.length) : text);
             lead = prefix;
         });
@@ -617,17 +616,17 @@
             }
             return;
         }
-        // Points: the chosen point's card says it all.
+        // Пункти видачі: картка вибраного пункту говорить усе.
         this.choice.hidden = true;
     };
 
-    /** The theme's own radio for this delivery method (jQuery: themes keep prices in jQuery data). */
+    /** Власна радіокнопка теми для цього способу доставки (jQuery: теми зберігають ціни в jQuery data). */
     Block.prototype.themeInput = function () {
         var $ = window.jQuery;
         return $ ? $('input[name="delivery_id"][value="' + String(this.deliveryId).replace(/[^0-9]/g, '') + '"]') : null;
     };
 
-    /** Remembers what the theme showed before the module touched it, to give it back later. */
+    /** Запам'ятовує, що тема показувала до втручання модуля, щоб пізніше це повернути. */
     Block.prototype.captureTheme = function () {
         var input = this.themeInput();
         if (this.themePrice === null && input && input.length) {
@@ -648,8 +647,8 @@
     };
 
     /**
-     * Not charged yet (NP gave no price, or no point or address is chosen): the order summary repeats
-     * the method's text instead of the theme's "0".
+     * Ще не нараховано (НП не дала ціни або не вибрано пункт видачі чи адресу): підсумок замовлення
+     * повторює текст способу доставки замість "0" теми.
      */
     Block.prototype.showUnpricedSummary = function () {
         var input = this.themeInput();
@@ -663,7 +662,7 @@
         }
     };
 
-    /** Writes a price where the theme reads it, then lets the theme recount its totals. */
+    /** Пише ціну туди, де її читає тема, потім дає темі перерахувати підсумки. */
     Block.prototype.setThemePrice = function (price, total, text, free) {
         var input = this.themeInput();
         if (!input || !input.length) {
@@ -674,7 +673,7 @@
         input.closest('.fn_delivery_item').find('.fn_delivery_price').text(text);
         if (input.is(':checked') && typeof okay !== 'undefined' && typeof okay.update_cart_total_price === 'function') {
             okay.update_cart_total_price();
-            // The theme fills the "до оплати" amounts only when the delivery method changes.
+            // Тема заповнює суми "до оплати" лише при зміні способу доставки.
             var $ = window.jQuery;
             $(typeof okay.convert === 'function' ? '.fn_payment_method__item' : []).each(function () {
                 var currency = $(this).find('input[name="payment_method_id"]').data('currency_id');
@@ -740,7 +739,8 @@
             this.setThemePrice(data.price, data.totalWithDelivery, data.priceText || '', !!data.free);
             this.showUnpricedSummary();
         } else {
-            // No price (free, hidden, no sender, bad input or a failure): the theme's own numbers come back.
+            // Ціни немає (безкоштовно, приховано, немає відправника, хибні дані або збій): повертаються власні числа
+            // теми.
             this.restoreTheme();
             var input = this.themeInput();
             if (problem && input && input.length && !input.data('hide_front_delivery_price') && !input.data('is_free_delivery')) {
@@ -775,7 +775,7 @@
             return;
         }
         this.street.addEventListener('input', function () {
-            // A typed street is allowed, but it has no Nova Poshta Ref: the shipment then goes by text.
+            // Введена вручну вулиця дозволена, але не має Ref Нової Пошти: тоді відправлення йде за текстом.
             self.streetRef.value = '';
             self.showChoice();
             clearTimeout(self.streetTimer);
@@ -836,7 +836,7 @@
             });
     };
 
-    /** A street answer still in flight belongs to the settlement it was asked for. */
+    /** Відповідь із вулицями, що ще в дорозі, належить населеному пункту, для якого її запитали. */
     Block.prototype.stopStreets = function () {
         clearTimeout(this.streetTimer);
         if (this.streetRequest) {
@@ -871,14 +871,14 @@
         this.streetHint.hidden = !hint;
     };
 
-    /** Lifting is offered only when it costs extra or some weights are unknown (server decides). */
+    /** Підйом на поверх пропонується, лише коли він коштує додатково або якісь ваги невідомі (вирішує сервер). */
     Block.prototype.showLifting = function (data) {
         if (!this.lifting) {
             return;
         }
         this.lifting.hidden = !data.liftingOffered;
         if (!data.liftingOffered) {
-            // A hidden, still ticked box would be posted and then demand a floor.
+            // Прихований, але ще позначений чекбокс надіслався б і вимагав би поверх.
             this.liftingInput.checked = false;
             this.elevator.checked = false;
             this.showElevator();
@@ -888,7 +888,7 @@
         this.lifting.querySelector('.np-cart__lifting-note').textContent = data.liftingFeeText ? this.texts.cart_lifting_paid : this.texts.cart_lifting_unknown;
     };
 
-    /** "There is a lift" only means something when lifting is ordered. */
+    /** "Є ліфт" має значення лише тоді, коли замовлено підйом на поверх. */
     Block.prototype.showElevator = function () {
         var row = this.elevator.closest('.np-cart__elevator-check');
         row.hidden = !this.liftingInput.checked;
@@ -906,7 +906,7 @@
         return value && value !== 'transparent' && !/rgba\([^)]*,\s*0\)$/.test(value) ? value : null;
     }
 
-    /** A colour that says "chosen": not black, white or grey, which themes use for plain text and lines. */
+    /** Колір, що означає "вибрано": не чорний, білий чи сірий — ними теми фарбують звичайний текст і лінії. */
     function accentColor(value) {
         var color = visibleColor(value);
         var rgb = color ? color.match(/\d+(\.\d+)?/g) : null;
@@ -923,9 +923,9 @@
     }
 
     /**
-     * The colour the theme marks a chosen option with: the mark of the chosen delivery method (an svg
-     * tick or a styled radio), else the checkout button. Not the first .form__button: that is the
-     * coupon button, pale in broken_new (QA 07.11.2026).
+     * Колір, яким тема позначає вибрану опцію: позначка вибраного способу доставки (svg-галочка
+     * або стилізована радіокнопка), інакше кнопка оформлення замовлення. Не перший .form__button: це
+     * кнопка купона, бліда в broken_new (QA 07.11.2026).
      */
     function themeAccent() {
         var chosen = document.querySelector('input[name="delivery_id"]:checked');
@@ -947,7 +947,7 @@
         var button = found ? null : document.querySelector('[name="checkout"].form__button, button[name="checkout"]');
         if (button) {
             var style = getComputedStyle(button);
-            // A gradient button (broken_new) has its brand colour in the gradient or on the border.
+            // Градієнтна кнопка (broken_new) має фірмовий колір у градієнті або на рамці.
             var gradient = (style.backgroundImage.match(/rgba?\([^)]*\)/g) || []);
             found = accentColor(style.backgroundColor) || accentColor(gradient[gradient.length - 1]) || accentColor(gradient[0]) || accentColor(style.borderTopColor);
         }
@@ -955,9 +955,9 @@
     }
 
     /**
-     * okay_shop-derived themes do not all expose their colours as CSS variables (broken_new and the
-     * built stands compile them away), so colour and corners are read from the page. vibe_shop needs
-     * nothing: the block uses its chip component.
+     * Не всі теми на основі okay_shop виставляють свої кольори як CSS-змінні (broken_new і зібрані
+     * стенди прибирають їх під час компіляції), тож колір і заокруглення зчитуються зі сторінки.
+     * vibe_shop нічого не потребує: блок використовує його компонент чіпа.
      */
     function adoptThemeColours(root) {
         if (!root.classList.contains('np-cart--okay')) {
@@ -983,10 +983,10 @@
     var rulesAdded = false;
 
     /**
-     * Checks of the Nova Poshta fields in the theme's own jQuery Validate (as NovaposhtaCost did), so
-     * a message stands under its field before the form is sent, all at once. Fields of other delivery
-     * methods are disabled by the theme and hidden steps are not visible, so the validator skips both.
-     * The server checks everything again.
+     * Перевірки полів Нової Пошти у власному jQuery Validate теми (як робив NovaposhtaCost), щоб
+     * повідомлення стояло під своїм полем ще до надсилання форми, усі одразу. Поля інших способів
+     * доставки тема вимикає, а приховані кроки невидимі, тож валідатор пропускає і ті, й інші.
+     * Сервер перевіряє все ще раз.
      */
     function addRules() {
         var $ = window.jQuery;
@@ -1038,12 +1038,12 @@
             blocks.push(new Block(root));
         });
         addRules();
-        // The theme re-fires `change` on the chosen delivery after the cart changes (jQuery
-        // trigger, which plain listeners do not see): the weight and total may have changed.
+        // Після змін у кошику тема повторно запускає `change` на вибраній доставці (jQuery
+        // trigger, якого звичайні слухачі не бачать): вага й сума могли змінитися.
         if (window.jQuery) {
             window.jQuery(document).on('change', 'input[name="delivery_id"]', function () {
                 blocks.forEach(function (block) {
-                    // The theme marks only the chosen method: its colour is readable now.
+                    // Тема позначає лише вибраний спосіб доставки: тепер його колір можна зчитати.
                     adoptThemeColours(block.root);
                     block.showUnpricedSummary();
                     block.showCodLines();

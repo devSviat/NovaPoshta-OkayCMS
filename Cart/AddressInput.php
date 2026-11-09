@@ -3,15 +3,15 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
 /**
- * Reads the address fields one delivery method posted. Entrance and note share the old API's
- * 50-character address note, so the shipment must shorten them when both are long.
+ * Читає поля адреси, надіслані одним способом доставки. Під'їзд і примітка ділять 50-символьну
+ * примітку до адреси старого API, тож відправлення мусить їх скоротити, коли обидва довгі.
  */
 final class AddressInput
 {
     private const array MAX = ['street' => 100, 'house' => 10, 'flat' => 10, 'entrance' => 5, 'note' => 40];
     private const int MAX_FLOOR = 200;
 
-    /** @return array{address: ?AddressFields, error: ?string} error is a language key without the module prefix */
+    /** @return array{address: ?AddressFields, error: ?string} error — мовний ключ без префікса модуля */
     public static function parse(array $post, int $deliveryId, bool $liftingOffered): array
     {
         $raw = is_array($post['novaposhta'] ?? null) && is_array($post['novaposhta'][$deliveryId] ?? null) ? $post['novaposhta'][$deliveryId] : [];

@@ -31,7 +31,7 @@ class QuoteSessionTest extends TestCase
 
     public function testKeysFromBeforeTheCommissionWasSeparatedAreNotReused(): void
     {
-        // 0.5.x keys had the same parts; their prices still include the COD commission.
+        // Ключі 0.5.x мали ті самі частини; їхні ціни ще включають комісію післяплати.
         $legacy = sha1(implode('|', [4, 'd:7162', 1, 0, '1:2', '300.00']));
 
         self::assertNotSame($legacy, QuoteKey::for(4, 'd:7162', true, self::cart([[1, 2]], 300.0)));
@@ -129,7 +129,10 @@ class QuoteSessionTest extends TestCase
         self::assertSame('unreachable', QuoteSession::get($bag, 'k', self::NOW + 600)?->problem, 'checkout keeps what the cart showed');
     }
 
-    /** What the cart shows again after a reload: the point or the settlement the customer last priced. */
+    /**
+     * Що кошик показує знову після перезавантаження: пункт видачі або населений пункт, для якого покупець востаннє
+     * розраховував ціну.
+     */
     public function testTargetOfTheChoice(): void
     {
         self::assertSame(['division_id' => 11213], QuoteSession::targetIds('d:11213'));
@@ -139,7 +142,10 @@ class QuoteSessionTest extends TestCase
         self::assertSame([], QuoteSession::targetIds('d:-5'));
     }
 
-    /** NP prices lifting by floor and elevator: a quote for one floor must not price another. */
+    /**
+     * НП рахує ціну підйому на поверх за поверхом і ліфтом: розрахунок для одного поверху не повинен давати ціну
+     * іншого.
+     */
     public function testLiftingKeyCoversFloorAndElevator(): void
     {
         $cart = self::cart([[1, 2]], 300.0);

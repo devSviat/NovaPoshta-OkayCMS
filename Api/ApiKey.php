@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Api;
 
 use Okay\Core\Settings;
 
-/** The shop's Nova Poshta API key from the module settings. Never log or render it unmasked. */
+/** Ключ API Нової Пошти магазину з налаштувань модуля. Ніколи не логувати й не виводити його без маски. */
 final class ApiKey
 {
     public const string SETTING = 'sviat__novaposhta__api_key';
@@ -22,8 +22,8 @@ final class ApiKey
     }
 
     /**
-     * Strips what copying from the business cabinet, a messenger or a document tends to add:
-     * any Unicode space, invisible format characters (BOM, zero-width) and quotes of any style.
+     * Прибирає те, що зазвичай додає копіювання з бізнес-кабінету, месенджера чи документа:
+     * будь-які пробіли Unicode, невидимі символи форматування (BOM, zero-width) і лапки будь-якого стилю.
      */
     public static function normalize(string $raw): string
     {
@@ -32,7 +32,7 @@ final class ApiKey
         return preg_replace("/^{$edge}|{$edge}$/u", '', $raw) ?? trim($raw);
     }
 
-    /** Ties cached data (the JWT) to the key without storing the key next to it. */
+    /** Прив'язує кешовані дані (токен JWT) до ключа, не зберігаючи ключ поруч із ними. */
     public static function fingerprint(string $key): string
     {
         return hash('sha256', strtolower($key));

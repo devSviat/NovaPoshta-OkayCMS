@@ -11,8 +11,8 @@ use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 
 /**
- * Checks on the server what the cart form says: the browser can post any ids. Nothing from
- * the form is trusted beyond the two ids, and only for this module's delivery methods.
+ * Перевіряє на сервері те, що каже форма кошика: браузер може надіслати будь-які id. Формі
+ * не довіряємо ні в чому, крім двох id, і лише для способів доставки цього модуля.
  */
 final class CartSelectionValidator
 {
@@ -25,7 +25,7 @@ final class CartSelectionValidator
     ) {
     }
 
-    /** @return CartSelection|string a selection, or the language key of the error to show */
+    /** @return CartSelection|string вибір або мовний ключ помилки, яку треба показати */
     public function validate(object $order, array $post, CartMetrics $cart): CartSelection|string
     {
         $deliveryId = (int)($order->delivery_id ?? 0);
@@ -53,7 +53,10 @@ final class CartSelectionValidator
         );
     }
 
-    /** The point a cart restores (last order, posted form), or null when it would be refused on checkout now. */
+    /**
+     * Пункт видачі, який відновлює кошик (останнє замовлення, надіслана форма), або null, коли
+     * оформлення замовлення зараз його відхилило б.
+     */
     public function restorable(object $delivery, ?object $settlement, ?object $division, CartMetrics $cart): ?object
     {
         return self::keepRestored($delivery, (int)$this->module->getModuleIdByNamespace(__CLASS__), $settlement, $division, $this->groups->all(), $cart);
@@ -75,7 +78,7 @@ final class CartSelectionValidator
         if (DeliveryMode::fromServiceType($settings['service_type'] ?? null) !== DeliveryMode::Points) {
             return CartSelection::none();
         }
-        // Before the first dictionary run the cart asks for the branch in the order comment.
+        // До першого запуску довідника кошик просить вказати відділення в коментарі до замовлення.
         if (!$dictionaryReady) {
             return CartSelection::none();
         }
@@ -101,7 +104,7 @@ final class CartSelectionValidator
         return new CartSelection($delivery, $settlement, $division);
     }
 
-    /** Address mode of this module's method: the posted address, checked; anything else is not this check's business. */
+    /** Адресний режим способу цього модуля: надіслана адреса, перевірена; решта цієї перевірки не стосується. */
     public static function checkAddress(?object $delivery, int $moduleId, ?object $settlement, array $post, bool $liftingOffered, bool $dictionaryReady = true): CartSelection|string
     {
         if ($delivery === null || (int)($delivery->module_id ?? 0) !== $moduleId || $moduleId === 0) {
@@ -111,7 +114,7 @@ final class CartSelectionValidator
         if (DeliveryMode::fromServiceType($settings['service_type'] ?? null) !== DeliveryMode::Address) {
             return CartSelection::none();
         }
-        // Before the first dictionary run the cart shows a notice instead of the form, as for points.
+        // До першого запуску довідника кошик показує повідомлення замість форми, як і для пунктів видачі.
         if (!$dictionaryReady) {
             return CartSelection::none();
         }
@@ -126,7 +129,7 @@ final class CartSelectionValidator
         return new CartSelection($delivery, $settlement, null, $parsed['address']);
     }
 
-    /** @return array{0:int, 1:int} settlement and point ids posted for this delivery method */
+    /** @return array{0:int, 1:int} id населеного пункту й пункту видачі, надіслані для цього способу доставки */
     public static function postedIds(array $post, int $deliveryId): array
     {
         $choice = is_array($post['novaposhta'] ?? null) && is_array($post['novaposhta'][$deliveryId] ?? null) ? $post['novaposhta'][$deliveryId] : [];

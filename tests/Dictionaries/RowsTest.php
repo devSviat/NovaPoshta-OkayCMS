@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class RowsTest extends TestCase
 {
-    /** Shape of a CDN division record (05.11.2026); personal fields carry invented values. */
+    /** Структура запису пункту видачі з CDN (05.11.2026); персональні поля містять вигадані значення. */
     private static function division(array $override = []): array
     {
         return $override + [

@@ -3,12 +3,12 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
 /**
- * Puts a calculated price on a cart delivery method the way the core does in
- * DeliveriesHelper::getCartDeliveriesList, so themes show it without knowing the module.
+ * Ставить розраховану ціну на спосіб доставки в кошику так само, як ядро в
+ * DeliveriesHelper::getCartDeliveriesList, щоб теми показували її, нічого не знаючи про модуль.
  */
 final class DeliveryPriceView
 {
-    /** @param callable(float): string $convert Money::convert into the visitor's currency */
+    /** @param callable(float): string $convert Money::convert у валюту відвідувача */
     public static function apply(object $delivery, float $price, float $cartTotal, callable $convert, string $sign, string $separateText, string $freeText): void
     {
         $free = FreeDelivery::applies($delivery, $cartTotal);
@@ -23,10 +23,10 @@ final class DeliveryPriceView
     }
 
     /**
-     * What the cart shows for a method: `price` — the quote; `unpriced` — NP gave none; `free` — the
-     * order will be free though the core's cart says otherwise (it compares free_from strictly);
-     * `awaiting` — no point or address chosen yet: the method's own price is not what NP will charge,
-     * so none is shown or added to the total; `kept` — what the core or an earlier extender set.
+     * Що кошик показує для способу: `price` — розрахунок ціни; `unpriced` — НП ціни не дала; `free` —
+     * замовлення буде безкоштовним, хоча кошик ядра каже інакше (він порівнює free_from строго);
+     * `awaiting` — пункт видачі чи адресу ще не обрано: власна ціна способу — не те, що візьме НП,
+     * тож нічого не показується й не додається до суми; `kept` — те, що встановило ядро або попередній extender.
      */
     public static function cartState(object $delivery, ?DeliveryQuote $quote, bool $own, bool $dictionaryReady, float $cartTotal): string
     {
@@ -46,7 +46,7 @@ final class DeliveryPriceView
             return 'free';
         }
 
-        // Without dictionaries the customer cannot choose a point, and the order gets the method's own price.
+        // Без довідників покупець не може обрати пункт видачі, і замовлення отримує власну ціну способу.
         return $dictionaryReady ? 'awaiting' : 'kept';
     }
 
@@ -63,7 +63,7 @@ final class DeliveryPriceView
         self::unpriced($delivery, $cartTotal, $text);
     }
 
-    /** Nova Poshta gave no price: nothing is added to the total, the text says the manager will tell. */
+    /** Нова Пошта не дала ціни: до суми нічого не додається, текст каже, що повідомить менеджер. */
     public static function unpriced(object $delivery, float $cartTotal, string $text): void
     {
         if (!empty($delivery->is_free_delivery)) {

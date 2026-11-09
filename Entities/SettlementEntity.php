@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Entities;
 
 use Okay\Core\Entity\Entity;
 
-/** Settlements of Ukraine from the Nova Poshta dictionary; `id` is Nova Poshta's id. */
+/** Населені пункти України з довідника Нової Пошти; `id` — id Нової Пошти. */
 class SettlementEntity extends Entity
 {
     protected static $fields = [

@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
-/** Internal: why a quote could not be made; the message is the DeliveryQuote problem code. */
+/** Внутрішнє: чому не вдалося зробити розрахунок ціни; повідомлення — код проблеми DeliveryQuote. */
 final class QuoteProblem extends \RuntimeException
 {
 }

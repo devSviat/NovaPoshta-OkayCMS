@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
-/** Names of the old dictionaries and ours brought to one form before they are compared. */
+/** Назви старих довідників і наші, зведені до однієї форми перед порівнянням. */
 final class LegacyNames
 {
     private const string TYPE = '/^(?:селище міського типу|місто|село|селище|смт|м\.|с\.)\s+/u';
@@ -11,7 +11,7 @@ final class LegacyNames
     public static function place(string $name): string
     {
         $name = self::plain($name);
-        // getCities adds the district to namesakes: "Іванівка (Березівський р-н)".
+        // getCities додає район до тезок: "Іванівка (Березівський р-н)".
         $name = trim((string)preg_replace('/\s*\(.*\)\s*$/u', '', $name));
 
         return trim((string)preg_replace(self::TYPE, '', $name));
@@ -27,7 +27,7 @@ final class LegacyNames
         return trim((string)preg_replace('/\s*(?:район|р-н)$/u', '', self::plain($name)));
     }
 
-    /** The point's address: what follows "Відділення №13 (до 30 кг):", without street words and punctuation. */
+    /** Адреса пункту видачі: те, що йде після "Відділення №13 (до 30 кг):", без позначень вулиці й розділових знаків. */
     public static function address(string $name): string
     {
         $parts = explode(':', $name, 2);
@@ -38,7 +38,7 @@ final class LegacyNames
         return trim((string)preg_replace('/\s+/u', ' ', $address));
     }
 
-    /** NP's point "Number": NovaposhtaCost 1.2.0 keeps it in a column, older rows only in the name ("№13"). */
+    /** "Number" пункту видачі НП: NovaposhtaCost 1.2.0 зберігає його в колонці, старіші рядки — лише в назві ("№13"). */
     public static function number(?int $number, string $name): ?int
     {
         if ($number !== null && $number > 0) {

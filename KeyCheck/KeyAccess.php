@@ -6,8 +6,8 @@ enum KeyAccess: string
 {
     case Ok = 'ok';
     case InvalidKey = 'invalid_key';
-    /** The key is valid but this API refuses it (e.g. no access to the new API). */
+    /** Ключ дійсний, але цей API його відхиляє (напр. немає доступу до нового API). */
     case Denied = 'denied';
-    /** Nova Poshta did not answer: nothing is known about the key. */
+    /** Нова Пошта не відповіла: про ключ нічого не відомо. */
     case Unreachable = 'unreachable';
 }

@@ -8,7 +8,7 @@ use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyReport;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyStep;
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTargets;
 
-/** NovaposhtaCost's variant `volume` into the module's own field, where that is still empty. */
+/** `volume` варіанта з NovaposhtaCost — у власне поле модуля, там, де воно ще порожнє. */
 final class VolumesStep implements LegacyStep
 {
     public const string NAME = 'volumes';

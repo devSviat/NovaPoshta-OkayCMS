@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
-/** How much one scheduler tick may spend: wall time and calls to Nova Poshta. */
+/** Скільки може витратити один тік планувальника: реальний час і виклики до Нової Пошти. */
 final class LegacyBudget
 {
     public function __construct(private readonly float $deadline, private int $calls)

@@ -22,7 +22,7 @@ class WorkScheduleTest extends TestCase
 
     public function testGroupsEqualDays(): void
     {
-        // Branch №13 in Kyiv, as Nova Poshta lists it (Sunday first).
+        // Відділення №13 у Києві, як його подає Нова Пошта (неділя першою).
         $json = '[{"day":"sunday","from":"08:00","to":"19:00","breakFrom":"","breakTo":""},{"day":"monday","from":"08:00","to":"21:00","breakFrom":"","breakTo":""},{"day":"tuesday","from":"08:00","to":"21:00","breakFrom":"","breakTo":""},{"day":"wednesday","from":"08:00","to":"21:00","breakFrom":"","breakTo":""},{"day":"thursday","from":"08:00","to":"21:00","breakFrom":"","breakTo":""},{"day":"friday","from":"08:00","to":"21:00","breakFrom":"","breakTo":""},{"day":"saturday","from":"08:00","to":"19:00","breakFrom":"","breakTo":""}]';
 
         self::assertSame([

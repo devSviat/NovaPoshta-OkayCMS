@@ -99,9 +99,9 @@ class SmallStepsTest extends TestCase
         self::assertSame(LegacyStep::DONE, $step->run(0, $this->budget(), $report));
         self::assertSame('new-key', $this->ours->settings[ApiKey::SETTING]);
         self::assertSame('1.5', $this->ours->settings[ShippingSettings::WEIGHT]);
-        // The old module had no «as in the order»: its explicit payer would switch off the safe default.
+        // Старий модуль не мав «як у замовленні»: його явний платник вимкнув би безпечне значення за замовчуванням.
         self::assertArrayNotHasKey('sviat__novaposhta__waybill_payer_type', $this->ours->settings);
-        // «Вантаж» is for over 30 kg and never for a parcel locker: the module starts from «Посилка».
+        // «Вантаж» — для понад 30 kg і ніколи для поштомата: модуль починає з «Посилка».
         self::assertArrayNotHasKey('sviat__novaposhta__waybill_cargo_type', $this->ours->settings);
         self::assertSame('10', $this->ours->settings[ShippingSettings::SENDER]);
         self::assertSame('380500000000', $this->ours->settings['sviat__novaposhta__waybill_sender_phone']);

@@ -16,8 +16,8 @@ use Okay\Modules\Sviat\NovaPoshta\Orders\OrderPointChange;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderPointResult;
 
 /**
- * The point/address editor of an order page posts here (`controller=Sviat.NovaPoshta.OrderPointAdmin`).
- * Access needs the `orders` permission; every action also needs the CSRF token.
+ * Редактор пункту видачі/адреси на сторінці замовлення надсилає сюди (`controller=Sviat.NovaPoshta.OrderPointAdmin`).
+ * Доступ потребує права доступу `orders`; кожна дія також потребує CSRF-токена.
  */
 class OrderPointAdmin extends IndexAdmin
 {
@@ -38,7 +38,7 @@ class OrderPointAdmin extends IndexAdmin
 
             return;
         }
-        // Stock 4.5.3 checks session_id only after the controller has run.
+        // Сток 4.5.3 перевіряє session_id лише після виконання контролера.
         if (!$this->request->checkSession()) {
             $this->answer(403, ['ok' => false]);
 
@@ -97,7 +97,7 @@ class OrderPointAdmin extends IndexAdmin
 
         $body = self::view($result, $translations);
         if ($result->ok) {
-            // Both blocks are drawn again: the waybill form takes the new point at once.
+            // Обидва блоки малюються заново: форма накладної одразу бере новий пункт видачі.
             $blocks->assignOrderDelivery($this->entityFactory->get(OrdersEntity::class)->get($orderId));
             $body['deliveryHtml'] = $this->design->fetch('order_delivery.tpl');
             $body['waybillHtml'] = $this->design->fetch('waybill.tpl');
@@ -105,7 +105,7 @@ class OrderPointAdmin extends IndexAdmin
         $this->answer(200, $body);
     }
 
-    /** @return array<string, string> known fields only, cut to their limits */
+    /** @return array<string, string> лише відомі поля, обрізані до своїх лімітів */
     private function input(): array
     {
         $input = [];

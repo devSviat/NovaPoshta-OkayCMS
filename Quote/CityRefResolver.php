@@ -7,9 +7,9 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 
 /**
- * The old API's city Ref for a settlement of the new dictionary. The bridge is the point number:
- * new `number` = old `WarehouseIndex` (checked live 06.11.2026), and `getWarehouses` by index
- * returns the point's `CityRef`. `externalId` is not used.
+ * Ref міста старого API для населеного пункту нового довідника. Місток — номер пункту видачі:
+ * новий `number` = старий `WarehouseIndex` (перевірено наживо 06.11.2026), а `getWarehouses` за індексом
+ * повертає `CityRef` пункту. `externalId` не використовується.
  */
 final class CityRefResolver
 {
@@ -28,7 +28,7 @@ final class CityRefResolver
         $this->now = $now ?? static fn(): int => time();
     }
 
-    /** @throws CityRefUnavailable when Nova Poshta does not answer and nothing is known yet */
+    /** @throws CityRefUnavailable коли Нова Пошта не відповідає, а нічого ще не відомо */
     public function forSettlement(int $settlementId): ?string
     {
         $now = ($this->now)();
@@ -45,7 +45,7 @@ final class CityRefResolver
                 if ($e->kind === NpErrorKind::Rejected) {
                     continue;
                 }
-                // Nova Poshta is not reachable now: say nothing new, keep what was known.
+                // Нова Пошта зараз недосяжна: нічого нового не кажемо, лишаємо те, що було відомо.
                 return $cached['ref'] ?? throw new CityRefUnavailable($e->getMessage());
             }
             $row = $rows[0] ?? null;

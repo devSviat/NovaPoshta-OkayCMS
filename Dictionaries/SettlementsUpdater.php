@@ -6,7 +6,7 @@ use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Rows\SettlementRow;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Store\DictionaryStore;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Stream\JsonItemStream;
 
-/** Settlements come as a whole base only (no deltas on the CDN). */
+/** Населені пункти приходять лише повною базою (дельт на CDN немає). */
 final class SettlementsUpdater
 {
     public function __construct(private readonly DictionaryStore $store)

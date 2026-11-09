@@ -11,14 +11,14 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyRejections;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 
-/** JWT for the new API: lives about an hour, kept in module state and bound to the key it was issued for. */
+/** Токен JWT для нового API: живе близько години, зберігається у стані модуля й прив'язаний до ключа, для якого виданий. */
 final class JwtProvider
 {
     public const string AUTHORIZATION_URL = 'https://api.novaposhta.ua/v.1.0/clients/authorization';
 
-    /** Renew this long before `exp`, so a token never expires between reading and use. */
+    /** Оновлювати за стільки до `exp`, щоб токен не сплив між читанням і використанням. */
     private const int REFRESH_MARGIN = 300;
-    /** Used when a token carries no readable `exp`; NP tokens live 3600 s. */
+    /** Використовується, коли токен не містить читабельного `exp`; токени НП живуть 3600 s. */
     private const int FALLBACK_TTL = 3000;
 
     private readonly \Closure $now;
@@ -33,7 +33,7 @@ final class JwtProvider
         $this->now = $now ?? time(...);
     }
 
-    /** @param int $timeoutSeconds for a token that has to be issued now */
+    /** @param int $timeoutSeconds для токена, який треба видати зараз */
     public function token(int $timeoutSeconds = 20): string
     {
         $key = $this->apiKey->value()
@@ -60,7 +60,7 @@ final class JwtProvider
         return $jwt;
     }
 
-    /** Keeps a token issued elsewhere (the key check) so the next call does not ask for another. */
+    /** Зберігає токен, виданий деінде (перевірка ключа), щоб наступний виклик не просив інший. */
     public function store(string $apiKey, string $jwt): void
     {
         $this->state->set('jwt', $jwt);
@@ -74,7 +74,7 @@ final class JwtProvider
         $this->state->set('jwt_expires_at', null);
     }
 
-    /** Asks Nova Poshta for a token right now, without the cache. */
+    /** Запитує в Нової Пошти токен просто зараз, без кешу. */
     public static function issue(HttpTransport $http, string $apiKey, int $timeoutSeconds = 20): string
     {
         $secrets = [$apiKey];

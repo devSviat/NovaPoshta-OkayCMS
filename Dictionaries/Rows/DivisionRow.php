@@ -3,12 +3,12 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries\Rows;
 
 /**
- * A CDN division record as a table row. Takes only what the shop shows or filters by:
- * the record also carries the responsible person's name and internal phones, which stay out.
+ * Запис пункту з CDN як рядок таблиці. Бере лише те, що магазин показує чи за чим фільтрує:
+ * запис також містить ім'я відповідальної особи та внутрішні телефони, які лишаються поза рядком.
  */
 final class DivisionRow
 {
-    /** @param array|null $en the same record from the English dictionary, when the site has English */
+    /** @param array|null $en той самий запис з англійського довідника, коли сайт має англійську */
     public static function fromNp(array $uk, ?array $en): array
     {
         return RowHash::with([

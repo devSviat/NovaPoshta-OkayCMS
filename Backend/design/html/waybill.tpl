@@ -1,7 +1,7 @@
-{* Waybill of the order: the card when there is one, the form otherwise. Inside the order's own
-   form, so the fields carry data-field instead of name: saving the order must not post them. *}
+{* Накладна замовлення: картка, якщо вона є, інакше форма. Усередині власної форми
+   замовлення, тож поля мають data-field замість name: збереження замовлення не повинне їх надсилати. *}
 {if $np_waybill}
-{* Attach by number: a toggle button among the actions, the number row in its own panel below them, as in the old module. *}
+{* Прив'язка за номером: кнопка-перемикач серед дій, рядок номера в окремій панелі під ними, як у старому модулі. *}
 {function name=np_wb_attach_toggle}<button type="button" class="btn btn_border_blue fn_np_wb_attach_toggle" aria-expanded="false">{$btr->sviat__novaposhta__waybill_attach_open|escape}</button>{/function}
 {function name=np_wb_attach_panel}
 <div class="np-wb__attach" hidden>
@@ -13,7 +13,7 @@
     <div class="np-wb__issues np-wb__issues--attach" role="alert"></div>
 </div>
 {/function}
-{* The hint opens away from the screen edge: rightwards by default, leftwards for a field in the right-hand column. *}
+{* Підказка відкривається від краю екрана: типово праворуч, ліворуч — для поля в правій колонці. *}
 {function name=np_wb_tip side="left"}<i class="fn_tooltips np-wb__tip hint-bottom-{$side|escape}-t-white-s-med-mobile hint-anim" data-hint="{$text|escape}" tabindex="0" role="img" aria-label="{$text|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>{/function}
 {function name=np_wb_switch}
 <label class="np-wb__switch">
@@ -21,8 +21,8 @@
     <span>{$label|escape}</span>
 </label>
 {/function}
-{* form="np-wb-none" keeps the radios out of the order form: saving the order must not post them. *}
-{* An audit value in words: NP answers in API codes (Recipient, WarehouseDoors…). *}
+{* form="np-wb-none" виводить радіокнопки з форми замовлення: збереження замовлення не повинне їх надсилати. *}
+{* Значення звірки словами: НП відповідає кодами API (Recipient, WarehouseDoors…). *}
 {function name=np_wb_audit_value kind='' v=''}{if $kind == 'cod_payer' && $v == 'Sender'}{$btr->sviat__novaposhta__waybill_sender_party|escape}{elseif $kind == 'cod_payer' && $v == 'Recipient'}{$btr->sviat__novaposhta__waybill_recipient|escape}{elseif $kind == 'service_type' && $v != ''}{$btr->getTranslation('sviat__novaposhta__waybill_service_'|cat:$v)|escape}{else}{$v|escape}{/if}{/function}
 {function name=np_wb_select}
 <label class="np-wb__field"><span class="heading_label">{$label|escape}</span><select class="selectpicker form-control" data-field="{$field|escape}">
@@ -55,8 +55,8 @@
     {if $w.row}
         {$r = $w.row}
         {$c = $r.card}
-        {* The old tracking card's layout: number and description on top, the route box on the left,
-           the recipient on the right, services and payment below, refresh and delete in the footer. *}
+        {* Розкладка старої картки трекінгу: номер і опис угорі, блок маршруту ліворуч,
+           отримувач праворуч, послуги й оплата нижче, оновлення й видалення у футері. *}
         <div class="np-wb__card">
             <div class="np-wb__top">
                 <div class="np-wb__num">
@@ -187,12 +187,12 @@
                 <span class="np-wb__error" data-for="phone"></span>
             </div>
 
-            {* Parcel, then who pays NP for delivery, then the money NP collects from the recipient. *}
+            {* Посилка, далі хто платить НП за доставку, далі гроші, які НП збирає з отримувача. *}
             <div class="np-wb__group">{$btr->sviat__novaposhta__waybill_group_parcel|escape}</div>
             <div class="np-wb__pair">
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cargo|escape}</span><select class="selectpicker form-control" data-field="cargo_type">
                     {foreach $d->cargoChoices() as $np_cargo}
-                    {* A parcel locker takes no «Вантаж» (api-docs-ua, «ЕН на поштомат»). *}
+                    {* Поштомат не приймає «Вантаж» (api-docs-ua, «ЕН на поштомат»). *}
                     <option value="{$np_cargo|escape}" {if $d->cargoType == $np_cargo}selected{/if}{if $d->locker && $np_cargo == 'Cargo'} disabled{/if}>{$btr->getTranslation('sviat__novaposhta__waybill_cargo_'|cat:($np_cargo|lower))|escape}</option>
                 {/foreach}
                 </select><span class="np-wb__error" data-for="cargo_type"></span></label>
@@ -237,7 +237,7 @@
                 <div class="np-wb__line text_grey">{$btr->sviat__novaposhta__waybill_payer_in_total|replace:'%sum%':$np_wb_delivery|escape}</div>
                 <div class="alert alert--warning np-wb__double" role="alert" {if $d->payerType != 'Recipient'}hidden{/if}><div class="alert__content">{$btr->sviat__novaposhta__waybill_double_delivery|replace:'%sum%':$np_wb_delivery|escape}</div></div>
             {/if}
-            {* The block name NovaPoshtaTracking had: Checkbox warns here that part of the order is prepaid. *}
+            {* Назва блоку, яку мав NovaPoshtaTracking: тут Checkbox попереджає, що частину замовлення передплачено. *}
             {get_design_block block="novaposhta_document_payment"}
             {$control = $d->codKind->value == 'control'}
             <div class="np-wb__group">{if $control}{$btr->sviat__novaposhta__waybill_cod_control_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_control_tip}{else}{$btr->sviat__novaposhta__waybill_cod_money_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_money_tip}{/if}</div>

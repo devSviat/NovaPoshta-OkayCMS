@@ -8,7 +8,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\Http\TransportException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 
-/** REST API v.1.0 for Ukraine (dictionaries, calculation, tracking, branch shipments). */
+/** REST API v.1.0 для України (довідники, розрахунок, трекінг, відправлення на відділення). */
 final class NewApiClient
 {
     public const string BASE_URL = 'https://api.novaposhta.ua/v.1.0';
@@ -25,7 +25,7 @@ final class NewApiClient
         $this->sleep = $sleep ?? static fn() => sleep(1);
     }
 
-    /** Short timeout and no repeats: for answers a customer waits for in the cart. */
+    /** Короткий тайм-аут і без повторів: для відповідей, на які покупець чекає в кошику. */
     public function quick(int $timeoutSeconds): self
     {
         $client = clone $this;
@@ -47,7 +47,7 @@ final class NewApiClient
         return $this->send('POST', self::BASE_URL . $path, json_encode($body, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
     }
 
-    /** Never repeated, like POST: the first request may already have deleted it. */
+    /** Ніколи не повторюється, як і POST: перший запит міг уже його видалити. */
     public function delete(string $path): array
     {
         return $this->send('DELETE', self::BASE_URL . $path, null);
@@ -55,7 +55,7 @@ final class NewApiClient
 
     private function send(string $method, string $url, ?string $body): array
     {
-        // A POST may have reached Nova Poshta before the connection broke: repeating it could create a second shipment.
+        // POST міг дійти до Нової Пошти до розриву з'єднання: повтор міг би створити друге відправлення.
         $retriesLeft = $method === 'GET' && $this->retries ? 1 : 0;
         $tokenRenewed = false;
 

@@ -2,15 +2,15 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
-/** Identifies what a quote was made for; any change in the cart makes a new key, so no stale price is shown. */
+/** Визначає, для чого зроблено розрахунок ціни; будь-яка зміна кошика дає новий ключ, тож застаріла ціна не показується. */
 final class QuoteKey
 {
-    /** Bumped when a cached quote's meaning changes. */
+    /** Збільшується, коли змінюється зміст закешованого розрахунку ціни. */
     private const string FORMAT = 'v3';
 
     /**
-     * @param string $target "d:<division id>" or "a:<settlement id>"
-     * @param ?int $floor with $elevator, part of the key only with lifting: NP prices lifting by both
+     * @param string $target "d:<division id>" або "a:<settlement id>"
+     * @param ?int $floor разом з $elevator входить у ключ лише з підйомом на поверх: НП рахує підйом за обома
      */
     public static function for(int $deliveryId, string $target, bool $cod, object $cart, bool $lifting = false, ?int $floor = null, bool $elevator = false): string
     {

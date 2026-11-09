@@ -5,7 +5,7 @@ namespace Modules\Sviat\NovaPoshta\Quote;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
 use PHPUnit\Framework\TestCase;
 
-/** The same numbers and text the core gives a delivery method in the cart (DeliveriesHelper). */
+/** Ті самі числа й текст, які ядро дає способу доставки в кошику (DeliveriesHelper). */
 class DeliveryPriceViewTest extends TestCase
 {
     private static function apply(array $delivery, float $price, float $cartTotal): object
@@ -53,7 +53,7 @@ class DeliveryPriceViewTest extends TestCase
         self::assertSame('безкоштовно', $d->delivery_price_text);
     }
 
-    /** Nothing chosen yet: no price the module did not get from NP, and nothing added to the total. */
+    /** Ще нічого не вибрано: жодної ціни, якої модуль не отримав від НП, і нічого не додано до суми. */
     public function testAwaitingChoiceShowsNoPrice(): void
     {
         $d = (object)['free_from' => 999999, 'separate_payment' => 0, 'price' => 70, 'is_free_delivery' => false, 'delivery_price_text' => '70,00 грн', 'total_price_with_delivery' => 1320.0];
@@ -81,13 +81,15 @@ class DeliveryPriceViewTest extends TestCase
         self::assertSame('kept', DeliveryPriceView::cartState($method(), null, false, true, 1000.0), 'another module\'s method');
     }
 
-    /** Without dictionaries nothing can be chosen: the cart shows the method's own price, the one the order gets. */
+    /** Без довідників нічого не вибрати: кошик показує власну ціну способу доставки — ту, яку отримає замовлення. */
     public function testCartStateWithoutDictionariesKeepsCorePrice(): void
     {
         self::assertSame('kept', DeliveryPriceView::cartState((object)['paid' => 1, 'free_from' => 2000, 'price' => 70], null, true, false, 1000.0));
     }
 
-    /** The core's cart says "not free" at exactly free_from, its order says free: the cart follows the order. */
+    /**
+     * Кошик ядра рівно на free_from каже "не безкоштовно", а його замовлення — безкоштовно: кошик іде за замовленням.
+     */
     public function testCartStateAtTheThresholdIsFree(): void
     {
         $d = (object)['paid' => 1, 'free_from' => 1000, 'price' => 70, 'is_free_delivery' => false];

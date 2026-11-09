@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Groups;
 
-/** The groups a fresh install starts with. */
+/** Групи, з якими стартує нове встановлення. */
 final class DefaultGroups
 {
     /** @return list<array{position:int, enabled:bool, categories:array<string,bool>, names:array{uk:string, en:string}}> */
@@ -28,7 +28,7 @@ final class DefaultGroups
         ];
     }
 
-    /** English for an English site language, Ukrainian for any other: the manager renames them. */
+    /** Англійською для англійської мови сайту, українською для будь-якої іншої: менеджер їх перейменує. */
     public static function name(array $row, string $languageLabel): string
     {
         return $languageLabel === 'en' ? $row['names']['en'] : $row['names']['uk'];

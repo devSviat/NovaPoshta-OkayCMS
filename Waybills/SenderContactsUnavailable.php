@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
-/** Nova Poshta did not give the sender or its contact persons; the message carries no key. */
+/** Нова Пошта не віддала відправника або його контактних осіб; повідомлення не містить ключа. */
 final class SenderContactsUnavailable extends \RuntimeException
 {
 }

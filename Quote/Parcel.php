@@ -4,7 +4,10 @@ namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
 
-/** The parcel the price is calculated for: unlike the fit rules, defaults fill what goods do not say. */
+/**
+ * Посилка, для якої рахується ціна: на відміну від правил вміщення, те, чого не кажуть товари,
+ * заповнюють типові значення.
+ */
 final readonly class Parcel
 {
     private const float MIN_WEIGHT = 0.1;
@@ -17,7 +20,7 @@ final readonly class Parcel
     ) {
     }
 
-    /** @param ?float $declaredCost in hryvnias; the cart total is in the shop's main currency */
+    /** @param ?float $declaredCost у гривнях; сума кошика — в основній валюті магазину */
     public static function fromMetrics(CartMetrics $cart, ShippingConfig $config, ?float $declaredCost = null): self
     {
         return new self(
@@ -27,10 +30,10 @@ final readonly class Parcel
         );
     }
 
-    /** The new API wants sizes, goods only have a volume: a cube of that volume. */
+    /** Новий API хоче розміри, а в товарів є лише об'єм: куб такого об'єму. */
     public function cubeSideMm(): int
     {
-        // Rounded up: a smaller cube would understate the volume and the price.
+        // Округлення вгору: менший куб занизив би об'єм і ціну.
         return max(self::MIN_SIDE_MM, (int)ceil(1000 * $this->volumeM3 ** (1 / 3) - 1e-9));
     }
 }

@@ -2,12 +2,12 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Products;
 
-/** Packed volume of a product variant, m³ — own field on the core variants table. */
+/** Об'єм варіанта товару в упаковці, m³ — власне поле в таблиці варіантів ядра. */
 final class VariantVolume
 {
     public const string FIELD = 'sviat__novaposhta__volume';
 
-    /** What the manager typed: "0,5" is accepted, anything that is not a positive number becomes 0. */
+    /** Що ввів менеджер: "0,5" приймається, усе, що не є додатним числом, стає 0. */
     public static function clean(mixed $raw): float
     {
         $text = is_scalar($raw) ? str_replace(',', '.', trim((string)$raw)) : '';

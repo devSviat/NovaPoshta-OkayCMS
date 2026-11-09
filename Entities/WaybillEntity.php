@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Entities;
 
 use Okay\Core\Entity\Entity;
 
-/** The waybill of an order: one per order; `ref` is empty for a waybill attached by number. */
+/** Накладна замовлення: одна на замовлення; `ref` порожній для накладної, прив'язаної за номером. */
 class WaybillEntity extends Entity
 {
     protected static $fields = [
@@ -28,7 +28,7 @@ class WaybillEntity extends Entity
 
     protected static $defaultOrderFields = ['id DESC'];
 
-    /** Waybills still worth asking Nova Poshta about (not final, number known, not being created). */
+    /** Накладні, про які ще варто питати Нову Пошту (не фінальні, номер відомий, не в процесі створення). */
     protected function filter__due($value): void
     {
         $alias = $this->getTableAlias();
@@ -44,8 +44,8 @@ class WaybillEntity extends Entity
     }
 
     /**
-     * Received (9) on or after the date: NP's status date, else when the row was last tracked; never the row's
-     * update time, which a migration or a refresh rewrites for old parcels.
+     * Отримані (9) у дату або після неї: дата статусу НП, інакше час останнього трекінгу рядка; ніколи не час
+     * оновлення рядка, який міграція чи оновлення переписує для старих посилок.
      */
     protected function filter__received_since($since): void
     {
@@ -56,7 +56,7 @@ class WaybillEntity extends Entity
             ->bindValue('nps_received_since', (string)$since);
     }
 
-    /** `due`: the longest unchecked first. */
+    /** `due`: спершу ті, що найдовше не перевірялися. */
     protected function customOrder($order = null, array $orderFields = [], array $additionalData = [])
     {
         if ($order === 'due') {

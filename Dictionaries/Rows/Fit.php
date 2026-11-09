@@ -3,9 +3,9 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Dictionaries\Rows;
 
 /**
- * Fits Nova Poshta values to the table columns. MySQL in strict mode rejects a whole
- * 500-row batch for one over-long or out-of-range value, and every following run would
- * fail on the same record; a cut name or an unknown limit is the lesser harm.
+ * Підганяє значення Нової Пошти під колонки таблиці. MySQL у strict mode відхиляє весь
+ * пакет із 500 рядків через одне задовге чи позадіапазонне значення, і кожен наступний запуск
+ * падав би на тому самому записі; обрізана назва чи невідомий ліміт — менше зло.
  */
 final class Fit
 {
@@ -19,7 +19,7 @@ final class Fit
         return $value === '' ? null : mb_substr($value, 0, $length);
     }
 
-    /** Out of the column's range means the source value is garbage: unknown, not clipped. */
+    /** Поза діапазоном колонки означає, що вихідне значення — сміття: невідоме, а не обрізане. */
     public static function decimal(mixed $value, float $max): ?float
     {
         return is_numeric($value) && abs((float)$value) <= $max ? (float)$value : null;

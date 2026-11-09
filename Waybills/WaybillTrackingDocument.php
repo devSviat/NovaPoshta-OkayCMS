@@ -2,12 +2,12 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
-/** What of a getStatusDocuments answer is kept with the waybill. */
+/** Що з відповіді getStatusDocuments зберігається разом із накладною. */
 final class WaybillTrackingDocument
 {
     /**
-     * The new answer, stamped with when it was fetched. A recipient phone NP hid this time (asked
-     * with another phone) is kept from the previous answer: refresh needs it to see the full data.
+     * Нова відповідь із позначкою часу отримання. Телефон отримувача, який НП цього разу приховала (запит
+     * з іншим телефоном), береться з попередньої відповіді: оновленню він потрібен, щоб бачити повні дані.
      */
     public static function merge(array $document, ?array $previous, string $now): array
     {
@@ -20,8 +20,8 @@ final class WaybillTrackingDocument
     }
 
     /**
-     * The status worth keeping. "Number not found" (3) right after creation only means NP has not
-     * seen the waybill yet: storing it would stop tracking; only the tracker's 30-day rule sets it.
+     * Статус, який варто зберегти. «Номер не знайдено» (3) одразу після створення означає лише, що НП ще не
+     * бачила накладну: його збереження зупинило б трекінг; його встановлює лише 30-денне правило трекера.
      */
     public static function status(array $document): ?int
     {
@@ -31,9 +31,9 @@ final class WaybillTrackingDocument
     }
 
     /**
-     * Status columns to write from a getStatusDocuments answer; empty when it has no status worth keeping.
-     * A changed status takes the date of the scan that produced it (NP: DateScan, "H:i d.m.Y" in Kyiv time),
-     * or none: the previous status's date would date it wrong. An unchanged status keeps the tracker's date.
+     * Колонки статусу для запису з відповіді getStatusDocuments; порожньо, коли в ній немає статусу, вартого збереження.
+     * Змінений статус отримує дату сканування, що його спричинило (НП: DateScan, "H:i d.m.Y" за київським часом),
+     * або жодної: дата попереднього статусу датувала б його неправильно. Незмінений статус зберігає дату трекера.
      *
      * @return array{status_code?: int, status_text?: string, status_at?: ?string}
      */
@@ -51,7 +51,7 @@ final class WaybillTrackingDocument
         return $columns;
     }
 
-    /** NP's DateScan ("H:i d.m.Y", Kyiv time) — the date of the scan that produced the status — in the shop's time. */
+    /** DateScan НП ("H:i d.m.Y", київський час) — дата сканування, що спричинило статус, — у часі магазину. */
     public static function scanDate(mixed $value): ?string
     {
         if (!is_string($value) || trim($value) === '') {

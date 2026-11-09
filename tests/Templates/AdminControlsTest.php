@@ -5,8 +5,8 @@ namespace Modules\Sviat\NovaPoshta\Templates;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Admin checkboxes and radios look like the rest of OkayCMS: a hidden input with the core's
- * label (okay_ckeckbox / okay_type_radio) or the core switch — never the browser's native box.
+ * Чекбокси й радіокнопки адмінки виглядають як решта OkayCMS: прихований input з label ядра
+ * (okay_ckeckbox / okay_type_radio) або перемикач ядра — ніколи не нативний елемент браузера.
  */
 class AdminControlsTest extends TestCase
 {

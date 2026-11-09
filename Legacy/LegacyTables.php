@@ -13,7 +13,7 @@ use Okay\Entities\LanguagesEntity;
 use Okay\Entities\ModulesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
 
-/** LegacyData from the database; the old modules' entities may be gone, so it reads tables through the query builder. */
+/** LegacyData з бази даних; сутностей старих модулів може вже не бути, тож таблиці читаються через query builder. */
 final class LegacyTables implements LegacyData
 {
     private const string DELIVERY = '__okaycms__np_cost_delivery_data';
@@ -41,7 +41,7 @@ final class LegacyTables implements LegacyData
     ) {
     }
 
-    /** @param list<string> $existing table names as the database lists them */
+    /** @param list<string> $existing назви таблиць у тому вигляді, як їх перелічує база */
     public static function present(array $existing, string $prefix, string $table): bool
     {
         return in_array($prefix . substr($table, 2), $existing, true);
@@ -50,14 +50,14 @@ final class LegacyTables implements LegacyData
     /**
      * @param list<string> $existing
      * @param list<string> $wanted
-     * @return list<string> the wanted columns that exist, in the wanted order
+     * @return list<string> бажані колонки, які існують, у бажаному порядку
      */
     public static function selectable(array $existing, array $wanted): array
     {
         return array_values(array_intersect($wanted, $existing));
     }
 
-    /** NovaposhtaCost's per-method `service_type`: where the parcel is handed to the customer. */
+    /** `service_type` NovaposhtaCost для кожного способу доставки: де посилку передають покупцеві. */
     public static function modeOf(?string $serviceType): ?DeliveryMode
     {
         return match ($serviceType) {

@@ -2,14 +2,14 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
-/** The settlement of an old address order, by name, region and district; namesakes are never guessed. */
+/** Населений пункт старого замовлення на адресу — за назвою, областю й районом; тезок ніколи не вгадуємо. */
 final class LegacyAddressMatcher
 {
     public function __construct(private readonly LegacyPlaces $places)
     {
     }
 
-    /** @return array{0: ?int, 1: ?string} settlement id, or the language key of why not */
+    /** @return array{0: ?int, 1: ?string} id населеного пункту або мовний ключ причини, чому ні */
     public function match(string $city, ?string $area, ?string $district): array
     {
         $place = LegacyNames::place($city);

@@ -20,10 +20,10 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryQuote;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillRows;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
 
-/** The manager changes the point or address of an order in the admin. */
+/** Менеджер змінює пункт видачі чи адресу замовлення в адмінці. */
 final class OrderPointChange
 {
-    /** A point that does not take the parcel is still the manager's call. */
+    /** Пункт видачі, що не приймає посилку, — все одно рішення менеджера. */
     private const array FIT_PROBLEMS = ['error_point_too_heavy', 'error_point_too_big', 'error_point_too_expensive'];
 
     public function __construct(
@@ -38,7 +38,7 @@ final class OrderPointChange
     ) {
     }
 
-    /** @param array<string, string> $input settlement_id with division_id, or the address fields */
+    /** @param array<string, string> $input settlement_id з division_id або поля адреси */
     public function save(int $orderId, array $input): OrderPointResult
     {
         $order = $this->entityFactory->get(OrdersEntity::class)->get($orderId);
@@ -74,7 +74,7 @@ final class OrderPointChange
         return new OrderPointResult(true, null, $chosen['warning'], $price);
     }
 
-    /** Writes the tariff to the order's current point; only when the rule offers it, never a posted amount. */
+    /** Записує тариф до поточного пункту видачі замовлення; лише коли правило його пропонує, ніколи — надіслану суму. */
     public function applyPrice(int $orderId): OrderPointResult
     {
         $order = $this->entityFactory->get(OrdersEntity::class)->get($orderId);
@@ -99,8 +99,8 @@ final class OrderPointChange
     }
 
     /**
-     * Checks a chosen point or address like the cart does; a point that does not take the parcel
-     * passes with a warning.
+     * Перевіряє обраний пункт видачі чи адресу так само, як кошик; пункт, що не приймає посилку,
+     * проходить із попередженням.
      *
      * @return array{selection: ?CartSelection, error: ?string, warning: ?string}
      */
@@ -133,8 +133,8 @@ final class OrderPointChange
     }
 
     /**
-     * A made or attached waybill locks the point, and so does one being made right now (its draft has
-     * the old point). A reservation left by a request that died does not.
+     * Створена чи прикріплена накладна блокує пункт видачі, як і та, що створюється саме зараз (її чернетка
+     * має старий пункт). Резервація, яку лишив запит, що обірвався, — ні.
      */
     public static function locks(?object $waybill, int $now): bool
     {
@@ -142,8 +142,8 @@ final class OrderPointChange
     }
 
     /**
-     * What the order page's block shows for the order's delivery method `$mode`. After the method was
-     * switched, a waybill made for the old point stays visible: it has to be deleted from there.
+     * Що показує блок сторінки замовлення для способу доставки замовлення `$mode`. Після зміни способу
+     * накладна, створена для старого пункту, лишається видимою: її треба видалити звідти.
      *
      * @return array{needsChoice: bool, locked: bool, open: bool, showWaybill: bool}
      */
@@ -160,7 +160,7 @@ final class OrderPointChange
         ];
     }
 
-    /** Term and COD commission of the new point; the old point's would reach the emails otherwise. */
+    /** Термін і комісія післяплати нового пункту; інакше до листів потрапили б дані старого. */
     public static function snapshotPricing(?DeliveryQuote $quote): array
     {
         return ['delivery_term' => $quote?->term?->format('Y-m-d'), 'cod_fee' => $quote?->codFee];

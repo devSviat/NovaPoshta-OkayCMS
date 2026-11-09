@@ -3,20 +3,20 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
 /**
- * When a delivery method is free — the core's rule (DeliveriesHelper::getCartDeliveriesList and
- * prepareDeliveryPriceInfo), kept in one place so the cart and the admin never disagree.
+ * Коли спосіб доставки безкоштовний — правило ядра (DeliveriesHelper::getCartDeliveriesList і
+ * prepareDeliveryPriceInfo), зібране в одному місці, щоб кошик і адмінка ніколи не розходилися.
  */
 final class FreeDelivery
 {
-    /** Free unless free_from is above the goods total; 0 is therefore free for every cart. */
+    /** Безкоштовно, якщо тільки free_from не більший за суму товарів; тож 0 — безкоштовно для будь-якого кошика. */
     public static function applies(object $delivery, float $goodsTotal): bool
     {
         return !((float)($delivery->free_from ?? 0) > $goodsTotal);
     }
 
     /**
-     * A method marked paid whose threshold is 0: the core makes it free for every cart, so Nova
-     * Poshta's price is never shown. Almost always a mistake; the settings page warns about it.
+     * Спосіб, позначений платним, з порогом 0: ядро робить його безкоштовним для будь-якого кошика, тож ціна
+     * Нової Пошти ніколи не показується. Майже завжди це помилка; сторінка налаштувань про неї попереджає.
      */
     public static function freeForAll(object $delivery): bool
     {

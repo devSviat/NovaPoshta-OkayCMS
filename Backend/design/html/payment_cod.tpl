@@ -1,4 +1,4 @@
-{* Payment method page, "Additional settings": Nova Poshta cash on delivery. Shown for "Manual" payments only. *}
+{* Сторінка способу оплати, «Додаткові налаштування»: післяплата Нової Пошти. Показується лише для оплат "Manual". *}
 <div class="activity_of_switch_item np-codpay{if !$np_codpay.manual} hidden{/if}">
     <input type="hidden" name="sviat_np_cod_form" value="1">
     <div class="okay_switch clearfix">
@@ -12,7 +12,7 @@
             <span class="switch-handle"></span>
         </label>
     </div>
-    {* Payment control first: it is the one for a shop with a NovaPay agreement (FOP or company). *}
+    {* Контроль оплати першим: саме він для магазину з договором NovaPay (ФОП чи компанія). *}
     <div class="np-codpay__kinds{if !$np_codpay.kind} hidden{/if}">
         <div class="okay_type_radio_wrap">
             <input id="np_codpay_control" class="hidden_check" type="radio" name="sviat_np_cod_kind" value="control" {if $np_codpay.kind == 'control'}checked{/if}>

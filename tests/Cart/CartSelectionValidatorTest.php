@@ -75,7 +75,7 @@ class CartSelectionValidatorTest extends TestCase
 
     public function testEmptyDictionaryLetsTheOrderThroughWithoutAPoint(): void
     {
-        // The cart then tells the customer to name the branch in the comment.
+        // Тоді кошик просить покупця вказати відділення в коментарі.
         self::assertFalse(self::check(self::delivery(), null, null, null, false)->applies());
     }
 

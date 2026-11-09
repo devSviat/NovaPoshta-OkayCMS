@@ -10,7 +10,7 @@ use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyTargets;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 
-/** NovaposhtaCost's cash-on-delivery flag; the kind follows NovaPoshtaTracking's "payment control" switch. */
+/** Прапорець післяплати NovaposhtaCost; вид визначає перемикач "контроль оплати" в NovaPoshtaTracking. */
 final class PaymentsStep implements LegacyStep
 {
     public const string NAME = 'payments';

@@ -2,9 +2,9 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Legacy;
 
-/** Whether a migration may run now; a run before "Update" or before the dictionaries leaves damage a re-run cannot repair. */
+/** Чи можна запустити перенесення зараз; запуск до "Update" чи до довідників лишає шкоду, яку повторний запуск не виправить. */
 interface LegacyGate
 {
-    /** @return string|null language key of what is missing, null when ready */
+    /** @return string|null мовний ключ того, чого бракує; null, коли все готово */
     public function problem(): ?string;
 }

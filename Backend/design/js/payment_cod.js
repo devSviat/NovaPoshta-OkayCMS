@@ -1,5 +1,5 @@
-// Payment method page: the core shows a payment module's settings on select[name=module] change;
-// cash on delivery belongs to "Manual" payments only (the server stores 0 for any module anyway).
+// Сторінка способу оплати: ядро показує налаштування платіжного модуля при зміні select[name=module];
+// післяплата стосується лише оплат "Manual" (сервер однаково зберігає 0 для будь-якого модуля).
 $(document).on('change', 'select[name=module]', function () {
     var manual = $(this).val() === 'null' || $(this).val() === '';
     $('.np-codpay').toggleClass('hidden', !manual);

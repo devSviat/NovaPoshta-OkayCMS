@@ -2,15 +2,15 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
-/** What the customer picks for a delivery method: a pickup point or an address. */
+/** Що покупець обирає для способу доставки: пункт видачі чи адресу. */
 enum DeliveryMode: string
 {
     case Points = 'points';
     case Address = 'address';
 
     /**
-     * `service_type` is the NovaposhtaCost setting kept under the same name, so a switched
-     * delivery method keeps it; its second half is the recipient side (…Warehouse / …Doors).
+     * `service_type` — налаштування NovaposhtaCost, збережене під тією самою назвою, тож переключений
+     * спосіб доставки його зберігає; друга половина — сторона отримувача (…Warehouse / …Doors).
      */
     public static function fromServiceType(?string $serviceType): self
     {
@@ -18,8 +18,8 @@ enum DeliveryMode: string
     }
 
     /**
-     * Delivery settings with `service_type` as one of the options settings.xml offers, so the
-     * method's form shows the stored mode and saving keeps it.
+     * Налаштування доставки з `service_type`, що є одним із варіантів, які пропонує settings.xml, тож
+     * форма способу показує збережений режим, а збереження його не втрачає.
      * @param array<string, mixed> $settings
      * @return array<string, mixed>
      */
@@ -32,7 +32,7 @@ enum DeliveryMode: string
         return $settings;
     }
 
-    /** The service type priced and shipped: always from a branch — the module orders no courier pickup. */
+    /** Тип послуги, за яким рахують ціну й відправляють: завжди з відділення — модуль не замовляє забір кур'єром. */
     public function serviceType(): string
     {
         return $this === self::Address ? 'WarehouseDoors' : 'WarehouseWarehouse';

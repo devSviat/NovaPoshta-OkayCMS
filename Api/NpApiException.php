@@ -5,8 +5,8 @@ namespace Okay\Modules\Sviat\NovaPoshta\Api;
 final class NpApiException extends \RuntimeException
 {
     /**
-     * @param list<string> $codes Nova Poshta error codes as received
-     * @param list<string> $npMessages Nova Poshta texts, secrets masked
+     * @param list<string> $codes коди помилок Нової Пошти в отриманому вигляді
+     * @param list<string> $npMessages тексти Нової Пошти, секрети замасковано
      */
     private function __construct(
         public readonly NpErrorKind $kind,
@@ -20,7 +20,7 @@ final class NpApiException extends \RuntimeException
     /**
      * @param list<string> $npMessages
      * @param list<string> $codes
-     * @param list<?string> $secrets values masked as *** everywhere: the message ends up in logs
+     * @param list<?string> $secrets значення, які всюди маскуються як ***: повідомлення потрапляє в логи
      */
     public static function fromNp(NpErrorKind $kind, array $npMessages, array $codes = [], array $secrets = []): self
     {

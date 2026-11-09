@@ -15,9 +15,9 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 
 /**
- * The quote for what the visitor has in the cart right now. Every input is read on the server:
- * the delivery method, the point and the cart from the database and the session, cash on
- * delivery from the chosen payment method's flag. Nothing priced here is taken from the browser.
+ * Розрахунок ціни для того, що відвідувач має в кошику саме зараз. Усі вхідні дані читаються на сервері:
+ * спосіб доставки, пункт видачі й кошик — з бази даних і сесії, післяплата — з прапорця обраного
+ * способу оплати. Нічого з того, що тут оцінюється, не береться з браузера.
  */
 final class CartQuotes
 {
@@ -37,8 +37,8 @@ final class CartQuotes
     }
 
     /**
-     * @param bool $forOrder checkout: one call per order, already a gate — no visitor limits
-     * @return DeliveryQuote|null null when this module does not price this method, point or cart
+     * @param bool $forOrder оформлення замовлення: один виклик на замовлення, уже саме по собі обмеження — без лімітів відвідувача
+     * @return DeliveryQuote|null null, коли цей модуль не рахує ціну для цього способу, пункту видачі чи кошика
      */
     public function quote(object $delivery, int $divisionId, int $paymentId, object $cart, bool $forOrder = false, bool $forAdmin = false): ?DeliveryQuote
     {
@@ -55,10 +55,10 @@ final class CartQuotes
     }
 
     /**
-     * Address delivery: price and term to the settlement's city; with lifting offered (admin
-     * setting) the extra cost of floor lifting is priced too.
+     * Адресна доставка: ціна й термін доставки до міста населеного пункту; якщо підйом на поверх пропонується
+     * (налаштування адмінки), розраховується й додаткова вартість підйому.
      *
-     * @return DeliveryQuote|null null when this module does not price this method or cart
+     * @return DeliveryQuote|null null, коли цей модуль не рахує ціну для цього способу чи кошика
      */
     public function quoteAddress(object $delivery, object $settlement, bool $lifting, ?int $floor, bool $elevator, int $paymentId, object $cart, bool $forOrder = false, bool $forAdmin = false): ?DeliveryQuote
     {
@@ -83,11 +83,11 @@ final class CartQuotes
     }
 
     /**
-     * The common part: session choice and cache, limits, currency, the call and what is kept.
+     * Спільна частина: вибір у сесії та кеш, ліміти, валюта, виклик і те, що зберігається.
      *
-     * @param bool $forAdmin a manager prices an order: the price is asked even when the storefront hides
-     *     it, and the visitor's session cache is neither read nor written
-     * @param callable(ShippingConfig): array{0: object|AddressTarget|null, 1: ?string} $target recipient, or the problem
+     * @param bool $forAdmin менеджер рахує ціну замовлення: ціну запитують, навіть коли вітрина її
+     *     приховує, а кеш сесії відвідувача не читається й не записується
+     * @param callable(ShippingConfig): array{0: object|AddressTarget|null, 1: ?string} $target отримувач або проблема
      */
     private function run(object $delivery, string $targetKey, object $cart, bool $forOrder, bool $lifting, bool $forAdmin, ?int $floor, bool $elevator, callable $target): DeliveryQuote
     {
@@ -97,7 +97,7 @@ final class CartQuotes
             return new DeliveryQuote(null, null, 'none', 'no_sender');
         }
 
-        // The price does not depend on the chosen payment: the commission is apart from it.
+        // Ціна не залежить від обраної оплати: комісія окремо від неї.
         $cod = $this->codFeeWanted($delivery);
         $bag = $forAdmin ? [] : $this->bag();
         if (!$forAdmin) {
@@ -145,7 +145,7 @@ final class CartQuotes
                 DeliveryMode::fromServiceType($settings['service_type'] ?? null)->serviceType(),
                 $sender,
                 $recipient instanceof AddressTarget ? null : $recipient,
-                // Nova Poshta takes the declared value in hryvnias; the cart total is in the main currency.
+                // Нова Пошта приймає оголошену вартість у гривнях; сума кошика — в основній валюті.
                 Parcel::fromMetrics(CartMetrics::fromCart($cart), $config, (float)$this->money->convert((float)($cart->total_price ?? 0), (int)$uah->id, false, false, 2)),
                 $cod,
                 CodKind::Money,
@@ -158,14 +158,17 @@ final class CartQuotes
         if ($forAdmin) {
             return $quote;
         }
-        // Kept even when unreachable: checkout must charge what the cart showed, not a price NP gives a minute later.
+        // Зберігається й тоді, коли НП недосяжна: оформлення бере те, що показав кошик, а не ціну НП хвилиною пізніше.
         QuoteSession::put($bag, $key, $quote, $now);
         $this->store($bag);
 
         return $quote;
     }
 
-    /** A fresh quote for the visitor's last choice on this method and the cart as it is now; never calls Nova Poshta. */
+    /**
+     * Свіжий розрахунок ціни для останнього вибору відвідувача в цьому способі й поточного кошика;
+     * ніколи не викликає Нову Пошту.
+     */
     public function cachedForChoice(object $delivery, object $cart): ?DeliveryQuote
     {
         $bag = $this->bag();
@@ -177,21 +180,24 @@ final class CartQuotes
         return QuoteSession::get($bag, QuoteKey::for((int)$delivery->id, $chosen['target'], $chosen['cod'], $cart, $chosen['lifting'], $chosen['floor'], $chosen['elevator']), time());
     }
 
-    /** @return array{target:string, cod:bool, lifting:bool, floor:?int, elevator:bool}|null what the visitor last chose for this method */
+    /** @return array{target:string, cod:bool, lifting:bool, floor:?int, elevator:bool}|null що відвідувач востаннє обрав для цього способу */
     public function chosen(int $deliveryId): ?array
     {
         return QuoteSession::chosen($this->bag(), $deliveryId);
     }
 
-    /** The commission is asked whenever the method can be paid by money-transfer COD (shown under that payment). */
+    /**
+     * Комісію запитують щоразу, коли спосіб можна оплатити післяплатою з грошовим переказом
+     * (показується під цією оплатою).
+     */
     private function codFeeWanted(object $delivery): bool
     {
         return $this->codFeePayments($delivery) !== [];
     }
 
     /**
-     * Payment methods of this delivery method under which the cart shows Nova Poshta's commission:
-     * marked as its cash on delivery, and only for a money transfer (payment control is the shop's cost).
+     * Способи оплати цього способу доставки, під якими кошик показує комісію Нової Пошти:
+     * позначені як його післяплата, і лише для грошового переказу (контроль оплати — витрата магазину).
      * @return list<int>
      */
     public function codFeePayments(object $delivery): array
@@ -219,13 +225,13 @@ final class CartQuotes
             && ($mode === null || DeliveryMode::fromServiceType(self::settings($delivery)['service_type'] ?? null) === $mode);
     }
 
-    /** Nova Poshta prices in hryvnias; delivery prices in OkayCMS are in the shop's main currency. */
+    /** Нова Пошта рахує ціни в гривнях; ціни доставки в OkayCMS — в основній валюті магазину. */
     private function inMainCurrency(DeliveryQuote $quote, object $uah): DeliveryQuote
     {
         if ($quote->price === null) {
             return $quote;
         }
-        // Precision 2 explicitly: by default Money rounds to the UAH currency's `cents`, which may be 0.
+        // Точність 2 явно: за замовчуванням Money округлює до `cents` валюти UAH, а це може бути 0.
         $convert = fn(float $amount): float => round((float)$this->money->convert($amount, (int)$uah->id, false, true, 2), 2);
 
         return new DeliveryQuote($convert($quote->price), $quote->term, $quote->source, $quote->problem, $quote->codFee === null ? null : $convert($quote->codFee), $quote->liftingFee === null ? null : $convert($quote->liftingFee), $quote->liftingRefused);
@@ -239,7 +245,10 @@ final class CartQuotes
         return $allowed;
     }
 
-    /** Street suggestions run per keystroke: limits of their own, so typing does not spend the price ones. */
+    /**
+     * Підказки вулиць запускаються на кожне натискання клавіші: у них власні ліміти, щоб введення
+     * не витрачало ліміти розрахунку ціни.
+     */
     public function allowStreetLookup(): bool
     {
         $bag = $this->bag();

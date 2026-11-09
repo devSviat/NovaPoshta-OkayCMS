@@ -18,7 +18,7 @@ final class WaybillStore implements WaybillRows
         return is_object($row) ? $row : null;
     }
 
-    /** The order a number is already attached to, if any. */
+    /** Замовлення, до якого номер уже прив'язано, якщо таке є. */
     public function orderOfNumber(string $number): ?int
     {
         $row = $this->entity()->findOne(['number' => $number]);
@@ -27,15 +27,15 @@ final class WaybillStore implements WaybillRows
     }
 
     /**
-     * @param ?string $number null while the waybill is being made
-     * @param 'new'|'old'|'attached'|null $api how it was made; null while it is being made
-     * @param array<string, mixed> $services what was ordered, for the audit and the card
+     * @param ?string $number null, поки накладна створюється
+     * @param 'new'|'old'|'attached'|null $api як її створено; null, поки вона створюється
+     * @param array<string, mixed> $services що замовлено, для звірки і картки
      */
     public function add(int $orderId, ?string $number, ?string $ref, ?string $api, array $services): bool
     {
         $now = date('Y-m-d H:i:s');
 
-        // The core swallows the duplicate-key error (order_id or number) and returns false.
+        // Ядро ковтає помилку дубліката ключа (order_id або number) і повертає false.
         return (bool)$this->entity()->add([
             'order_id' => $orderId,
             'number' => $number,
@@ -109,9 +109,9 @@ final class WaybillStore implements WaybillRows
     }
 
     /**
-     * A waybill carried over from NovaPoshtaTracking, with the status and tracking it had.
+     * Накладна, перенесена з NovaPoshtaTracking, зі статусом і трекінгом, які вона мала.
      * @param array{number:string, ref:?string, api:string, status_code:?int, status_text:?string, status_at:?string, scheduled_at:?string, tracking:?array, tracked_at:?string, created_at?:?string} $values
-     * @return bool false when the order already has a waybill
+     * @return bool false, коли замовлення вже має накладну
      */
     public function importLegacy(int $orderId, array $values): bool
     {
@@ -170,7 +170,7 @@ final class WaybillStore implements WaybillRows
         return array_map('intval', array_values($this->entity()->cols(['order_id'])->noLimit()->find(['number' => $number])));
     }
 
-    /** Every tracking write also says when the row was last checked. */
+    /** Кожен запис трекінгу також фіксує, коли рядок востаннє перевірено. */
     private function update(int $orderId, array $values): void
     {
         $row = $this->forOrder($orderId);

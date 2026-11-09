@@ -3,17 +3,17 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 /**
- * Nova Poshta waybill status codes (the same in both APIs), grouped for badges and the orders
- * filter. Groups ported from NovaPoshtaTracking NovaPoshtaStatusHelper.
+ * Коди статусів накладних Нової Пошти (однакові в обох API), згруповані для бейджів і фільтра
+ * замовлень. Групи перенесено з NovaPoshtaTracking NovaPoshtaStatusHelper.
  */
 final class WaybillStatus
 {
-    /** Nothing more will happen to the parcel; 10 (received, money transfer pending) is not final. */
+    /** З посилкою більше нічого не станеться; 10 (отримано, грошовий переказ очікується) не фінальний. */
     public const array FINAL = [2, 9, 11, 102, 103, 106];
 
-    /** Not polled any more: not final for the parcel, but nothing to learn (number unknown for 30 days). */
+    /** Більше не опитується: для посилки не фінальний, але дізнаватися нічого (номер невідомий 30 днів). */
     public const int NOT_FOUND = 3;
-    /** NP deletes a waybill only before it is handed over: none yet or «Створено» (1); «Видалено» (2) is only forgotten. */
+    /** НП видаляє накладну лише до передачі: статусу ще немає або «Створено» (1); «Видалено» (2) лише забувається. */
     public const array DELETABLE = [1, 2];
 
     private const array GROUPS = [
@@ -29,7 +29,7 @@ final class WaybillStatus
         'return' => [106],
     ];
 
-    /** Groups of the orders list filter; `none` — orders without a waybill. */
+    /** Групи фільтра списку замовлень; `none` — замовлення без накладної. */
     public const array FILTER_GROUPS = [
         'created' => [1, 12],
         'in_transit' => [4, 41, 5, 6, 101],
@@ -62,7 +62,7 @@ final class WaybillStatus
         return $code !== null && in_array($code, self::FINAL, true);
     }
 
-    /** Language key of the status text; 41 reads as 4 (both: in the city of departure). */
+    /** Мовний ключ тексту статусу; 41 читається як 4 (обидва: у місті відправлення). */
     public static function textKey(int $code): string
     {
         $code = $code === 41 ? 4 : $code;

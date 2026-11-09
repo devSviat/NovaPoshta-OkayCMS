@@ -4,7 +4,7 @@ namespace Modules\Sviat\NovaPoshta\Support;
 
 use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyData;
 
-/** Old modules' data held in arrays; rows are objects with the columns LegacyTables returns. */
+/** Дані старих модулів у масивах; рядки — об'єкти з колонками, які повертає LegacyTables. */
 final class FakeLegacyData implements LegacyData
 {
     /** @var list<object> */

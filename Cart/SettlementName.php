@@ -2,13 +2,13 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
-/** A settlement's dictionary name («селище міського типу Калинівка») as people read it: type and title apart. */
+/** Назва населеного пункту з довідника («селище міського типу Калинівка»), як її читають люди: тип і назва окремо. */
 final class SettlementName
 {
-    /** Dictionary type (Ukrainian, as NP writes it) => what is shown. */
+    /** Тип із довідника (українською, як пише НП) => що показується. */
     private const array TYPES = ['селище міського типу' => 'смт', 'місто' => 'місто', 'село' => 'село', 'селище' => 'селище'];
 
-    /** @return array{0: string, 1: string} the type to show ('' when the name has none) and the title */
+    /** @return array{0: string, 1: string} тип для показу ('', коли в назві його немає) і назва */
     public static function split(string $name): array
     {
         $name = trim($name);

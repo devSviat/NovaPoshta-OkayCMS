@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 
-/** Shop-wide values the delivery price is calculated from. */
+/** Загальні для магазину значення, з яких рахується ціна доставки. */
 final readonly class ShippingConfig
 {
     public const float DEFAULT_WEIGHT = 1.0;
@@ -15,7 +15,7 @@ final readonly class ShippingConfig
         public float $defaultWeight,
         public float $defaultVolume,
         public bool $showTerm,
-        /** Offer paid floor lifting for address delivery in the cart (off by default). */
+        /** Пропонувати в кошику платний підйом на поверх для адресної доставки (типово вимкнено). */
         public bool $showLifting = false,
     ) {
     }

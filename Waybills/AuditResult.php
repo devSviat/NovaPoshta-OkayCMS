@@ -2,13 +2,13 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
-/** What the read-back of a created waybill showed. */
+/** Що показало зворотне читання створеної накладної. */
 final readonly class AuditResult
 {
     /**
      * @param 'verified'|'mismatch'|'unverified' $status
      * @param list<array{kind: string, expected: string, actual: string}> $findings
-     * @param list<string> $unchecked ordered services Nova Poshta does not report back (lifting)
+     * @param list<string> $unchecked замовлені послуги, про які Нова Пошта не звітує (підйом на поверх)
      */
     public function __construct(
         public string $status,

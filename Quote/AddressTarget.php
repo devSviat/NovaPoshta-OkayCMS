@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 
-/** Address delivery as a quote target: the settlement's old city Ref and the floor options. */
+/** Адресна доставка як ціль розрахунку ціни: старий Ref міста населеного пункту й параметри поверху. */
 final readonly class AddressTarget
 {
     public function __construct(
@@ -11,7 +11,7 @@ final readonly class AddressTarget
         public bool $lifting,
         public ?int $floor,
         public bool $elevator,
-        /** The cart may offer lifting: price it too, to show its extra cost. */
+        /** Кошик може пропонувати підйом на поверх: розрахувати й його, щоб показати додаткову вартість. */
         public bool $offerLifting,
     ) {
     }

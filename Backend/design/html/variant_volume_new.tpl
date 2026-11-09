@@ -1,4 +1,4 @@
-{* Product page, the row a new variant is cloned from: an empty volume. *}
+{* Сторінка товару, рядок, з якого клонується новий варіант: порожній об'єм. *}
 <div class="okay_list_boding variants_item_weight np_variant_volume">
     <div class="heading_label">{$btr->sviat__novaposhta__variant_volume|escape}
         <i class="fn_tooltips hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__variant_volume_hint|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__variant_volume_hint|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>

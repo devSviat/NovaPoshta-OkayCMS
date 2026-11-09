@@ -4,12 +4,12 @@ namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 use Okay\Modules\Sviat\NovaPoshta\Quote\Parcel;
 
-/** Body of the new API's POST /shipments for a point waybill. */
+/** Тіло POST /shipments нового API для накладної на пункт видачі. */
 final class NewShipmentRequest
 {
     /**
-     * Documents go as the largest envelope the API docs allow (35 × 25 × 2 cm, up to 1 kg): the API takes any size
-     * and records its volume weight, so a cube of the goods' volume would weigh the documents as a parcel.
+     * Документи йдуть як найбільший конверт, який дозволяє документація API (35 × 25 × 2 см, до 1 кг): API приймає
+     * будь-який розмір і записує його об'ємну вагу, тож куб з об'єму товарів зважив би документи як посилку.
      */
     private const array DOCUMENTS_MM = [350, 250, 20];
     private const int DOCUMENTS_MAX_G = 1000;
@@ -22,7 +22,7 @@ final class NewShipmentRequest
         $grams = (int)round($draft->weightKg * 1000);
 
         $body = [
-            // Lets the module find the shipment by its order when NP did not answer the create.
+            // Дає модулю знайти відправлення за замовленням, коли НП не відповіла на створення.
             'clientOrder' => (string)$draft->orderId,
             'payerType' => $draft->payerType,
             'sender' => ['countryCode' => 'UA', 'divisionId' => $sender->divisionId, 'name' => $sender->contactName, 'phone' => $sender->phone],
@@ -32,7 +32,7 @@ final class NewShipmentRequest
                 'cargoCategory' => strtolower($draft->cargoType),
                 'parcelDescription' => $draft->description,
                 'insuranceCost' => $draft->declaredCost,
-                // Goods give a volume only: a cube of it, as in the price calculation.
+                // Товари дають лише об'єм: куб з нього, як у розрахунку ціни.
                 'length' => $length,
                 'width' => $width,
                 'height' => $height,

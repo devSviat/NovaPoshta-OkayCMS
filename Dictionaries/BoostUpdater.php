@@ -8,13 +8,13 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Store\DictionaryStore;
 
 /**
- * Popularity of settlements (`boost`), available only from the API, not the CDN files.
- * The API lists settlements by boost descending, and non-zero boost ends within the first
- * ~15 of 276 pages (measured 06.11.2026), so reading stops at the first page without it.
+ * Популярність населених пунктів (`boost`), доступна лише з API, а не з файлів CDN.
+ * API віддає населені пункти за спаданням boost, і ненульовий boost закінчується в перших
+ * ~15 із 276 сторінок (виміряно 06.11.2026), тож читання зупиняється на першій сторінці без нього.
  */
 final class BoostUpdater
 {
-    /** Guard against a list that never runs out of boost. */
+    /** Захист від списку, у якому boost ніколи не закінчується. */
     public const int MAX_PAGES = 40;
 
     public function __construct(
@@ -23,7 +23,7 @@ final class BoostUpdater
     ) {
     }
 
-    /** @return int settlements with non-zero boost; nothing is written unless every page was read */
+    /** @return int населені пункти з ненульовим boost; нічого не записується, доки не прочитано всі сторінки */
     public function update(): int
     {
         $boostById = [];
@@ -38,7 +38,7 @@ final class BoostUpdater
                 }
             }
             if (!$foundOnPage && $page === 1) {
-                // The list is sorted by boost: none on page 1 means the API changed, not that no city is popular.
+                // Список відсортовано за boost: його відсутність на сторінці 1 означає, що API змінився, а не що жодне місто не популярне.
                 throw NpApiException::fromNp(NpErrorKind::Malformed, ['No settlement popularity on the first page']);
             }
             if (!$foundOnPage || $page >= (int)($answer['last_page'] ?? $page)) {

@@ -4,7 +4,7 @@ namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 use Okay\Core\Settings;
 
-/** The "Waybills" block of the settings page. */
+/** Блок «Накладні» сторінки налаштувань. */
 final class WaybillSettings
 {
     private const string PREFIX = 'sviat__novaposhta__waybill_';
@@ -26,11 +26,11 @@ final class WaybillSettings
         }
         $config = self::parse($stored);
 
-        // Stored values were valid when saved; a broken one falls back to the defaults.
+        // Збережені значення були коректними на момент збереження; зламане повертається до значень за замовчуванням.
         return $config instanceof WaybillConfig ? $config : self::parse([]);
     }
 
-    /** @return list<string> language keys of the errors; nothing is saved when there are any */
+    /** @return list<string> мовні ключі помилок; коли вони є, нічого не зберігається */
     public function save(array $post): array
     {
         $config = self::parse($post);
@@ -56,7 +56,7 @@ final class WaybillSettings
         return [];
     }
 
-    /** @return WaybillConfig|list<string> the values, or the language keys of what is wrong */
+    /** @return WaybillConfig|list<string> значення або мовні ключі того, що не так */
     public static function parse(array $post): WaybillConfig|array
     {
         $errors = [];
@@ -89,7 +89,7 @@ final class WaybillSettings
 
             return $value;
         };
-        // 'auto' was the default before 1.0.0; the drafts make the sender pay where needed anyway.
+        // 'auto' було значенням за замовчуванням до 1.0.0; чернетки однаково роблять платником відправника, де треба.
         $payer = $choice($text('payer_type') === 'auto' ? '' : $text('payer_type'), ['Recipient', 'Sender'], 'waybill_error_payer');
         $payment = $choice($text('payment_method'), ['Cash', 'NonCash'], 'waybill_error_payment');
         $cargoTypes = self::cargoTypes($post['cargo_types'] ?? null, $errors);
@@ -122,11 +122,11 @@ final class WaybillSettings
     }
 
     /**
-     * The form posts an empty marker plus the ticked boxes, so «none ticked» differs from «not posted»;
-     * storage keeps a comma list. Nothing at all means the defaults.
+     * Форма надсилає порожній маркер плюс позначені прапорці, тож «нічого не позначено» відрізняється від «не надіслано»;
+     * у сховищі — список через кому. Зовсім нічого означає значення за замовчуванням.
      *
      * @param list<string> $errors
-     * @return list<string> in WaybillConfig::CARGO_TYPES order; empty only alongside an error
+     * @return list<string> у порядку WaybillConfig::CARGO_TYPES; порожній лише разом із помилкою
      */
     private static function cargoTypes(mixed $raw, array &$errors): array
     {

@@ -4,6 +4,6 @@ namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 interface SenderSource
 {
-    /** @return SenderParty|string the sender, or the language key of what is missing */
+    /** @return SenderParty|string відправник або мовний ключ того, чого бракує */
     public function party(): SenderParty|string;
 }

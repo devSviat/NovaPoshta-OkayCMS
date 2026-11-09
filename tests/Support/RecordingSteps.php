@@ -6,15 +6,15 @@ use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Cdn\CdnVersions;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionarySteps;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\UpdateCounts;
 
-/** Records what the runner decided to do; versions and failures are set by the test. */
+/** Записує, що вирішив зробити раннер; версії й збої задає тест. */
 final class RecordingSteps implements DictionarySteps
 {
     /** @var list<string> */
     public array $calls = [];
     public bool $english = false;
-    /** @var array<string, CdnVersions> 'divisions:uk' → versions */
+    /** @var array<string, CdnVersions> 'divisions:uk' → версії */
     public array $versions = [];
-    /** @var array<string, \Throwable> step name → failure */
+    /** @var array<string, \Throwable> назва кроку → збій */
     public array $failures = [];
     public int $boosted = 5;
     public ?\Closure $onStep = null;

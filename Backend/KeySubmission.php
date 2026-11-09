@@ -9,7 +9,7 @@ final readonly class KeySubmission
     public function __construct(
         public KeyCheckResult $result,
         public bool $saved,
-        /** The saved key was checked again; nothing new was entered. */
+        /** Збережений ключ перевірено ще раз; нового нічого не введено. */
         public bool $recheck = false,
     ) {
     }

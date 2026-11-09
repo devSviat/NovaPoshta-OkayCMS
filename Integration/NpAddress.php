@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Integration;
 
-/** Where an order goes, as plain text: a branch or a street address. */
+/** Куди йде замовлення, простим текстом: відділення або вулична адреса. */
 final readonly class NpAddress
 {
     public function __construct(

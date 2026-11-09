@@ -10,7 +10,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\NpApiException;
 use Okay\Modules\Sviat\NovaPoshta\Api\NpErrorKind;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyRejections;
 
-/** JSON API v2.0: only what the new API cannot do yet (COD, payment control, address shipments). */
+/** JSON API v2.0: лише те, чого новий API ще не вміє (післяплата, контроль оплати, адресні відправлення). */
 final class OldApiClient
 {
     public const string URL = 'https://api.novaposhta.ua/v2.0/json/';
@@ -32,7 +32,7 @@ final class OldApiClient
         $this->sleep = $sleep ?? static fn() => sleep(1);
     }
 
-    /** A client for a key that is not saved yet (checking a key before storing it). */
+    /** Клієнт для ще не збереженого ключа (перевірка ключа перед збереженням). */
     public function withKey(string $apiKey): self
     {
         $client = clone $this;
@@ -42,9 +42,9 @@ final class OldApiClient
     }
 
     /**
-     * Short timeout, for requests someone waits for in the browser. A dead server is not asked
-     * again; Nova Poshta's "To many requests" on a read is waited out once (it clears within a
-     * second, while two reads 0.4 s apart can already trip it — measured 06.11.2026).
+     * Короткий тайм-аут для запитів, на які хтось чекає в браузері. Мертвий сервер повторно
+     * не опитується; "To many requests" Нової Пошти на читанні перечікується один раз (минає протягом
+     * секунди, а два читання з інтервалом 0.4 s уже можуть його спричинити — виміряно 06.11.2026).
      */
     public function quick(int $timeoutSeconds): self
     {
@@ -56,14 +56,14 @@ final class OldApiClient
         return $client;
     }
 
-    /** @return array the `data` part of the answer */
+    /** @return array частина `data` відповіді */
     public function call(string $model, string $method, array $properties = []): array
     {
         return $this->callWithWarnings($model, $method, $properties)['data'];
     }
 
     /**
-     * Like call(), with Nova Poshta's warnings: a saved waybill can come back changed
+     * Як call(), але з попередженнями Нової Пошти: збережена накладна може повернутися зміненою
      * ("CargoType is changed to Cargo").
      *
      * @return array{data: array, warnings: list<string>}
@@ -80,8 +80,8 @@ final class OldApiClient
             'methodProperties' => $properties === [] ? new \stdClass() : $properties,
         ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 
-        // Only reads are repeated. Anything else may change data at Nova Poshta (save, delete,
-        // insertDocuments…): after a timeout it may already be done, and a repeat would do it twice.
+        // Повторюються лише читання. Будь-що інше може змінити дані в Новій Пошті (save, delete,
+        // insertDocuments…): після тайм-ауту це вже могло статися, і повтор зробив би це двічі.
         $isRead = str_starts_with(strtolower($method), 'get');
         $retriesLeft = $isRead && $this->retries ? 1 : 0;
         $rateWaits = 1;
@@ -132,7 +132,7 @@ final class OldApiClient
 
         $kind = match (true) {
             in_array(self::INVALID_KEY_CODE, $codes, true), stripos($joined, 'API key') !== false => NpErrorKind::InvalidKey,
-            // "To many requests" is NP's own spelling.
+            // "To many requests" — це написання самої НП.
             stripos($joined, 'to many requests') !== false, stripos($joined, 'too many requests') !== false => NpErrorKind::RateLimited,
             default => NpErrorKind::Rejected,
         };

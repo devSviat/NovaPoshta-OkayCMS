@@ -5,15 +5,15 @@ namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 use Okay\Modules\Sviat\NovaPoshta\Quote\AddressCityResolver;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 
-/** methodProperties of the old API's InternetDocumentGeneral.save, per kind of recipient. */
+/** methodProperties для InternetDocumentGeneral.save старого API, за видом отримувача. */
 final class OldDocumentRequest
 {
     private const array ADDRESS_REFS = ['CityRecipient', 'RecipientAddress', 'Recipient', 'ContactRecipient'];
     private const array ADDRESS_TEXT = ['RecipientCityName', 'RecipientAddressName', 'RecipientHouse'];
-    /** The only weights NP takes for documents, ascending; it refuses any volume for them (api-docs-ua, live 09.11.2026). */
+    /** Єдині ваги, які НП приймає для документів, за зростанням; будь-який об'єм для них вона відхиляє (api-docs-ua, live 09.11.2026). */
     public const array DOCUMENTS_WEIGHTS = [0.1, 0.5, 1.0];
 
-    /** A point by its number: no recipient counterparty is created (NewAddress with names). */
+    /** Пункт видачі за номером: контрагент-отримувач не створюється (NewAddress з іменами). */
     public static function forDivision(WaybillDraft $draft, SenderParty $sender): array
     {
         return self::common($draft, $sender) + [
@@ -23,7 +23,7 @@ final class OldDocumentRequest
         ] + self::lockerSeat($draft) + self::recipientByName($draft) + self::money($draft);
     }
 
-    /** An address by refs: the NP account shows every address field. */
+    /** Адреса за refs: кабінет НП показує всі поля адреси. */
     public static function forAddressRef(WaybillDraft $draft, SenderParty $sender, string $cityRef, string $recipientRef, string $contactRef, string $addressRef): array
     {
         return self::common($draft, $sender) + [
@@ -37,10 +37,10 @@ final class OldDocumentRequest
     }
 
     /**
-     * An address as text: NP accepts it, but its account shows the address fields empty.
+     * Адреса текстом: НП її приймає, але кабінет показує поля адреси порожніми.
      *
-     * @param ?string $ownershipForm an organization's text address is refused without one; NP accepts any
-     *     and keeps its registry's (live check 07.11.2026)
+     * @param ?string $ownershipForm текстову адресу організації без неї відхиляють; НП приймає будь-яку
+     *     і зберігає ту, що в її реєстрі (жива перевірка 07.11.2026)
      */
     public static function forAddressText(WaybillDraft $draft, SenderParty $sender, ?string $ownershipForm = null): array
     {
@@ -57,7 +57,7 @@ final class OldDocumentRequest
         ], static fn(string $v): bool => $v !== '') + self::recipientByName($draft, $ownershipForm) + self::lifting($draft) + self::money($draft);
     }
 
-    /** @return ?string language key of what is wrong with the request, checked before it is sent */
+    /** @return ?string мовний ключ того, що не так із запитом, перевірений до надсилання */
     public static function guard(array $properties): ?string
     {
         $has = static fn(string $key): bool => trim((string)($properties[$key] ?? '')) !== '';
@@ -112,8 +112,8 @@ final class OldDocumentRequest
     }
 
     /**
-     * A parcel locker is refused without the seat («OptionsSeat is empty»); a branch takes the general weight and volume.
-     * Documents go without it: NP sizes them itself.
+     * Поштомат відхиляє запит без місця («OptionsSeat is empty»); відділення бере загальні вагу й об'єм.
+     * Документи йдуть без нього: НП визначає їхній розмір сама.
      */
     private static function lockerSeat(WaybillDraft $draft): array
     {
@@ -138,7 +138,7 @@ final class OldDocumentRequest
             : [];
     }
 
-    /** Money transfer and payment control exclude each other. */
+    /** Грошовий переказ і контроль оплати взаємовиключні. */
     private static function money(WaybillDraft $draft): array
     {
         if (!$draft->cod) {
@@ -151,7 +151,7 @@ final class OldDocumentRequest
             : ['BackwardDeliveryData' => [['PayerType' => $draft->codPayer, 'CargoType' => 'Money', 'RedeliveryString' => $amount]]];
     }
 
-    /** The smallest allowed weight that holds the documents; the draft keeps them within the largest. */
+    /** Найменша дозволена вага, що вміщає документи; чернетка тримає їх у межах найбільшої. */
     private static function documentsWeight(float $kg): float
     {
         foreach (self::DOCUMENTS_WEIGHTS as $allowed) {

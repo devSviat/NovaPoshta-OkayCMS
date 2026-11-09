@@ -2,12 +2,12 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
-/** The answer to the manager's create / attach / remove. */
+/** Відповідь на створення / прив'язування / видалення від менеджера. */
 final readonly class WaybillOutcome
 {
     /**
      * @param list<array{field: ?string, message: ?string, advice: string, details: string}> $issues
-     * @param list<string> $notices language keys of what the manager should know about a made waybill
+     * @param list<string> $notices мовні ключі того, що менеджеру варто знати про створену накладну
      */
     public function __construct(
         public bool $ok,
@@ -24,7 +24,7 @@ final readonly class WaybillOutcome
         return new self(false, null, [$issue]);
     }
 
-    /** A refusal of the module's own, with an optional value shown with it (a number, an order id). */
+    /** Власна відмова модуля з необов'язковим значенням, що показується поруч (номер, id замовлення). */
     public static function refused(string $key, ?string $value = null): self
     {
         return self::failed(['field' => null, 'message' => $value, 'advice' => $key, 'details' => '']);

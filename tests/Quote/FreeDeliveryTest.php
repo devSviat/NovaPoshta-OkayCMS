@@ -6,8 +6,8 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\FreeDelivery;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The core's rule (DeliveriesHelper): free unless free_from is above the goods total. 0 therefore
- * means free for every cart (author's decision 08.11.2026: same as the core, with a warning).
+ * Правило ядра (DeliveriesHelper): безкоштовно, якщо free_from не більший за суму товарів. Тому 0
+ * означає безкоштовно для будь-якого кошика (рішення автора 08.11.2026: як у ядрі, з попередженням).
  */
 class FreeDeliveryTest extends TestCase
 {
