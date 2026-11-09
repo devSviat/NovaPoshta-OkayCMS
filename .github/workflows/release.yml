@@ -32,9 +32,11 @@ permissions:
   contents: write
 
 jobs:
+  # ubuntu-latest переводять на Ubuntu 26 (actions/runner-images#14748). Під час переходу з прогонів
+  # випадково зникали задачі, і весь прогін падав. Закріплено, доки перехід не завершиться.
   lint:
     name: PHP ${{ matrix.php }} syntax
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -61,7 +63,7 @@ jobs:
 
   verify:
     name: ${{ matrix.target }} (PHP ${{ matrix.php }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -135,7 +137,7 @@ jobs:
   release:
     needs: [lint, verify]
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.ver.outputs.version }}
       tag: ${{ steps.ver.outputs.tag }}
@@ -210,7 +212,7 @@ jobs:
   detect-fork:
     needs: release
     if: needs.release.outputs.needed == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       present: ${{ steps.check.outputs.present }}
     steps:
@@ -249,7 +251,7 @@ jobs:
     needs: detect-fork
     if: needs.detect-fork.outputs.present == 'true'
     name: fork branch / PHP ${{ matrix.php }} syntax
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -281,7 +283,7 @@ jobs:
     needs: detect-fork
     if: needs.detect-fork.outputs.present == 'true'
     name: fork branch / ${{ matrix.target }} (PHP ${{ matrix.php }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -354,7 +356,7 @@ jobs:
   release-fork:
     needs: [release, detect-fork, lint-fork, verify-fork]
     if: needs.detect-fork.outputs.present == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
