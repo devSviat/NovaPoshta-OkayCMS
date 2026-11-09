@@ -9,7 +9,7 @@
         <input class="form-control" data-attach="number" inputmode="numeric" maxlength="20" placeholder="{$btr->sviat__novaposhta__waybill_attach_placeholder|escape}">
         <button type="button" class="btn btn_small btn_border_blue fn_np_wb_attach">{$btr->sviat__novaposhta__waybill_attach|escape}</button>
     </div>
-    <div class="text_grey">{$btr->sviat__novaposhta__waybill_attach_note|escape}</div>
+    <div class="text_grey font_12">{$btr->sviat__novaposhta__waybill_attach_note|escape}</div>
     <div class="np-wb__issues np-wb__issues--attach" role="alert"></div>
 </div>
 {/function}
