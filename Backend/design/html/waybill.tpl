@@ -12,7 +12,8 @@
     <div class="np-wb__issues np-wb__issues--attach" role="alert"></div>
 </details>
 {/function}
-{function name=np_wb_tip}<i class="fn_tooltips np-wb__tip" title="{$text|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>{/function}
+{* The hint opens away from the screen edge: rightwards by default, leftwards for a field in the right-hand column. *}
+{function name=np_wb_tip side="left"}<i class="fn_tooltips np-wb__tip hint-bottom-{$side|escape}-t-white-s-med-mobile hint-anim" data-hint="{$text|escape}" tabindex="0" role="img" aria-label="{$text|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>{/function}
 {function name=np_wb_switch}
 <label class="np-wb__switch">
     <span class="switch switch-default"><input class="switch-input" type="checkbox" data-field="{$field|escape}" value="1" {if $on}checked{/if}><span class="switch-label"></span><span class="switch-handle"></span></span>
@@ -199,7 +200,7 @@
             {get_design_block block="novaposhta_document_payment"}
             <div class="np-wb__pair">
                 <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_declared_cost|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_declared_tip}</span><input class="form-control" inputmode="decimal" data-field="declared_cost" value="{$d->declaredCost|escape}"><span class="np-wb__error" data-for="declared_cost"></span></label>
-                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cod_amount|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_amount_tip}</span><input class="form-control" inputmode="decimal" data-field="cod_amount" value="{$d->codAmount|escape}" {if !$d->cod}disabled{/if}><span class="np-wb__error" data-for="cod_amount"></span></label>
+                <label class="np-wb__field"><span class="heading_label">{$btr->sviat__novaposhta__waybill_cod_amount|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_amount_tip side="right"}</span><input class="form-control" inputmode="decimal" data-field="cod_amount" value="{$d->codAmount|escape}" {if !$d->cod}disabled{/if}><span class="np-wb__error" data-for="cod_amount"></span></label>
             </div>
             {$control = $d->codKind->value == 'control'}
             <div class="heading_label np-wb__label">{if $control}{$btr->sviat__novaposhta__waybill_cod_control_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_control_tip}{else}{$btr->sviat__novaposhta__waybill_cod_money_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_money_tip}{/if}</div>
@@ -213,7 +214,7 @@
             <input type="hidden" data-field="cod_kind" value="{$d->codKind->value|escape}">
             {if !$control}
                 <div class="np-wb__cod" {if !$d->cod}hidden{/if}>
-                    <div class="heading_label np-wb__label">{$btr->sviat__novaposhta__waybill_cod_payer|escape}</div>
+                    <div class="heading_label np-wb__label">{$btr->sviat__novaposhta__waybill_cod_fee_payer|escape}</div>
                     {np_wb_radios field='cod_payer' value=$d->codPayer options=['Sender' => $btr->sviat__novaposhta__waybill_sender_party, 'Recipient' => $btr->sviat__novaposhta__waybill_recipient]}
                 </div>
             {/if}
