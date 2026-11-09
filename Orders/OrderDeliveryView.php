@@ -17,7 +17,9 @@ final class OrderDeliveryView
     public static function lines(object $row, ?float $orderDeliveryPrice = null, bool $codNow = false, bool $pricePublic = true): array
     {
         $city = array_filter([$row->settlement_name ?? null, $row->district_name ?? null, $row->area_name ?? null], static fn($part): bool => (string)$part !== '');
-        $point = array_filter([PointTitle::short((string)($row->division_name ?? '')), $row->division_address ?? null], static fn($part): bool => (string)$part !== '');
+        $name = PointTitle::short((string)($row->division_name ?? ''));
+        // A branch name carries its street after a colon; a parcel locker's does not, so it gets the address.
+        $point = array_filter([$name, str_contains($name, ':') ? null : ($row->division_address ?? null)], static fn($part): bool => (string)$part !== '');
 
         $term = (string)($row->delivery_term ?? '');
 
@@ -43,6 +45,7 @@ final class OrderDeliveryView
 
         return [
             'street' => $text('street_name'),
+            'streetRef' => $text('street_ref'),
             'house' => $text('house'),
             'flat' => $text('flat'),
             'entrance' => $text('entrance'),

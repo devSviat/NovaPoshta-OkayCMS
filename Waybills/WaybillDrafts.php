@@ -117,6 +117,8 @@ final class WaybillDrafts
         $parcel = Parcel::fromMetrics(CartMetrics::fromPurchases($purchases, $total), $shipping);
         $note = implode(', ', array_filter([
             trim((string)($snapshot->entrance ?? '')) !== '' ? "під'їзд " . trim((string)$snapshot->entrance) : null,
+            // Paid lifting sends the floor in its own field; without it NP has none, and the courier needs it.
+            empty($snapshot->lifting) && (int)($snapshot->floor ?? 0) > 0 ? 'поверх ' . (int)$snapshot->floor : null,
             trim((string)($snapshot->address_note ?? '')) ?: null,
         ]));
         $phone = NpPhone::normalize((string)($order->phone ?? ''));

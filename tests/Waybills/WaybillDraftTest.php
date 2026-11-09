@@ -149,6 +149,19 @@ class WaybillDraftTest extends TestCase
         self::assertSame(50, mb_strlen($long->addressNote));
     }
 
+    /** Without paid lifting NP has no floor field: the courier reads it in the note (live 09.11.2026: the floor was lost). */
+    public function testFloorGoesToTheNoteWithoutLifting(): void
+    {
+        $address = (object)[
+            'mode' => 'address', 'settlement_id' => 118064, 'settlement_name' => 'місто Київ', 'area_name' => 'Київська область', 'district_name' => null,
+            'street_name' => 'вул. Хрещатик', 'street_ref' => 'ref-street', 'house' => '24', 'flat' => '7',
+            'entrance' => '2', 'address_note' => 'Домофон 7', 'floor' => 3, 'elevator' => 0, 'lifting' => 0,
+        ];
+
+        self::assertSame("під'їзд 2, поверх 3, Домофон 7", self::build(snapshot: $address, division: null)->addressNote);
+        self::assertSame("під'їзд 2, Домофон 7", self::build(snapshot: (object)(['lifting' => 1] + (array)$address), division: null)->addressNote, 'with lifting NP takes the floor itself');
+    }
+
     public function testDraftWithoutPointIsRefused(): void
     {
         self::assertSame('waybill_no_point', self::build(snapshot: self::points(['division_id' => null]), division: null));
