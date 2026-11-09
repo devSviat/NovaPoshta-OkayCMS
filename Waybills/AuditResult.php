@@ -32,6 +32,6 @@ final readonly class AuditResult
             }
         }
 
-        return new self($status, $findings, array_values(array_map('strval', (array)($data['unchecked'] ?? []))));
+        return new self($status, $findings, array_values(array_map(strval(...), (array)($data['unchecked'] ?? []))));
     }
 }

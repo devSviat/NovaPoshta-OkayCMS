@@ -22,8 +22,8 @@ final class PopularCities
     /** @param list<int|string> $ids у порядку, який задав менеджер */
     public function save(array $ids): void
     {
-        $wanted = array_values(array_filter(array_map('intval', $ids), static fn(int $id): bool => $id > 0));
-        $existing = $wanted === [] ? [] : array_map('intval', array_keys(
+        $wanted = array_values(array_filter(array_map(intval(...), $ids), static fn(int $id): bool => $id > 0));
+        $existing = $wanted === [] ? [] : array_map(intval(...), array_keys(
             $this->entityFactory->get(SettlementEntity::class)->mappedBy('id')->cols(['id'])->noLimit()->find(['id' => $wanted])
         ));
         self::store($this->state, self::clean($ids, $existing));
@@ -93,7 +93,7 @@ final class PopularCities
     {
         $ids = json_decode((string)$state->get(self::STATE), true);
 
-        return is_array($ids) && array_is_list($ids) ? array_values(array_filter(array_map('intval', $ids))) : [];
+        return is_array($ids) && array_is_list($ids) ? array_values(array_filter(array_map(intval(...), $ids))) : [];
     }
 
     /** @param list<int> $ids */

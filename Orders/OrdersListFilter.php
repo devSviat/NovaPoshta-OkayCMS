@@ -36,7 +36,7 @@ final class OrdersListFilter
     private static function narrow(array $filter, array $ids): array
     {
         if (isset($filter['id'])) {
-            $ids = array_values(array_intersect($ids, array_map('intval', (array)$filter['id'])));
+            $ids = array_values(array_intersect($ids, array_map(intval(...), (array)$filter['id'])));
         }
         // Порожній список означав би для фільтра ядра "без умови": [0] не збігається ні з чим.
         $filter['id'] = $ids === [] ? [0] : array_values(array_unique($ids));

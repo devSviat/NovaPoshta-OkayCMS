@@ -8,7 +8,7 @@ use Okay\Entities\PaymentsEntity;
 /** Організація, на яку Sviat/InvoicePayment виставив рахунок замовлення; модуля може не бути (на форку його немає). */
 final class InvoicePaymentData
 {
-    public const string ENTITY = 'Okay\\Modules\\Sviat\\InvoicePayment\\Entities\\InvoicePaymentDataEntity';
+    public const string ENTITY = \Okay\Modules\Sviat\InvoicePayment\Entities\InvoicePaymentDataEntity::class;
     private const string PAYMENT_MODULE = 'Sviat/InvoicePayment';
 
     public function __construct(

@@ -210,7 +210,7 @@ final class CartQuotes
      */
     public function codFeePayments(object $delivery): array
     {
-        $linked = array_map('intval', (array)$this->entityFactory->get(DeliveriesEntity::class)->getDeliveryPayments((int)$delivery->id));
+        $linked = array_map(intval(...), (array)$this->entityFactory->get(DeliveriesEntity::class)->getDeliveryPayments((int)$delivery->id));
 
         return CodPayments::wantsFee($linked, $moneyIds = $this->codPayments->moneyIds()) ? array_values(array_intersect($linked, $moneyIds)) : [];
     }
