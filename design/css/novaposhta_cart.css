@@ -160,8 +160,6 @@
 /* Inside the theme's payment label (outside .np-cart): the module's colour variables are not set there. */
 .np-cod-line { display: block; margin-top: 2px; font-size: 11px; font-style: normal; font-weight: 400; line-height: 1.35; color: #a35a00; }
 .np-cod-line--described { margin-top: 6px; font-size: inherit; }
-/* The two sentences of the fee text are split by a newline in the language file. */
-.np-cod-line { white-space: pre-line; }
 .np-cod-line[hidden] { display: none; }
 
 /* Visible to jQuery Validate (it skips :hidden), not to people: the "choose a point" message hangs off it. */
