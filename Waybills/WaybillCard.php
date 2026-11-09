@@ -42,10 +42,11 @@ final class WaybillCard
         $card['description'] = $text('CargoDescriptionString');
         $card['announced'] = self::money($amount('AnnouncedPrice'));
         $card['route'] = [
+            'departure' => self::date($text('DateCreated')),
             'from' => self::cut($text('WarehouseSenderAddress') ?? $text('SenderAddress')),
             'status' => trim((string)($row->status_text ?? '')) !== '' ? trim((string)$row->status_text) : $text('Status'),
             'statusGroup' => $card['statusGroup'],
-            'plan' => self::date($text('ScheduledDeliveryDate')),
+            'plan' => self::date($text('ScheduledDeliveryDate'), true),
             'to' => self::cut($text('WarehouseRecipientAddress') ?? $text('RecipientAddress')),
         ];
         $name = $text('RecipientFullName') ?? $text('RecipientFullNameEW');
@@ -127,11 +128,15 @@ final class WaybillCard
         return $phone !== null && preg_match('/^380(\d{2})(\d{3})(\d{2})(\d{2})$/', $phone, $m) ? "+380 {$m[1]} {$m[2]} {$m[3]} {$m[4]}" : $phone;
     }
 
-    private static function date(?string $value): ?string
+    /** @param bool $withTime the hour too, unless NP gave midnight (a date only) */
+    private static function date(?string $value, bool $withTime = false): ?string
     {
         $date = $value === null ? false : \DateTimeImmutable::createFromFormat('d-m-Y H:i:s', $value);
+        if (!$date) {
+            return null;
+        }
 
-        return $date ? $date->format('d.m.Y') : null;
+        return $date->format($withTime && $date->format('H:i') !== '00:00' ? 'd.m.Y H:i' : 'd.m.Y');
     }
 
     private static function dateTime(mixed $value, string $format): ?string

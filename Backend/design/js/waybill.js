@@ -138,7 +138,8 @@
             return;
         }
         clearIssues(root);
-        var label = button.textContent;
+        // Icon buttons keep their SVG: the label is restored as markup.
+        var label = button.innerHTML;
         button.disabled = true;
         if (action === 'create') {
             button.textContent = root.getAttribute('data-busy');
@@ -147,6 +148,11 @@
         fetch(root.getAttribute('data-url'), { method: 'POST', body: body, credentials: 'same-origin' })
             .then(function (response) { return response.json(); })
             .then(function (answer) {
+                // The card lives in the main column, the form beside it: a new state reloads the page.
+                if (answer.ok && action !== 'refresh') {
+                    window.location.reload();
+                    return;
+                }
                 if (answer.ok && typeof answer.html === 'string') {
                     var holder = document.createElement('template');
                     holder.innerHTML = answer.html.trim();
@@ -167,7 +173,7 @@
             })
             .finally(function () {
                 button.disabled = false;
-                button.textContent = label;
+                button.innerHTML = label;
             });
     }
 
