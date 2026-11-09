@@ -15,7 +15,7 @@ final readonly class ShippingConfig
         public float $defaultWeight,
         public float $defaultVolume,
         public bool $showTerm,
-        /** Offer paid floor lifting for address delivery in the cart (off by default, design §6). */
+        /** Offer paid floor lifting for address delivery in the cart (off by default). */
         public bool $showLifting = false,
     ) {
     }

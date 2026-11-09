@@ -8,11 +8,11 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 
 /**
  * Payment methods marked "cash on delivery by Nova Poshta", each with its kind. Choosing one in the
- * cart is the customer's choice of cash on delivery (author's decision 06.11.2026: no checkbox in the cart).
+ * cart is the customer's choice of cash on delivery; the cart has no separate checkbox.
  */
 final class CodPayments
 {
-    /** Own field on the core payments table; values are CodKind flags (§9). */
+    /** Own field on the core payments table; values are CodKind flags. */
     public const string FIELD = 'sviat__novaposhta__cod';
 
     public function __construct(private readonly EntityFactory $entityFactory)

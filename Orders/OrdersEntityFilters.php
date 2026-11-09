@@ -7,7 +7,6 @@ use Okay\Entities\OrdersEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 
-/** Filters this module adds to the core orders entity. */
 class OrdersEntityFilters extends AbstractModuleEntityFilter
 {
     /** @param list<int> $codes orders whose waybill has one of these NP statuses */

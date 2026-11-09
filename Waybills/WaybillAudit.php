@@ -8,7 +8,7 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
 
 /**
  * Compares a created waybill, as getStatusDocuments shows it, with what was ordered: Nova Poshta
- * accepts a waybill and silently drops or changes a service (design §2, §7).
+ * accepts a waybill and silently drops or changes a service.
  */
 final class WaybillAudit
 {

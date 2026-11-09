@@ -1,4 +1,4 @@
-{* Moving from the old Nova Poshta modules: a one-time action (mockup «НП: простий перехід», 08.11.2026) *}
+{* Moving from the old Nova Poshta modules: a one-time action. *}
 {if $np_legacy}
 {$L = $np_legacy}
 <div class="row">

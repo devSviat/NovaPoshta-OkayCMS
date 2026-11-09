@@ -2,7 +2,7 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Cart;
 
-/** A checked delivery address from the cart (design §6). */
+/** A checked delivery address from the cart. */
 final readonly class AddressFields
 {
     public function __construct(

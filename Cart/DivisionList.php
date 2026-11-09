@@ -67,7 +67,7 @@ final class DivisionList
         $exact = self::exactNumber($query);
         if ($words !== null) {
             // Customers know branch numbers better than addresses: the number they typed first,
-            // then numbers starting with it, then address and name matches (author, 06.11.2026).
+            // then numbers starting with it, then address and name matches.
             $cols[] = "(CASE WHEN SUBSTRING_INDEX(d.number, '/', -1) = :exact THEN 0 WHEN SUBSTRING_INDEX(d.number, '/', -1) LIKE :prefix THEN 1 ELSE 2 END) AS match_rank";
         }
         $lightSelect = $filtered()->cols($cols);

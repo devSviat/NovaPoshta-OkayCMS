@@ -39,7 +39,6 @@
     </div>
     <div class="tab_container">
 
-{* ===== Main: key, dictionaries, sender point ===== *}
 <div id="np_tab_main" class="tab">
 <div class="row">
 <div class="col-xl-6 col-lg-12">
@@ -273,7 +272,6 @@
 </div>
 </div>
 
-{* ===== Points: groups and popular cities ===== *}
 <div id="np_tab_points" class="tab">
 <div class="row">
 <div class="col-xl-7 col-lg-12">
@@ -425,7 +423,6 @@
 </div>
 </div>
 
-{* ===== Waybills and cash on delivery ===== *}
 <div id="np_tab_waybills" class="tab">
 <form method="post" id="np_waybill_form">
 <input type="hidden" name="session_id" value="{$smarty.session.id|escape}">

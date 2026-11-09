@@ -78,7 +78,7 @@ final class WaybillView
         return $view;
     }
 
-    /** Old-API waybills go by point number, and a few numbers repeat inside one settlement (design §2). */
+    /** Old-API waybills go by point number, and a few numbers repeat inside one settlement. */
     private function numberRepeats(WaybillDraft $draft): bool
     {
         $division = $this->entityFactory->get(DivisionEntity::class)->get((int)$draft->divisionId);

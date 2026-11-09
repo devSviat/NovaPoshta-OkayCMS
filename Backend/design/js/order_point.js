@@ -1,4 +1,4 @@
-/* The point/address editor of the order page's Nova Poshta block (stage 4a2). Its fields carry no
+/* The point/address editor of the order page's Nova Poshta block. Its fields carry no
    name: they sit inside the order's form and are posted to OrderPointAdmin on their own. */
 (function () {
     'use strict';

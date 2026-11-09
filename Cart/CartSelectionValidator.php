@@ -12,7 +12,7 @@ use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 
 /**
  * Checks on the server what the cart form says: the browser can post any ids. Nothing from
- * the form is trusted beyond the two ids, and only for this module's delivery methods (§9).
+ * the form is trusted beyond the two ids, and only for this module's delivery methods.
  */
 final class CartSelectionValidator
 {
