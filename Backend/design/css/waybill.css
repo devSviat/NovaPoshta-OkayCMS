@@ -124,6 +124,8 @@
 .np-wb__card .np-wb__label { display: block; margin: 0 0 2px; font-size: 13px; color: var(--ok-ink-muted, #676e75); }
 /* One four-column grid for the top, body and payment rows, as in the old card: the description, the recipient and the payer start on the same lines. */
 .np-wb__top .np-wb__num { grid-column: span 2; }
+/* The description stays one line beside the declared value; a long one ends in «…», the hint holds it whole. */
+.np-wb__oneline { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 400; }
 .np-wb__top { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; align-items: end; padding: 16px 20px; border-bottom: 1px solid var(--ok-line, #e4e6e9); }
 .np-wb__num { display: flex; flex-direction: column; gap: 2px; }
 .np-wb__muted { font-size: 12px; color: var(--ok-ink-muted, #676e75); }
