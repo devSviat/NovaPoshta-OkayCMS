@@ -271,8 +271,7 @@
         if (!warning) {
             return;
         }
-        var recipient = root.querySelector('[data-field="payer_type"][value="Recipient"]');
-        warning.hidden = !(recipient && recipient.checked);
+        warning.hidden = input.value !== 'Recipient';
     });
 
     // The core binds .fn_clipboard once on page load; cards re-rendered later need their own handler.
