@@ -138,8 +138,8 @@
 .np-wb__card .np-wb__more[hidden] { display: none; }
 .np-wb__more-inner { padding: 16px 20px; }
 .np-wb__more-title { margin-bottom: 8px; font-size: 14px; font-weight: 600; text-transform: uppercase; color: var(--ok-ink, #212529); }
-.np-wb__card .np-wb__more-body { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; text-align: left; }
-.np-wb__card .np-wb__more-body > div { display: block; text-align: left; }
+.np-wb__card .np-wb__more-body { display: flex; flex-wrap: wrap; gap: 12px 40px; text-align: left; }
+.np-wb__card .np-wb__more-body > div { display: block; min-width: 90px; text-align: left; }
 .np-wb__card .np-wb__more-body .np-wb__label { display: block; }
 .np-wb__card .np-wb__issues { padding: 0 20px; }
 .np-wb__card .np-wb__footer { margin: 12px 0 0; padding: 10px 20px; border-top: 1px solid var(--ok-line, #e4e6e9); font-size: 13px; }
@@ -148,7 +148,7 @@
 .np-wb__icon:hover { background: var(--ok-sunken, #eef0f3); color: var(--ok-ink, #212529); }
 .np-wb__icon--danger:hover { color: var(--ok-danger, #c8352c); }
 @media (max-width: 767px) {
-    .np-wb__top, .np-wb__body, .np-wb__pay, .np-wb__card .np-wb__more-body { grid-template-columns: minmax(0, 1fr); }
+    .np-wb__top, .np-wb__body, .np-wb__pay { grid-template-columns: minmax(0, 1fr); }
     .np-wb__card .np-wb__number { font-size: 22px; }
 }
 
