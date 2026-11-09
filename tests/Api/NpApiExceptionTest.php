@@ -10,7 +10,7 @@ class NpApiExceptionTest extends TestCase
 {
     public function testMessageNeverContainsSecrets(): void
     {
-        $key = 'fedcba9876543210fedcba9876543210';
+        $key = 'test-np-key-not-real-aaaaaaaaaaa';
         $jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.c2lnbmF0dXJl';
 
         $e = NpApiException::fromNp(

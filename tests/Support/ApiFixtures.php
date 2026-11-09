@@ -8,8 +8,8 @@ use PHPUnit\Framework\TestCase;
 
 final class ApiFixtures
 {
-    public const string KEY = 'fedcba9876543210fedcba9876543210';
-    public const string OTHER_KEY = '0123456789abcdef0123456789abcdef';
+    public const string KEY = 'test-np-key-not-real-aaaaaaaaaaa';
+    public const string OTHER_KEY = 'test-np-key-not-real-bbbbbbbbbbb';
 
     /** Непідписаний JWT із заданим терміном дії; модуль читає лише `exp`. */
     public static function jwt(int $exp, string $sub = 'shop'): string
