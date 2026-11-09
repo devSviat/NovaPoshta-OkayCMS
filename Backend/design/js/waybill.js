@@ -246,6 +246,31 @@
         warning.hidden = !(recipient && recipient.checked);
     });
 
+    // The core binds .fn_clipboard once on page load; cards re-rendered later need their own handler.
+    document.addEventListener('click', function (event) {
+        var link = event.target.closest('.fn_np_wb_copy');
+        if (!link) {
+            return;
+        }
+        event.preventDefault();
+        var value = link.getAttribute('data-copy-string');
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(value);
+        } else {
+            var field = document.createElement('input');
+            field.value = value;
+            field.setAttribute('readonly', '');
+            field.style.position = 'absolute';
+            field.style.opacity = '0';
+            document.body.appendChild(field);
+            field.select();
+            document.execCommand('copy');
+            document.body.removeChild(field);
+        }
+        link.classList.add('is-copied');
+        setTimeout(function () { link.classList.remove('is-copied'); }, 1000);
+    });
+
     document.addEventListener('click', function (event) {
         var toggle = event.target.closest('.fn_np_wb_more');
         var panel = toggle ? toggle.closest('.np-wb__card') && toggle.closest('.np-wb__card').querySelector('.np-wb__more') : null;
