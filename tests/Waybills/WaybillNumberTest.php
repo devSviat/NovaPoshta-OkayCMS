@@ -20,4 +20,10 @@ class WaybillNumberTest extends TestCase
         self::assertNull(WaybillNumber::normalize(''));
         self::assertNull(WaybillNumber::normalize('2045001234567a'));
     }
+
+    /** The site routes /tracking/<number>/; the ?cargo_number= form is not in its routes (checked 09.11.2026). */
+    public function testTrackingUrl(): void
+    {
+        self::assertSame('https://novaposhta.ua/tracking/20451581331601/', \Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillNumber::trackingUrl('20451581331601'));
+    }
 }

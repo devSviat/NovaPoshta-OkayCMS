@@ -205,8 +205,13 @@ final class WaybillService
             return WaybillOutcome::refused('waybill_none');
         }
         $ref = (string)($row->ref ?? '');
-        // A waybill attached by number was made elsewhere: it is only unlinked from the order.
-        if ($row->api !== 'attached' && $ref !== '') {
+        $code = is_numeric($row->status_code ?? null) ? (int)$row->status_code : null;
+        if ($row->api !== 'attached' && $code !== null && !in_array($code, WaybillStatus::DELETABLE, true)) {
+            return WaybillOutcome::refused('waybill_not_deletable');
+        }
+        // A waybill attached by number was made elsewhere: it is only unlinked from the order; one NP
+        // already deleted is only forgotten.
+        if ($row->api !== 'attached' && $ref !== '' && $code !== 2) {
             try {
                 if ($row->api === 'new') {
                     $this->newApi->quick(self::TIMEOUT_SECONDS)->delete('/shipments/' . rawurlencode($ref));

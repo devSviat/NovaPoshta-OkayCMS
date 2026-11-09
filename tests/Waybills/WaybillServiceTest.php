@@ -433,6 +433,30 @@ class WaybillServiceTest extends TestCase
         self::assertSame([], $this->rows->rows);
     }
 
+    /** As the old module: only a waybill not yet handed over is deleted; NP refuses the rest anyway. */
+    public function testRemoveOnlyBeforeHandOver(): void
+    {
+        $this->rows->add(2, '20450000000002', 'ref-2', 'old', []);
+        $this->rows->saveStatus(2, 9, 'Відправлення отримано', '2026-11-01 10:00:00', null);
+
+        $outcome = $this->service()->remove(2);
+
+        self::assertFalse($outcome->ok);
+        self::assertSame('waybill_not_deletable', $outcome->issues[0]['advice'] ?? $outcome->issues[0]['key'] ?? null);
+        self::assertNotNull($this->rows->forOrder(2));
+        self::assertCount(0, $this->http->requests());
+    }
+
+    public function testRemoveOfAWaybillDeletedAtNpOnlyForgetsIt(): void
+    {
+        $this->rows->add(2, '20450000000002', 'ref-2', 'old', []);
+        $this->rows->saveStatus(2, 2, 'Видалено', null, null);
+
+        self::assertTrue($this->service()->remove(2)->ok);
+        self::assertNull($this->rows->forOrder(2));
+        self::assertCount(0, $this->http->requests());
+    }
+
     public function testRefusedRemoveKeepsTheRow(): void
     {
         $this->rows->add(2, '20450000000002', 'ref-2', 'old', []);

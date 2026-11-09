@@ -46,8 +46,8 @@ class WaybillCardTest extends TestCase
     public function testLinkDependsOnStatus(): void
     {
         self::assertSame('https://new.novaposhta.ua/edit/01a1b60d-0000-0000-0000-000000000001', WaybillCard::fromDocument(null, self::row(['status_code' => 1]))['link']);
-        self::assertSame('https://novaposhta.ua/tracking/?cargo_number=20451581331601', WaybillCard::fromDocument(null, self::row())['link']);
-        self::assertSame('https://novaposhta.ua/tracking/?cargo_number=20451581331601', WaybillCard::fromDocument(null, self::row(['status_code' => 1, 'ref' => null]))['link']);
+        self::assertSame('https://novaposhta.ua/tracking/20451581331601/', WaybillCard::fromDocument(null, self::row())['link']);
+        self::assertSame('https://novaposhta.ua/tracking/20451581331601/', WaybillCard::fromDocument(null, self::row(['status_code' => 1, 'ref' => null]))['link']);
     }
 
     public function testWithoutDocumentOnlyTheNumber(): void

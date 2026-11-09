@@ -67,7 +67,7 @@ final class OrderDeliveryView
         return [
             'number' => $number,
             'numberSpaced' => substr($number, 0, 2) . ' ' . implode(' ', str_split(substr($number, 2), 4)),
-            'url' => 'https://novaposhta.ua/tracking/?cargo_number=' . rawurlencode($number),
+            'url' => \Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillNumber::trackingUrl($number),
         ];
     }
 }

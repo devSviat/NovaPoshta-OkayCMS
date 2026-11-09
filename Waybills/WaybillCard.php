@@ -23,7 +23,7 @@ final class WaybillCard
             'number' => $number,
             'numberSpaced' => self::spaced($number),
             // A just-created waybill can still be edited in the NP account.
-            'link' => $code === 1 && $ref !== '' ? 'https://new.novaposhta.ua/edit/' . rawurlencode($ref) : 'https://novaposhta.ua/tracking/?cargo_number=' . rawurlencode($number),
+            'link' => $code === 1 && $ref !== '' ? 'https://new.novaposhta.ua/edit/' . rawurlencode($ref) : WaybillNumber::trackingUrl($number),
             'statusGroup' => WaybillStatus::group($code),
             'statusKey' => $code ? self::KEY . WaybillStatus::textKey($code) : null,
             // When the details were fetched, and when the status was last checked: two different times.

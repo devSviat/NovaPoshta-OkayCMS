@@ -103,7 +103,7 @@ class OrderDeliveryViewTest extends TestCase
         $row = static fn(array $o): object => (object)($o + ['number' => '20451581331601', 'api' => 'old', 'status_code' => 7]);
 
         self::assertSame(
-            ['number' => '20451581331601', 'numberSpaced' => '20 4515 8133 1601', 'url' => 'https://novaposhta.ua/tracking/?cargo_number=20451581331601'],
+            ['number' => '20451581331601', 'numberSpaced' => '20 4515 8133 1601', 'url' => 'https://novaposhta.ua/tracking/20451581331601/'],
             \Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill($row([])),
         );
         self::assertNull(\Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView::waybill($row(['status_code' => 2])));

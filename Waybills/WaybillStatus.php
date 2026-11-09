@@ -13,6 +13,8 @@ final class WaybillStatus
 
     /** Not polled any more: not final for the parcel, but nothing to learn (number unknown for 30 days). */
     public const int NOT_FOUND = 3;
+    /** NP deletes a waybill only before it is handed over: none yet or «Створено» (1); «Видалено» (2) is only forgotten. */
+    public const array DELETABLE = [1, 2];
 
     private const array GROUPS = [
         'created' => [1],
