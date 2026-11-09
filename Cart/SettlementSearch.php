@@ -54,9 +54,14 @@ final class SettlementSearch
 
         $found = [];
         foreach ($this->db->results() as $row) {
+            $name = $english && $row->name_en ? $row->name_en : $row->name_uk;
+            [$type, $title] = SettlementName::split((string)$name);
             $found[] = [
                 'id' => (int)$row->id,
-                'name' => $english && $row->name_en ? $row->name_en : $row->name_uk,
+                'name' => $name,
+                // Shown apart: the title bold, the type before it only where it tells namesakes apart.
+                'type' => $type,
+                'title' => $title,
                 'district' => $english && $row->district_en ? $row->district_en : $row->district_uk,
                 'area' => $english && $row->area_en ? $row->area_en : $row->area_uk,
             ];
