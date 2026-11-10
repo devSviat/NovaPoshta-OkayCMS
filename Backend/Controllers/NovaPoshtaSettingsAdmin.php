@@ -17,9 +17,6 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Core\EntityFactory;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
-use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyData;
-use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigration;
-use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigrationView;
 use Okay\Modules\Sviat\NovaPoshta\Cart\PopularCities;
 use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DictionaryCounts;
@@ -50,9 +47,7 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         CodPayments $codPayments,
         WaybillSettings $waybillSettings,
         SenderContacts $senderContacts,
-        LegacyMigration $legacyMigration,
         Module $module,
-        LegacyData $legacyData,
     ) {
         $submission = null;
         // Сток 4.5.3 перевіряє session_id лише після виконання контролера, тож підроблений
@@ -61,9 +56,6 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
             switch ($this->request->post('np_action')) {
                 case 'dictionaries':
                     $dictionaryRunner->requestRun();
-                    break;
-                case 'legacy_migrate':
-                    $legacyMigration->request();
                     break;
                 case 'popular':
                     $ids = $this->request->post('popular');
@@ -103,15 +95,6 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
             }
         }
 
-        $this->design->assign('np_legacy', LegacyMigrationView::vars(
-            $legacyMigration->state(),
-            $legacyData->counts(),
-            $legacyData->enabledModules(),
-            $legacyData->legacyDeliveries(),
-            $legacyMigration->stepNames(),
-            $legacyMigration->problem(),
-            $legacyMigration->stalled(),
-        ));
         $byCategory = $dictionaryCounts->byCategory();
         $this->design->assign('np_key', KeySettingsView::vars($apiKey->value(), $keySettings->lastResult(), $submission));
         $this->design->assign('np_dict', DictionaryStatusView::vars(

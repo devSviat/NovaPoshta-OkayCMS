@@ -12,9 +12,6 @@ use Okay\Modules\Sviat\NovaPoshta\Groups\DivisionCategory;
 /** Цифри для адмінки: з чого покупці реально можуть обирати (лише робочі пункти видачі). */
 final class DictionaryCounts
 {
-    /** @var array<string, int>|null сторінка налаштувань і перевірка перенесення зі старих модулів обидві запитують у межах одного запиту */
-    private ?array $byCategory = null;
-
     public function __construct(
         private readonly EntityFactory $entityFactory,
         private readonly Database $db,
@@ -25,16 +22,13 @@ final class DictionaryCounts
     /** @return array<string, int> робочі пункти видачі за категоріями; один прохід по таблиці, а не по одному на категорію */
     public function byCategory(): array
     {
-        if ($this->byCategory !== null) {
-            return $this->byCategory;
-        }
         $select = $this->queryFactory->newSelect()
             ->cols(['category', 'COUNT(*) AS n'])
             ->from(DivisionEntity::getTable())
             ->where("status = 'Working'")
             ->groupBy(['category']);
 
-        return $this->byCategory = self::fromRows($this->db->query($select) === false ? [] : $this->db->results());
+        return self::fromRows($this->db->query($select) === false ? [] : $this->db->results());
     }
 
     /**
