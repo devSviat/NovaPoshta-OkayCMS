@@ -27,10 +27,17 @@ class ParcelTest extends TestCase
         self::assertSame(0.1, Parcel::fromMetrics(new CartMetrics(0.01, false, 10.0), self::config())->weightKg);
     }
 
-    public function testVolumeKnownFromGoodsOrDefault(): void
+    /** Як вага: об'єм за замовчуванням додається за кожну одиницю товару без об'єму. */
+    public function testUnitsWithoutVolumeGetTheDefault(): void
     {
-        self::assertSame(0.03, Parcel::fromMetrics(new CartMetrics(1.0, false, 10.0, 0.03, 0, 2), self::config())->volumeM3);
-        self::assertSame(0.002, Parcel::fromMetrics(new CartMetrics(1.0, false, 10.0, 0.0, 0, 2), self::config())->volumeM3);
+        self::assertEqualsWithDelta(0.034, Parcel::fromMetrics(new CartMetrics(1.0, false, 10.0, 0.03, 0, 2), self::config())->volumeM3, 1e-12);
+        self::assertEqualsWithDelta(0.010, Parcel::fromMetrics(new CartMetrics(1.0, false, 10.0, 0.0, 0, 5), self::config())->volumeM3, 1e-12);
+        self::assertSame(0.03, Parcel::fromMetrics(new CartMetrics(1.0, false, 10.0, 0.03, 0, 0), self::config())->volumeM3);
+    }
+
+    public function testVolumeWithNothingKnownIsTheDefault(): void
+    {
+        self::assertSame(0.002, Parcel::fromMetrics(new CartMetrics(1.0, false, 10.0), self::config())->volumeM3);
     }
 
     public function testCubeSideInMillimetres(): void
