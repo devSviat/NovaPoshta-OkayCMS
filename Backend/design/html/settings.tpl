@@ -318,11 +318,8 @@
                             <span class="switch-handle"></span>
                         </span>
                     </label>
-                    <div class="np_check np_inline text_grey">
-                        <input class="hidden_check" type="checkbox" id="np_group_delete_{$group.id|escape}" data-field="delete" value="1">
-                        <label class="okay_ckeckbox" for="np_group_delete_{$group.id|escape}"></label>
-                        <label class="np_check__text" for="np_group_delete_{$group.id|escape}">{$btr->sviat__novaposhta__groups_delete|escape}</label>
-                    </div>
+                    <input type="hidden" data-field="delete" value="">
+                    <button type="button" class="btn_close np_popular_remove np_group_remove" aria-label="{$btr->sviat__novaposhta__groups_delete|escape}" title="{$btr->sviat__novaposhta__groups_delete|escape}">{include file='svg_icon.tpl' svgId='trash'}</button>
                 </div>
             {/foreach}
             <div class="np_group_row np_group_new" data-form-id="new" hidden>
@@ -342,9 +339,10 @@
                         <span class="switch-handle"></span>
                     </span>
                 </label>
+                <button type="button" class="btn_close np_popular_remove np_group_remove" aria-label="{$btr->sviat__novaposhta__groups_delete|escape}" title="{$btr->sviat__novaposhta__groups_delete|escape}">{include file='svg_icon.tpl' svgId='trash'}</button>
             </div>
         </div>
-        <button type="button" class="btn btn_mini btn-secondary btn_openSans mb-2" id="np_group_add">
+        <button type="button" class="btn btn_mini btn-secondary btn_openSans mt-1 mb-2" id="np_group_add">
             {include file='svg_icon.tpl' svgId='plus'}
             <span>{$btr->sviat__novaposhta__groups_add|escape}</span>
         </button>
@@ -481,7 +479,11 @@
                 <div class="heading_label"><label for="np_waybill_cutoff">{$btr->sviat__novaposhta__waybill_cutoff|escape}</label>
                     <i class="fn_tooltips np_tip hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__waybill_cutoff_tip|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__waybill_cutoff_tip|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>
                 </div>
-                <input id="np_waybill_cutoff" class="form-control" type="text" name="cutoff" maxlength="5" inputmode="numeric" value="{$np_waybill.config->cutoff|escape}">
+                <select id="np_waybill_cutoff" name="cutoff" class="selectpicker form-control" data-size="8">
+                    {foreach $np_waybill.cutoff_choices as $np_slot}
+                        <option value="{$np_slot|escape}" {if $np_slot == $np_waybill.config->cutoff}selected{/if}>{$np_slot|escape}</option>
+                    {/foreach}
+                </select>
             </div>
         </div>
     </div>
@@ -723,11 +725,30 @@
             selects.selectpicker('refresh');
         });
 
+        // Видалення спрацьовує після «Зберегти»; до того сторінку можна перезавантажити, і група повернеться.
+        rows.addEventListener('click', function (event) {
+            var button = event.target.closest('.np_group_remove');
+            if (!button) {
+                return;
+            }
+            var row = button.closest('.np_group_row');
+            row.hidden = true;
+            if (row === newRow) {
+                newName.value = '';
+                selects.find('option[value="new"]').remove();
+                selects.selectpicker('refresh');
+                document.getElementById('np_group_add').hidden = false;
+                return;
+            }
+            row.classList.add('np_group_row--deleted');
+            row.querySelector('[data-field="delete"]').value = '1';
+        });
+
         // Атрибути name йдуть у порядку на сторінці, тож перетягнута група зберігає нову позицію.
         form.addEventListener('submit', function () {
             var index = 0;
             rows.querySelectorAll('.np_group_row').forEach(function (row) {
-                if (row.hidden) {
+                if (row.hidden && !row.classList.contains('np_group_row--deleted')) {
                     return;
                 }
                 row.querySelectorAll('[data-field]').forEach(function (input) {

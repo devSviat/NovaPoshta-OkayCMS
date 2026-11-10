@@ -140,7 +140,8 @@ class NovaPoshtaSettingsAdmin extends IndexAdmin
         } catch (SenderContactsUnavailable) {
             $waybillSender = ['sender' => null, 'contacts' => [], 'unavailable' => true];
         }
-        $this->design->assign('np_waybill', ['config' => $waybillSettings->read()] + $waybillSender);
+        $waybillConfig = $waybillSettings->read();
+        $this->design->assign('np_waybill', ['config' => $waybillConfig, 'cutoff_choices' => WaybillSettings::cutoffChoices($waybillConfig->cutoff)] + $waybillSender);
         $this->response->setContent($this->design->fetch('settings.tpl'));
     }
 

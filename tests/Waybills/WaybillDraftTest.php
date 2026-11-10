@@ -127,7 +127,7 @@ class WaybillDraftTest extends TestCase
         $draft = self::build();
 
         self::assertSame(4.0, $draft->weightKg);
-        self::assertSame(0.001, $draft->volumeM3);
+        self::assertEqualsWithDelta(0.003, $draft->volumeM3, 1e-12, 'three units without volume, 0.001 m³ each');
     }
 
     public function testAddressNoteJoinsEntrance(): void
@@ -177,7 +177,7 @@ class WaybillDraftTest extends TestCase
         $locker = self::build(division: (object)(['category' => 'Postomat'] + (array)self::division()));
 
         self::assertTrue($locker->locker);
-        self::assertSame([10, 10, 10], $locker->seat(), '0.001 m³, as the old module started it');
+        self::assertSame([14, 14, 14], $locker->seat(), 'cube of 0.003 m³: three units without volume');
         self::assertSame([30, 20, 10], $locker->with(['seatCm' => [30, 20, 10]])->seat());
         self::assertFalse(self::build()->locker);
     }

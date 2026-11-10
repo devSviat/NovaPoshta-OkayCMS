@@ -56,6 +56,22 @@ final class WaybillSettings
         return [];
     }
 
+    /**
+     * Години відправки для списку: кожні пів години й збережена, якщо вона поза кроком.
+     *
+     * @return list<string> у порядку часу
+     */
+    public static function cutoffChoices(string $current): array
+    {
+        $choices = array_map(static fn(int $m): string => sprintf('%02d:%02d', intdiv($m, 60), $m % 60), range(0, 23 * 60 + 30, 30));
+        if (!in_array($current, $choices, true)) {
+            $choices[] = $current;
+            sort($choices);
+        }
+
+        return $choices;
+    }
+
     /** @return WaybillConfig|list<string> значення або мовні ключі того, що не так */
     public static function parse(array $post): WaybillConfig|array
     {

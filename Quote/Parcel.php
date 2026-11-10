@@ -25,7 +25,7 @@ final readonly class Parcel
     {
         return new self(
             max(self::MIN_WEIGHT, $cart->knownWeight + $config->defaultWeight * $cart->unitsWithoutWeight),
-            $cart->knownVolume > 0 ? $cart->knownVolume : $config->defaultVolume,
+            ($cart->knownVolume + $config->defaultVolume * $cart->unitsWithoutVolume) ?: $config->defaultVolume,
             $declaredCost ?? $cart->total,
         );
     }
