@@ -37,12 +37,14 @@ class ServicesTest extends TestCase
         }
     }
 
-    /** Популярні міста вручну налаштовуються за хвилину; перенесення бере лише те, що так не налаштуєш. */
-    public function testTheMoveHasNoPopularCitiesStep(): void
+    /** Перенесення зі старих модулів є лише в 1.0.x; з 1.1.0 його немає ні в сервісах, ні в планувальнику. */
+    public function testNoMoveFromTheOldModules(): void
     {
-        $steps = array_map(static fn(ServiceReference $r): string => $r->getName(), array_slice(self::services()[\Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigration::class]['arguments'], 2));
+        $legacy = array_filter(array_keys(self::services()), static fn(string $class): bool => str_contains($class, '\\Legacy\\'));
+        $init = (string)file_get_contents((new \ReflectionClass(\Okay\Modules\Sviat\NovaPoshta\Init\Init::class))->getFileName());
 
-        self::assertSame(['OrdersStep', 'WaybillsStep', 'PaymentsStep', 'VolumesStep', 'SettingsStep'], array_map(static fn(string $c): string => substr(strrchr($c, '\\'), 1), $steps));
+        self::assertSame([], array_values($legacy));
+        self::assertStringNotContainsString('data from the old modules', $init);
     }
 
     public function testOrderCleanupIsAService(): void

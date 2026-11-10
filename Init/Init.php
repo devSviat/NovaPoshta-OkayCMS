@@ -35,7 +35,6 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
-use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyMigration;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersEntityFilters;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
@@ -139,15 +138,6 @@ class Init extends AbstractInit
                 ->time('*/5 * * * *')
                 ->overlap(false)
                 ->timeout(3600)
-        );
-        // Щохвилини, щоб перенесення великої бази йшло годину, а не кілька; запуск триває до 40 с, тож вони не
-        // накладаються. Поза перенесенням запуск лише читає стан і виходить.
-        $this->registerSchedule(
-            new Schedule([LegacyMigration::class, 'tick'])
-                ->name('Nova Poshta: data from the old modules')
-                ->time('* * * * *')
-                ->overlap(false)
-                ->timeout(300)
         );
         // Дешева перевірка кожні 15 хвилин; сама робота виконується раз на день (див. OrderRowsCleanup::tick).
         $this->registerSchedule(
