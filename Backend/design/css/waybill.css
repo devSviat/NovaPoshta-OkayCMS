@@ -16,6 +16,13 @@
 .np-wb__group { display: block; margin: 16px 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); }
 .np-wb__group--first { margin-top: 4px; }
 .np-wb__actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+/* Дві кнопки ділять ширину колонки навпіл; у рядок переносяться, лише коли колонка вужча за ~250 px. */
+.np-wb__btn { flex: 1 1 120px; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding-left: 10px; padding-right: 10px; white-space: nowrap; }
+.np-wb__btn svg { flex: none; }
+.np-wb__btn span { overflow: hidden; text-overflow: ellipsis; }
+/* Ядро заливає .btn_border_blue у фокусі, а кнопка лишається у фокусі після закриття поля номера: контурна, поки не наведено мишу. */
+.np-wb__btn.btn_border_blue:focus:not(:hover) { color: var(--ok-accent); background-color: transparent; border-color: var(--ok-accent); }
+.np-wb__btn:focus-visible { outline: 2px solid var(--ok-accent); outline-offset: 2px; }
 .np-wb__number { font-size: 18px; font-weight: 600; letter-spacing: .02em; margin: 6px 0; }
 .np-wb__issue { margin-top: 10px; }
 .np-wb__issue details { margin-top: 4px; }
@@ -124,6 +131,9 @@
 
 /* Картка накладної в основній колонці, розкладена як картка старого модуля трекінгу. */
 .np-wb:has(> .np-wb__card) { margin-top: 0; padding-top: 0; border-top: 0; }
+/* Картка ділить блок під товарами з іншими модулями (чеки, аналітика), а їхній порядок задає список модулів: відступ від сусіда з будь-якого боку. */
+.np-wb:has(> .np-wb__card):not(:first-child) { margin-top: 20px; }
+.np-wb:has(> .np-wb__card):not(:last-child) { margin-bottom: 20px; }
 .np-wb__card { border: 1px solid var(--ok-line, #e4e6e9); border-radius: 10px; background: var(--ok-surface, #fff); }
 .np-wb__card .np-wb__label { display: block; margin: 0 0 2px; font-size: 13px; color: var(--ok-ink-muted, #676e75); }
 /* Одна сітка на чотири колонки для верхнього рядка, тіла й рядка оплати, як у старій картці: опис, отримувач і платник починаються на тих самих лініях. */

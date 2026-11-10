@@ -304,7 +304,8 @@
         warning.hidden = input.value !== 'Recipient';
     });
 
-    // Ядро прив'язує .fn_clipboard один раз під час завантаження сторінки; картки, перемальовані пізніше, потребують власного обробника.
+    // Ядро прив'язує .fn_clipboard ще в <head>, до появи рядків списку замовлень, і не бачить карток, перемальованих
+    // пізніше; без власного обробника клік по href="" перезавантажує сторінку.
     document.addEventListener('click', function (event) {
         var link = event.target.closest('.fn_np_wb_copy');
         if (!link) {
