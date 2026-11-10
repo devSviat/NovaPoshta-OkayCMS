@@ -97,4 +97,21 @@ class WaybillSettingsTest extends TestCase
         self::assertSame('00000000-0000-0000-0000-000000000010', WaybillSettings::parse(['contact_ref' => '00000000-0000-0000-0000-000000000010'])->contactRef);
         self::assertSame(['waybill_error_contact'], WaybillSettings::parse(['contact_ref' => '<script>']));
     }
+
+    public function testCutoffChoicesAreHalfHours(): void
+    {
+        $choices = WaybillSettings::cutoffChoices('16:00');
+
+        self::assertCount(48, $choices);
+        self::assertSame(['00:00', '00:30', '01:00'], array_slice($choices, 0, 3));
+        self::assertSame('23:30', end($choices));
+    }
+
+    public function testCutoffChoicesKeepAStoredTimeOffTheStep(): void
+    {
+        $choices = WaybillSettings::cutoffChoices('16:15');
+
+        self::assertCount(49, $choices);
+        self::assertSame(['16:00', '16:15', '16:30'], array_slice($choices, array_search('16:00', $choices, true), 3));
+    }
 }
