@@ -2,7 +2,6 @@
 
 namespace Okay\Modules\Sviat\NovaPoshta\Orders;
 
-use Okay\Modules\Sviat\NovaPoshta\Legacy\LegacyOrders;
 use Okay\Core\EntityFactory;
 use Okay\Entities\OrdersEntity;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartSelection;
@@ -108,46 +107,5 @@ final class OrderDeliveryStore
     public static function legacyAfterChoice(?string $was): ?string
     {
         return $was === null ? null : 'migrated';
-    }
-
-    /** Довжини колонок таблиці замовлень: значення зі старих модулів обрізаються під них, а не відхиляються. */
-    private const array LEGACY_COLUMNS = [
-        'mode' => 16, 'settlement_id' => null, 'settlement_name' => 255, 'district_name' => 255, 'area_name' => 255,
-        'division_id' => null, 'division_number' => 32, 'division_category' => 32, 'division_name' => 255, 'division_address' => 255,
-        'delivery_price' => null, 'price_source' => 16, 'cod' => null, 'street_name' => 100, 'house' => 10, 'flat' => 10,
-        'floor' => null, 'elevator' => null, 'address_note' => 40, 'lifting' => null, 'legacy' => 16,
-    ];
-
-    /** @return array<string, mixed> лише колонки, які може задати перенесений рядок; текст обрізано під свою колонку */
-    public static function legacyValues(array $values): array
-    {
-        $row = [];
-        foreach (self::LEGACY_COLUMNS as $column => $max) {
-            if (!array_key_exists($column, $values)) {
-                continue;
-            }
-            $value = $values[$column];
-            $row[$column] = $max !== null && is_string($value) ? mb_substr($value, 0, $max) : $value;
-        }
-
-        return $row;
-    }
-
-    /**
-     * Рядок, перенесений з NovaposhtaCost. Ніколи не замінює те, що в модулі вже є.
-     * @return bool false, коли замовлення вже має рядок
-     */
-    /** @return LegacyOrders::DONE|LegacyOrders::EXISTED|LegacyOrders::FAILED */
-    public function importLegacy(int $orderId, int $deliveryId, array $values): string
-    {
-        $entity = $this->entityFactory->get(OrderDeliveryEntity::class);
-        if ($entity->findOne(['order_id' => $orderId])) {
-            return LegacyOrders::EXISTED;
-        }
-        $now = date('Y-m-d H:i:s');
-        // Ядро ковтає помилку SQL і повертає false: без перевірки перенесення рахувало б незаписане як перенесене.
-        $added = $entity->add(['order_id' => $orderId, 'delivery_id' => $deliveryId, 'created_at' => $now, 'updated_at' => $now] + self::legacyValues($values));
-
-        return $added ? LegacyOrders::DONE : LegacyOrders::FAILED;
     }
 }

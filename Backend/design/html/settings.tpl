@@ -14,8 +14,6 @@
     </div>
 </div>
 
-{include file='legacy_migration.tpl'}
-
 {if $np_free_for_all}
     <div class="alert alert--icon alert--error">
         <div class="alert__content">
