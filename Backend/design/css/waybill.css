@@ -16,6 +16,10 @@
 .np-wb__group { display: block; margin: 16px 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); }
 .np-wb__group--first { margin-top: 4px; }
 .np-wb__actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+/* Дві кнопки ділять ширину колонки навпіл; у рядок переносяться, лише коли колонка вужча за ~250 px. */
+.np-wb__btn { flex: 1 1 120px; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding-left: 10px; padding-right: 10px; white-space: nowrap; }
+.np-wb__btn svg { flex: none; }
+.np-wb__btn span { overflow: hidden; text-overflow: ellipsis; }
 .np-wb__number { font-size: 18px; font-weight: 600; letter-spacing: .02em; margin: 6px 0; }
 .np-wb__issue { margin-top: 10px; }
 .np-wb__issue details { margin-top: 4px; }
