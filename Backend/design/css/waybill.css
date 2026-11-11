@@ -110,6 +110,12 @@
 .np-wb__title { font-size: 16px; font-weight: 600; }
 .np-wb__label { display: block; margin: 8px 0 4px; }
 .np-wb__tip { margin-left: 4px; vertical-align: middle; }
+/* Ширше 1400px (break_1300_12 у grid.css) накладна стоїть у вузькій правій колонці замовлення: підказка на
+   300px, що розгортається праворуч, вилазить за край і навіть прихованою дає сторінці горизонтальний скрол. */
+@media (min-width: 1401px) {
+    .np-wb__tip[class*="hint-bottom-left"]::after { left: auto; right: 0; }
+    .np-wb__tip[class*="hint-bottom-left"]::before { left: auto; right: 15px; }
+}
 .np-wb__radios { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 4px 10px; margin-bottom: 6px; }
 .np-wb__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; align-items: end; }
 .np-wb__triple { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 8px; align-items: end; }
