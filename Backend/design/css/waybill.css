@@ -97,6 +97,8 @@
 /* Переважає правило списку ядра .okay_list .okay_list_boding a:not(.btn). */
 .okay_list .np-list-status a.np-list-status__number:not(.btn) { color: #646464; white-space: nowrap; text-decoration: none; }
 .okay_list .np-list-status a.np-list-status__number:not(.btn):hover { color: var(--ok-accent, #135c94); }
+/* Жовтий фон «скопійовано» дає .fn_clipboard ядра; сірий текст рядка на ньому ледве читається. */
+.okay_list .np-list-status a.np-list-status__number.is-copied:not(.btn) { color: var(--ok-ink, #1f2328); }
 .np-list-status .np-wb__badge { margin-left: 4px; padding: 3px 6px; font-size: 10px; line-height: 1; white-space: nowrap; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .1); }
 .np-mass { display: flex; flex-direction: column; gap: 6px; }
 .np-mass__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
