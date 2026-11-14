@@ -23,11 +23,11 @@ use Okay\Modules\Sviat\NovaPoshta\Cart\SettlementSearch;
 use Okay\Modules\Sviat\NovaPoshta\Cart\ThemeClasses;
 use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryLines;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
 use Okay\Core\Money;
 use Okay\Entities\CurrenciesEntity;
-use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DeliveryPriceView;
 use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteSession;
@@ -63,6 +63,7 @@ class FrontExtender implements ExtensionInterface
         private readonly Money $money,
         private readonly UahTotal $uahTotal,
         private readonly WaybillStore $waybills,
+        private readonly OrderDeliveryLines $orderLines,
     ) {
     }
 
@@ -197,21 +198,13 @@ class FrontExtender implements ExtensionInterface
 
     /**
      * QueueExtension для OrdersHelper::getOrderPaymentMethodsList і NotifyHelper::finalEmailOrderUser/Admin:
-     * сторінка замовлення й обидва листи показують збережений пункт видачі. Для інших замовлень
-     * присвоюється null, бо один запит може рендерити листи кількох замовлень з тим самим Design.
+     * сторінка замовлення й обидва листи показують збережений пункт видачі, поки доставка замовлення — цього модуля.
+     * Для інших замовлень присвоюється null, бо один запит може рендерити листи кількох замовлень з тим самим Design.
      */
     public function assignOrderDelivery($result, $order)
     {
-        $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
-        $lines = null;
-        if ($row) {
-            $delivery = $this->entityFactory->get(DeliveriesEntity::class)->get((int)($order->delivery_id ?? 0));
-            $lines = OrderDeliveryView::lines(
-                $row,
-                (float)($order->delivery_price ?? 0),
-                $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0)),
-                empty($delivery->hide_front_delivery_price),
-            );
+        $lines = is_object($order) ? $this->orderLines->forOrder($order) : null;
+        if ($lines !== null) {
             $lines['waybill'] = OrderDeliveryView::waybill($this->waybills->forOrder((int)$order->id));
         }
         $this->design->assign('np_order_delivery', $lines);

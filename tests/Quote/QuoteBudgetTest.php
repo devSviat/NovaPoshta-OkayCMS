@@ -50,4 +50,22 @@ class QuoteBudgetTest extends TestCase
         [$ok] = QuoteBudget::take($state, 1000 + QuoteBudget::WINDOW, visitor: 'bot');
         self::assertTrue($ok, 'нове вікно');
     }
+
+    public function testVisitorIsAnIpHash(): void
+    {
+        self::assertNotNull(QuoteBudget::visitor('203.0.113.7'));
+        self::assertNotSame(QuoteBudget::visitor('203.0.113.7'), QuoteBudget::visitor('203.0.113.8'));
+        self::assertSame(QuoteBudget::visitor('203.0.113.7'), QuoteBudget::visitor('::ffff:203.0.113.7'), 'IPv4 on a dual-stack socket');
+        self::assertNull(QuoteBudget::visitor(null));
+        self::assertNull(QuoteBudget::visitor(''));
+        self::assertLessThanOrEqual(QuoteBudget::LIMIT / 3, QuoteBudget::VISITOR_LIMIT);
+    }
+
+    /** Клієнт IPv6, що міняє адреси в межах своєї /64, лишається одним відвідувачем. */
+    public function testIpv6AddressesInOneSlash64ShareOneVisitor(): void
+    {
+        $first = QuoteBudget::visitor('2001:db8:aa:1::1');
+        self::assertSame($first, QuoteBudget::visitor('2001:db8:aa:1:ffff:1234:5678:9abc'));
+        self::assertNotSame($first, QuoteBudget::visitor('2001:db8:aa:2::1'));
+    }
 }

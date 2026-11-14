@@ -5,8 +5,8 @@ namespace Okay\Modules\Sviat\NovaPoshta\Quote;
 use Okay\Core\EntityFactory;
 use Okay\Core\Modules\Module;
 use Okay\Core\Money;
-use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Modules\Sviat\NovaPoshta\Storage\Mutex;
+use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 use Okay\Entities\CurrenciesEntity;
 use Okay\Entities\DeliveriesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
@@ -29,7 +29,12 @@ final class CartQuotes
     private const int BUDGET_LOCK_WAIT = 2;
     private const int SEARCH_PER_SESSION = 300;
     private const int SEARCH_BUDGET = 20000;
-    private const int SEARCH_PER_VISITOR = 300;
+    /** Пошук іде по власній базі: частка IP широка, щоб багато покупців за одним NAT не відчули її. */
+    public const int SEARCH_PER_VISITOR = 1000;
+    private const int STREET_PER_SESSION = 60;
+    private const int STREET_BUDGET = 600;
+    /** Кожна підказка вулиці — запит до НП: третина спільного ліміту, як у розрахунку ціни. */
+    public const int STREET_PER_VISITOR = 200;
 
     public function __construct(
         private readonly QuoteService $service,
@@ -38,9 +43,10 @@ final class CartQuotes
         private readonly CodPayments $codPayments,
         private readonly Module $module,
         private readonly Money $money,
-        private readonly ModuleState $state,
+        private readonly StateStorage $state,
         private readonly AddressCityResolver $addressCities,
         private readonly Mutex $mutex,
+        private readonly ClientAddress $client,
     ) {
     }
 
@@ -252,7 +258,7 @@ final class CartQuotes
             return false;
         }
         try {
-            [$allowed, $state] = QuoteBudget::take($this->state->get($name), $now, $limit, self::cookielessVisitor(), $visitorLimit);
+            [$allowed, $state] = QuoteBudget::take($this->state->get($name), $now, $limit, QuoteBudget::visitor($this->client->address()), $visitorLimit);
             $this->state->set($name, $state);
         } finally {
             $this->mutex->release($name);
@@ -262,22 +268,8 @@ final class CartQuotes
     }
 
     /**
-     * Частку спільного ліміту рахуємо лише клієнту без cookie сесії: обмеження на сесію його не стримує.
-     * Покупець надсилає cookie (сторінка кошика відкрилась раніше за розрахунок), тож магазин за проксі
-     * чи CDN, де всі мають один IP, звичайних покупців цим не обмежує. IP зберігається лише хешем.
-     */
-    private static function cookielessVisitor(): ?string
-    {
-        if (isset($_COOKIE[session_name()]) || !is_string($_SERVER['REMOTE_ADDR'] ?? null)) {
-            return null;
-        }
-
-        return substr(sha1('sviat_np|' . $_SERVER['REMOTE_ADDR']), 0, 16);
-    }
-
-    /**
      * Пошук міст і відділень іде по власній базі, без НП, тож межі широкі: лише проти зловживання.
-     * На сесію — як для вулиць; клієнт без cookie обмежений своєю часткою спільного ліміту.
+     * Обмеження на сесію стримує звичайного покупця, частка IP — клієнта, що щоразу шле нову cookie.
      */
     public function allowSearch(): bool
     {
@@ -298,7 +290,8 @@ final class CartQuotes
     {
         $bag = $this->bag();
         $now = time();
-        $allowed = QuoteThrottle::allow($bag, $now, 'street_calls', 60) && $this->takeBudget($now, 'street_budget', 600);
+        $allowed = QuoteThrottle::allow($bag, $now, 'street_calls', self::STREET_PER_SESSION)
+            && $this->takeBudget($now, 'street_budget', self::STREET_BUDGET, self::STREET_PER_VISITOR);
         $this->store($bag);
 
         return $allowed;

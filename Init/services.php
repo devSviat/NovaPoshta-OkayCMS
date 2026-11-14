@@ -60,6 +60,9 @@ use Okay\Modules\Sviat\NovaPoshta\Storage\DbMutex;
 use Okay\Modules\Sviat\NovaPoshta\Storage\ModuleState;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
+use Okay\Modules\Sviat\NovaPoshta\Orders\DbExistingOrders;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryLines;
+use Okay\Modules\Sviat\NovaPoshta\Orders\ExistingOrders;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
@@ -67,6 +70,7 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\AddressCityResolver;
 use Okay\Modules\Sviat\NovaPoshta\Cart\StreetSearch;
 use Okay\Modules\Sviat\NovaPoshta\Quote\QuoteService;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
+use Okay\Modules\Sviat\NovaPoshta\Quote\ClientAddress;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DbCityRefStore;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 use Okay\Modules\Sviat\NovaPoshta\Cart\UahTotal;
@@ -114,15 +118,19 @@ return [
     ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
-        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Request::class), new SR(OrdersMassAction::class), new SR(OrderRowsCleanup::class)],
+        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Request::class), new SR(OrdersMassAction::class), new SR(OrderRowsCleanup::class), new SR(OrderDeliveryLines::class)],
     ],
     DbMutex::class => [
         'class' => DbMutex::class,
         'arguments' => [new SR(Database::class), new SR(QueryFactory::class)],
     ],
+    ExistingOrders::class => [
+        'class' => DbExistingOrders::class,
+        'arguments' => [new SR(Database::class), new SR(QueryFactory::class)],
+    ],
     OrderRowsCleanup::class => [
         'class' => OrderRowsCleanup::class,
-        'arguments' => [new SR(EntityFactory::class), new SR(ModuleState::class)],
+        'arguments' => [new SR(EntityFactory::class), new SR(ModuleState::class), new SR(ExistingOrders::class)],
     ],
     DbCityRefStore::class => [
         'class' => DbCityRefStore::class,
@@ -146,7 +154,10 @@ return [
     ],
     CartQuotes::class => [
         'class' => CartQuotes::class,
-        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class), new SR(Money::class), new SR(ModuleState::class), new SR(AddressCityResolver::class), new SR(DbMutex::class)],
+        'arguments' => [new SR(QuoteService::class), new SR(ShippingSettings::class), new SR(EntityFactory::class), new SR(CodPayments::class), new SR(Module::class), new SR(Money::class), new SR(ModuleState::class), new SR(AddressCityResolver::class), new SR(DbMutex::class), new SR(ClientAddress::class)],
+    ],
+    ClientAddress::class => [
+        'class' => ClientAddress::class,
     ],
     CodPayments::class => [
         'class' => CodPayments::class,
@@ -237,7 +248,12 @@ return [
             new SR(Money::class),
             new SR(UahTotal::class),
             new SR(WaybillStore::class),
+            new SR(OrderDeliveryLines::class),
         ],
+    ],
+    OrderDeliveryLines::class => [
+        'class' => OrderDeliveryLines::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(Module::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class)],
     ],
     CartSelectionValidator::class => [
         'class' => CartSelectionValidator::class,

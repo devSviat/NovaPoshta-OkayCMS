@@ -1,6 +1,6 @@
 {
   "Okay": "4.5.3",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "moduleName": "Nova Poshta",
   "vendor": {
     "email": "devsviat@proton.me",
@@ -28,7 +28,7 @@
           },
           {
             "find": "<form class=\"search\" method=\"get\">",
-            "appendAfter": "{if $np_status_group}<input type=\"hidden\" name=\"np_waybill\" value=\"{$np_status_group|escape}\">{/if}"
+            "prepend": "orders_search.tpl"
           },
           {
             "find": "<option data-item=\"remove\" value=\"delete\">",
