@@ -6,11 +6,10 @@ use Okay\Modules\Sviat\NovaPoshta\Backend\DeliveryWarnings;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\PendingWaybill;
 use Okay\Core\Design;
 use Okay\Core\EntityFactory;
-use Okay\Entities\DeliveriesEntity;
 use Okay\Core\Modules\Extender\ExtensionInterface;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
-use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
+use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryLines;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPaymentInput;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Products\VariantVolume;
@@ -43,6 +42,7 @@ class BackendExtender implements ExtensionInterface
         private readonly Request $request,
         private readonly OrdersMassAction $massAction,
         private readonly OrderRowsCleanup $orderRows,
+        private readonly OrderDeliveryLines $orderLines,
     ) {
     }
 
@@ -105,24 +105,24 @@ class BackendExtender implements ExtensionInterface
     /** QueueExtension для BackendOrdersHelper::findOrder: сторінка замовлення показує, куди йде посилка. */
     public function assignOrderDelivery($order, $orderId = null)
     {
-        $row = is_object($order) && !empty($order->id) ? $this->orders->forOrder((int)$order->id) : null;
-        $point = is_object($order) && !empty($order->id) ? $this->pointEditor($order, $row) : null;
-        $showWaybill = $point === null ? $row !== null : $point['showWaybill'];
-        if ($point !== null && $point['needsChoice']) {
-            // Збережений пункт видачі належить іншому режиму (спосіб доставки змінився) або його ще немає.
-            $row = null;
+        $found = is_object($order) && !empty($order->id);
+        $delivery = $found ? $this->orderLines->ownDelivery($order) : null;
+        $row = $found ? $this->orders->forOrder((int)$order->id) : null;
+        $point = $delivery ? $this->pointEditor($order, $delivery, $row) : null;
+        $lines = null;
+        if ($point === null) {
+            // Доставку змінено на спосіб іншого модуля: старий пункт не показується, а накладна, створена до зміни,
+            // лишається видимою — її треба видалити чи відв'язати; форми нової накладної до старого пункту немає.
+            $waybill = $row ? $this->waybillRows->forOrder((int)$order->id) : null;
+            $showWaybill = $waybill !== null && !PendingWaybill::is($waybill);
+        } else {
+            $showWaybill = $point['showWaybill'];
+            // needsChoice: збережений пункт видачі належить іншому режиму (спосіб доставки змінився) або його ще немає.
+            if ($row && !$point['needsChoice']) {
+                $lines = $this->orderLines->lines($order, $delivery, $row);
+            }
         }
         $this->design->assign('np_order_point', $point);
-        $lines = null;
-        if ($row) {
-            $delivery = $this->entityFactory->get(DeliveriesEntity::class)->get((int)($order->delivery_id ?? 0));
-            $lines = OrderDeliveryView::lines(
-                $row,
-                (float)($order->delivery_price ?? 0),
-                $this->codPayments->isCod((int)($order->payment_method_id ?? 0)),
-                empty($delivery->hide_front_delivery_price),
-            );
-        }
         $this->design->assign('np_order_delivery', $lines);
         $this->design->assign('np_waybill', $showWaybill ? $this->waybills->forOrder((int)$order->id) : null);
     }
@@ -135,15 +135,9 @@ class BackendExtender implements ExtensionInterface
         'op_price_keep', 'op_price_same', 'op_price_free', 'op_price_show', 'op_price_auto', 'op_price_offer', 'op_price_apply', 'op_price_applied', 'op_street_typed', 'op_change',
     ];
 
-    /**
-     * Те, що потрібно редактору пункту видачі/адреси; null, коли спосіб доставки замовлення не належить цьому модулю.
-     */
-    private function pointEditor(object $order, ?object $snapshot): ?array
+    /** Те, що потрібно редактору пункту видачі/адреси; $delivery — спосіб цього модуля (OrderDeliveryLines::ownDelivery). */
+    private function pointEditor(object $order, object $delivery, ?object $snapshot): array
     {
-        $delivery = $this->entityFactory->get(DeliveriesEntity::class)->get((int)($order->delivery_id ?? 0));
-        if (!$delivery || (int)$delivery->module_id !== (int)$this->module->getModuleIdByNamespace(__CLASS__)) {
-            return null;
-        }
         $settings = is_string($delivery->settings ?? null) ? (@unserialize($delivery->settings, ['allowed_classes' => false]) ?: []) : (array)($delivery->settings ?? []);
         $mode = DeliveryMode::fromServiceType($settings['service_type'] ?? null);
         $state = OrderPointChange::editorState($snapshot, $mode->value, $this->waybillRows->forOrder((int)$order->id), time());

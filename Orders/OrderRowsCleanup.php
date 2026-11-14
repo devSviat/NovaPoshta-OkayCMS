@@ -3,7 +3,6 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Orders;
 
 use Okay\Core\EntityFactory;
-use Okay\Entities\OrdersEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
@@ -15,14 +14,15 @@ use Okay\Modules\Sviat\NovaPoshta\Storage\StateStorage;
 final class OrderRowsCleanup
 {
     private const string CHECKED_ON = 'orphan_rows_checked_on';
-    private const int CHUNK = 500;
+    private const array TABLES = [OrderDeliveryEntity::class, WaybillEntity::class];
 
     private readonly \Closure $today;
 
     /** @param ?\Closure(): string $today Y-m-d */
     public function __construct(
         private readonly EntityFactory $entityFactory,
-        private readonly ?StateStorage $state = null,
+        private readonly StateStorage $state,
+        private readonly ExistingOrders $orders,
         ?\Closure $today = null,
     ) {
         $this->today = $today ?? static fn(): string => date('Y-m-d');
@@ -35,39 +35,57 @@ final class OrderRowsCleanup
     public function tick(): void
     {
         $today = ($this->today)();
-        if ($this->state === null || $this->state->get(self::CHECKED_ON) === $today) {
+        if ($this->state->get(self::CHECKED_ON) === $today) {
             return;
         }
-        $this->state->set(self::CHECKED_ON, $today);
-        foreach ([OrderDeliveryEntity::class, WaybillEntity::class] as $class) {
-            $entity = $this->entityFactory->get($class);
-            $orderOf = [];
-            foreach ($entity->noLimit()->cols(['id', 'order_id'])->find() as $row) {
-                $orderOf[(int)$row->id] = (int)$row->order_id;
-            }
-            $existing = $this->existingOrders(array_values(array_unique($orderOf)));
-            $orphans = array_keys(array_filter($orderOf, static fn(int $orderId): bool => !isset($existing[$orderId])));
-            if ($orphans !== []) {
-                $entity->delete($orphans);
+        $orderOf = [];
+        $orderIds = [];
+        foreach (self::TABLES as $class) {
+            $orderOf[$class] = [];
+            foreach ($this->entityFactory->get($class)->noLimit()->cols(['id', 'order_id'])->find() as $row) {
+                $orderOf[$class][(int)$row->id] = (int)$row->order_id;
+                $orderIds[(int)$row->order_id] = true;
             }
         }
+        if ($orderIds !== []) {
+            $existing = $this->orders->among(array_keys($orderIds));
+            $maxOrderId = $this->orders->maxId();
+            $orphans = [];
+            foreach (self::TABLES as $class) {
+                $orphans[$class] = self::orphans($orderOf[$class], $existing, $maxOrderId);
+                // Без відповіді про замовлення не видаляємо нічого й не позначаємо день: наступний тік спробує знову.
+                if ($orphans[$class] === null) {
+                    return;
+                }
+            }
+            foreach ($orphans as $class => $ids) {
+                if ($ids !== []) {
+                    $this->entityFactory->get($class)->delete($ids);
+                }
+            }
+        }
+        $this->state->set(self::CHECKED_ON, $today);
     }
 
     /**
-     * @param list<int> $orderIds
-     * @return array<int, true>
+     * Рядок без замовлення — сирота лише тоді, коли відповідь про замовлення є й правдоподібна. Порожня відповідь
+     * при наявних рядках схожа радше на збій, ніж на видалення всіх замовлень; номер, більший за найбільший
+     * у таблиці, належить замовленню, яке ще не видно (не видалене).
+     *
+     * @param array<int, int> $orderOf order_id за id рядка
+     * @param ?array<int, true> $existing
+     * @return ?list<int> id рядків для видалення; null — відповіді немає або вона неправдоподібна
      */
-    private function existingOrders(array $orderIds): array
+    public static function orphans(array $orderOf, ?array $existing, ?int $maxOrderId): ?array
     {
-        $orders = $this->entityFactory->get(OrdersEntity::class);
-        $existing = [];
-        foreach (array_chunk($orderIds, self::CHUNK) as $chunk) {
-            foreach ($orders->noLimit()->cols(['id'])->find(['id' => $chunk]) as $id) {
-                $existing[(int)$id] = true;
-            }
+        if ($existing === null || $existing === [] || $maxOrderId === null || $maxOrderId <= 0) {
+            return null;
         }
 
-        return $existing;
+        return array_keys(array_filter(
+            $orderOf,
+            static fn(int $orderId): bool => !isset($existing[$orderId]) && $orderId <= $maxOrderId,
+        ));
     }
 
     /** @param list<int|string> $orderIds */
@@ -77,7 +95,7 @@ final class OrderRowsCleanup
         if ($orderIds === []) {
             return;
         }
-        foreach ([OrderDeliveryEntity::class, WaybillEntity::class] as $class) {
+        foreach (self::TABLES as $class) {
             $entity = $this->entityFactory->get($class);
             $ids = array_map(intval(...), $entity->noLimit()->cols(['id'])->find(['order_id' => $orderIds]));
             if ($ids !== []) {
