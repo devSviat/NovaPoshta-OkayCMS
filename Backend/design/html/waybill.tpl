@@ -100,7 +100,7 @@
             {if $c.payment && ($c.payment.cost || $c.payment.payer)}
                 <div class="np-wb__pay">
                     {if $c.payment.cost}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_cost|escape}</span><b class="np-wb__big">{$c.payment.cost|escape}</b></div>{/if}
-                    {if $c.payment.payer}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_payer|escape}</span><span class="np-wb__capital">{$btr->getTranslation($c.payment.payer)|escape}</span></div>{/if}
+                    {if $c.payment.payer}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_payer|escape}</span><span class="np-wb__capital">{$btr->getTranslation($c.payment.payer)|escape}</span>{if $c.payment.reason}<span class="np-wb__payer-why">{$btr->getTranslation($c.payment.reason)|escape}</span>{/if}</div>{/if}
                     {if $c.payment.method}<div><span class="np-wb__label">{$btr->sviat__novaposhta__card_method|escape}</span>{$btr->getTranslation($c.payment.method)|escape}</div>{/if}
                 </div>
             {/if}
@@ -226,28 +226,38 @@
                 </div>
             {/if}
             <div class="np-wb__group">{$btr->sviat__novaposhta__waybill_group_delivery|escape}</div>
-            <div class="np-wb__pair">
-                {np_wb_select field='payer_type' value=$d->payerType label=$btr->sviat__novaposhta__waybill_payer options=['Sender' => $btr->sviat__novaposhta__waybill_sender_party, 'Recipient' => $btr->sviat__novaposhta__waybill_recipient]}
-                {np_wb_select field='payment_method' value=$d->paymentMethod label=$btr->sviat__novaposhta__waybill_payment options=['Cash' => $btr->sviat__novaposhta__waybill_cash, 'NonCash' => $btr->sviat__novaposhta__waybill_noncash]}
-            </div>
-            {if $d->senderPaysBecause == 'free'}
-                <div class="np-wb__line text_grey">{$btr->sviat__novaposhta__waybill_payer_free|escape}</div>
-            {/if}
             {if $d->deliveryInTotal > 0}
                 {$np_wb_delivery = $d->deliveryInTotal|string_format:'%.2f'|replace:'.00':''|replace:'.':','}
-                <div class="np-wb__line text_grey">{$btr->sviat__novaposhta__waybill_payer_in_total|replace:'%sum%':$np_wb_delivery|escape}</div>
+            {/if}
+            {* Причину автоматичного «Відправник» видно під самим селектом; платник із налаштувань пояснень не потребує. *}
+            <div class="np-wb__pair">
+                <div class="np-wb__payer">
+                    {np_wb_select field='payer_type' value=$d->payerType label=$btr->sviat__novaposhta__waybill_payer options=['Sender' => $btr->sviat__novaposhta__waybill_sender_party, 'Recipient' => $btr->sviat__novaposhta__waybill_recipient]}
+                    {if $d->senderPaysBecause == 'in_total'}
+                        <div class="np-wb__reason" {if $d->payerType != 'Sender'}hidden{/if}>{$btr->sviat__novaposhta__waybill_payer_in_total|replace:'%sum%':$np_wb_delivery|escape}</div>
+                    {elseif $d->senderPaysBecause == 'free'}
+                        <div class="np-wb__reason" {if $d->payerType != 'Sender'}hidden{/if}>{$btr->sviat__novaposhta__waybill_payer_free|escape}</div>
+                    {/if}
+                </div>
+                {np_wb_select field='payment_method' value=$d->paymentMethod label=$btr->sviat__novaposhta__waybill_payment options=['Cash' => $btr->sviat__novaposhta__waybill_cash, 'NonCash' => $btr->sviat__novaposhta__waybill_noncash]}
+            </div>
+            {if $d->deliveryInTotal > 0}
                 <div class="alert alert--warning np-wb__double" role="alert" {if $d->payerType != 'Recipient'}hidden{/if}><div class="alert__content">{$btr->sviat__novaposhta__waybill_double_delivery|replace:'%sum%':$np_wb_delivery|escape}</div></div>
             {/if}
             {* Назва блоку, яку мав NovaPoshtaTracking: тут Checkbox попереджає, що частину замовлення передплачено. *}
             {get_design_block block="novaposhta_document_payment"}
             {$control = $d->codKind->value == 'control'}
             <div class="np-wb__group">{if $control}{$btr->sviat__novaposhta__waybill_cod_control_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_control_tip}{else}{$btr->sviat__novaposhta__waybill_cod_money_title|escape}{np_wb_tip text=$btr->sviat__novaposhta__waybill_cod_money_tip}{/if}</div>
+            {* Оплачене замовлення переказу не отримує й на сервері (WaybillDraft::withInput), тож полів переказу немає. *}
+            {if $w.paid}
+                <div class="np-wb__reason np-wb__cod-paid">{$btr->sviat__novaposhta__waybill_cod_paid|escape}</div>
+            {else}
             <div class="np-wb__switch">
-                <label class="switch switch-default{if $w.paid} switch-disabled{/if}">
-                    <input class="switch-input" type="checkbox" data-field="cod" value="1" {if $d->cod}checked{/if} {if $w.paid}disabled{/if}>
+                <label class="switch switch-default">
+                    <input class="switch-input" type="checkbox" data-field="cod" value="1" {if $d->cod}checked{/if}>
                     <span class="switch-label"></span><span class="switch-handle"></span>
                 </label>
-                <span class="text_grey font_12">{if $w.paid}{$btr->sviat__novaposhta__waybill_cod_paid|escape}{elseif $w.codPayment && !$d->cod && $d->codAmount <= 0}{$btr->sviat__novaposhta__waybill_cod_covered|escape}{elseif $w.codPayment}{$btr->sviat__novaposhta__waybill_cod_auto|escape}{else}{$btr->sviat__novaposhta__waybill_cod_manual|escape}{/if}</span>
+                <span class="text_grey font_12">{if $w.codPayment && !$d->cod && $d->codAmount <= 0}{$btr->sviat__novaposhta__waybill_cod_covered|escape}{elseif $w.codPayment}{$btr->sviat__novaposhta__waybill_cod_auto|escape}{else}{$btr->sviat__novaposhta__waybill_cod_manual|escape}{/if}</span>
             </div>
             <input type="hidden" data-field="cod_kind" value="{$d->codKind->value|escape}">
             <div class="np-wb__pair">
@@ -258,6 +268,7 @@
                     </div>
                 {/if}
             </div>
+            {/if}
 
             <div class="np-wb__line text_grey">{$btr->sviat__novaposhta__waybill_ship_date|escape}: {$d->shipDate|escape}</div>
 

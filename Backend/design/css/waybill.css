@@ -12,6 +12,10 @@
 /* Пояснення під полем не зсуває сусіднє поле пари: обидва вирівнюються по верху. */
 .np-wb__pair:has(.np-wb__declared-note:not([hidden])) { align-items: start; }
 .np-wb__form .np-wb__line { margin: 2px 0 6px; font-size: 12px; color: var(--ok-ink-muted, #676e75); }
+/* Пояснення, від якого залежить рішення менеджера (платник, переказ): звичайний текст, а не дрібна сіра примітка. */
+.np-wb__reason { margin: 0 0 8px; padding: 6px 10px; border-left: 3px solid var(--ok-accent, #005893); background: var(--ok-sunken, #fafbfc); font-size: 13px; line-height: 1.4; color: var(--ok-ink, #23272b); }
+.np-wb__payer .np-wb__field { margin-bottom: 6px; }
+.np-wb__pair:has(.np-wb__reason:not([hidden])) { align-items: start; }
 /* Заголовки груп форми накладної, оформлені як «ДОДАТКОВІ ПОСЛУГИ» в картці. */
 .np-wb__group { display: block; margin: 16px 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); }
 .np-wb__group--first { margin-top: 4px; }
@@ -165,6 +169,7 @@
 .np-wb__recip { display: flex; flex-direction: column; gap: 10px; }
 .np-wb__capital { display: inline-block; }
 .np-wb__capital::first-letter { text-transform: uppercase; }
+.np-wb__payer-why { display: block; margin-top: 2px; font-size: 13px; color: var(--ok-ink-soft, #545b62); }
 .np-wb__services { padding: 0 20px 14px; }
 .np-wb__caps { display: block; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ok-ink-muted, #676e75); margin-bottom: 2px; }
 .np-wb__pay { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; padding: 0 20px 16px; }
