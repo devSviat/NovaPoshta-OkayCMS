@@ -172,7 +172,8 @@ class FrontExtender implements ExtensionInterface
     /** ChainExtension для ValidateHelper::getCartValidateError: форма кошика перевіряється на сервері. */
     public function getCartValidateError($error, $order)
     {
-        if ($error !== null || !is_object($order)) {
+        // Ланка контактів раніше в ланцюжку може зняти свою помилку і як '' (контракт ядра це дозволяє).
+        if (($error !== null && $error !== '') || !is_object($order)) {
             return $error;
         }
         $result = $this->validator->validate($order, $_POST, $this->uahTotal->metrics($this->cart->get()));
