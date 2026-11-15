@@ -178,7 +178,10 @@ class FrontExtender implements ExtensionInterface
         }
         $result = $this->validator->validate($order, $_POST, $this->uahTotal->metrics($this->cart->get()));
         if (is_string($result)) {
-            return $this->translations->getTranslation('sviat__novaposhta__' . $result);
+            $key = 'sviat__novaposhta__' . $result;
+
+            // Порожня помилка означала б, що перевірку пройдено, тож без перекладу лишається ключ.
+            return $this->translations->getTranslation($key) ?: $key;
         }
         $this->selection = $result;
 
