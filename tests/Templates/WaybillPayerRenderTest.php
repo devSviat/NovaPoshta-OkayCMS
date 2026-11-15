@@ -8,7 +8,6 @@ use Modules\Sviat\NovaPoshta\Support\WaybillFixtures as W;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillCard;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDraft;
 use PHPUnit\Framework\TestCase;
-use Smarty\Smarty;
 
 /** Блок накладної, відрендерений Smarty: причина платника у формі й картці та рядок переказу оплаченого замовлення. */
 class WaybillPayerRenderTest extends TestCase
@@ -17,12 +16,14 @@ class WaybillPayerRenderTest extends TestCase
     private static function render(array $waybill, array $texts = []): string
     {
         $root = dirname(__DIR__, 5);
-        $smarty = new Smarty();
+        // Сток 4.5.3 має Smarty 4 (клас \Smarty), форк — Smarty 5 (\Smarty\Smarty); потрібні методи однакові.
+        $class = class_exists('Smarty\\Smarty') ? 'Smarty\\Smarty' : 'Smarty';
+        $smarty = new $class();
         $smarty->setTemplateDir([$root . '/Okay/Modules/Sviat/NovaPoshta/Backend/design/html', $root . '/backend/design/html']);
         $smarty->setCompileDir(sys_get_temp_dir() . '/np-waybill-render-' . getmypid());
         // Адмінка не надсилає ключів, яких цей стан не має; Okay\Core\Design так само глушить ці попередження.
         $smarty->muteUndefinedOrNullWarnings();
-        $smarty->registerPlugin(Smarty::PLUGIN_FUNCTION, 'get_design_block', static fn(): string => '');
+        $smarty->registerPlugin('function', 'get_design_block', static fn(): string => '');
         $smarty->assign('btr', new class ($texts) {
             public function __construct(private readonly array $texts)
             {
