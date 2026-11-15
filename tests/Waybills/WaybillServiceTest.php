@@ -20,6 +20,7 @@ use Okay\Modules\Sviat\NovaPoshta\Api\OldApi\OldApiClient;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\RecipientCities;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderParty;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\SenderSource;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillInput;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillService;
 use PHPUnit\Framework\TestCase;
 
@@ -114,6 +115,48 @@ class WaybillServiceTest extends TestCase
         self::assertSame('verified', $this->rows->forOrder(self::ORDER)->audit_status);
         self::assertSame(W::fixture('status_cod')['Number'], json_decode($this->rows->forOrder(self::ORDER)->tracking, true)['Number']);
         self::assertCount(2, $this->http->requests());
+    }
+
+    /** Підроблений POST з переказом на оплаченому замовленні: до НП не йде ні переказ, ні контроль оплати. */
+    public function testPaidOrderSendsNoCodWhateverThePostSays(): void
+    {
+        $forged = WaybillInput::fromPost(['cod' => '1', 'cod_amount' => '500', 'cod_kind' => 'money', 'cod_payer' => 'Sender']);
+        $this->jwt();
+        $this->http->json(201, W::fixture('new_created'));
+        $this->statusAnswer('status_new_documents');
+
+        self::assertTrue($this->service()->create(self::ORDER, W::point(['paid' => true])->withInput($forged))->ok);
+
+        $sent = implode("\n", array_map(static fn(object $request): string => (string)$request->body, $this->http->requests()));
+        self::assertStringNotContainsString('BackwardDeliveryData', $sent);
+        self::assertStringNotContainsString('Redelivery', $sent);
+        self::assertStringNotContainsString('AfterpaymentOnGoodsCost', $sent);
+        self::assertFalse(json_decode($this->rows->forOrder(self::ORDER)->services, true)['cod']);
+    }
+
+    public function testUnpaidOrderSendsTheCodFromThePost(): void
+    {
+        $forged = WaybillInput::fromPost(['cod' => '1', 'cod_amount' => '500', 'cod_kind' => 'money', 'cod_payer' => 'Sender']);
+        $this->http->json(200, W::fixture('old_save_ok'));
+        $this->statusAnswer('status_cod');
+
+        self::assertTrue($this->service()->create(self::ORDER, W::point()->withInput($forged))->ok);
+
+        self::assertSame([['PayerType' => 'Sender', 'CargoType' => 'Money', 'RedeliveryString' => '500']], $this->requestBody(0)['methodProperties']['BackwardDeliveryData']);
+    }
+
+    /** Причину платника картка бере з накладної: вона не відтворюється з нинішніх налаштувань. */
+    public function testPayerAndItsReasonAreStored(): void
+    {
+        $this->jwt();
+        $this->http->json(201, W::fixture('new_created'));
+        $this->statusAnswer('status_new_documents');
+
+        $this->service()->create(self::ORDER, W::point(['payerType' => 'Sender', 'senderPaysBecause' => 'in_total']));
+
+        $services = json_decode($this->rows->forOrder(self::ORDER)->services, true);
+        self::assertSame('Sender', $services['payerType']);
+        self::assertSame('in_total', $services['payerReason']);
     }
 
     /**

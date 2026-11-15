@@ -8,6 +8,7 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillConfig;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDraft;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDrafts;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillInput;
 use PHPUnit\Framework\TestCase;
 
 class WaybillDraftTest extends TestCase
@@ -299,6 +300,34 @@ class WaybillDraftTest extends TestCase
 
         self::assertSame('Sender', self::build($order, promisedFree: true)->payerType);
         self::assertSame('free', self::build($order, promisedFree: true)->senderPaysBecause);
+    }
+
+    /** Позначка «Оплачено» закриває переказ і на сервері: підроблений POST з `cod` його не вмикає. */
+    public function testPaidOrderTakesNoCodFromTheForm(): void
+    {
+        $forged = WaybillInput::fromPost(['cod' => '1', 'cod_amount' => '500', 'cod_kind' => 'money', 'cod_payer' => 'Sender']);
+
+        $paid = self::build(self::order(['paid' => 1]), cod: CodKind::Money);
+        self::assertTrue($paid->paid);
+        self::assertFalse($paid->withInput($forged)->cod);
+        self::assertTrue(self::build(self::order(['paid' => 0]), cod: CodKind::Money)->withInput($forged)->cod, 'control: unpaid order');
+        self::assertTrue(self::build(self::order(['paid' => 0]))->withInput($forged)->cod, 'control: manual COD on an unpaid order');
+    }
+
+    /** Причина платника, яку бачить картка створеної накладної. */
+    public function testPayerReason(): void
+    {
+        $recipient = new WaybillConfig(null, null, payerType: 'Recipient');
+        $apart = self::order(['separate_delivery' => 1, 'total_price' => 2359.0]);
+
+        self::assertSame('in_total', self::build(config: $recipient)->payerReason());
+        self::assertSame('free', self::build(self::order(['delivery_price' => 0, 'total_price' => 1200.0]), promisedFree: true)->payerReason());
+        self::assertSame('setting', self::build($apart, config: $recipient)->payerReason());
+        self::assertSame('setting', self::build($apart, config: new WaybillConfig(null, null, payerType: 'Sender'))->payerReason());
+        self::assertSame('in_total', self::build(config: $recipient)->withInput(['payer_type' => 'Sender'])->payerReason(), 'kept as the draft set it');
+        self::assertSame('manual', self::build(config: $recipient)->withInput(['payer_type' => 'Recipient'])->payerReason());
+        self::assertSame('manual', self::build($apart, config: $recipient)->withInput(['payer_type' => 'Sender'])->payerReason());
+        self::assertSame('setting', self::build($apart, config: $recipient)->withInput([])->payerReason(), 'control: untouched form');
     }
 
     /** Налаштування — лише те, з чого стартує форма: заданий «Recipient» ніколи не стягує за доставку двічі. */

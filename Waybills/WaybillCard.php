@@ -12,6 +12,7 @@ final class WaybillCard
     private const int ADDRESS_MAX = 70;
     /** Об'ємна вага НП: кг на м³. */
     private const int VOLUME_TO_KG = 250;
+    private const array PAYER_REASONS = ['in_total', 'free', 'manual', 'setting'];
 
     /** @param ?array $document елемент TrackingDocument.getStatusDocuments, null до першого оновлення */
     public static function fromDocument(?array $document, object $row): array
@@ -72,6 +73,7 @@ final class WaybillCard
         $card['payment'] = [
             'cost' => self::money($amount('DocumentCost')),
             'payer' => self::word('waybill_party_', $text('PayerType')),
+            'reason' => self::payerReason($text('PayerType'), $row),
             'method' => match ($text('PaymentMethod')) {
                 'Cash' => self::KEY . 'waybill_cash',
                 'NonCash' => self::KEY . 'waybill_noncash',
@@ -90,6 +92,21 @@ final class WaybillCard
         ];
 
         return $card;
+    }
+
+    /**
+     * Чому платник такий, як записано під час створення. Ні для старих і прив'язаних накладних, ні після того,
+     * як платника змінили в кабінеті НП: тоді збережена причина вже про іншого платника.
+     */
+    private static function payerReason(?string $payer, object $row): ?string
+    {
+        $services = is_string($row->services ?? null) ? json_decode($row->services, true) : null;
+        $reason = is_array($services) ? ($services['payerReason'] ?? null) : null;
+        if ($payer === null || !in_array($reason, self::PAYER_REASONS, true) || ($services['payerType'] ?? null) !== $payer) {
+            return null;
+        }
+
+        return self::KEY . 'card_payer_reason_' . $reason;
     }
 
     /** "20451581331601" → "20 4515 8133 1601", як друкує НП. */

@@ -183,6 +183,7 @@ final class WaybillDrafts
             $locker,
             cargoTypes: $waybill->cargoTypes,
             awaitsPayment: $codKind === null && empty($order->paid),
+            paid: !empty($order->paid),
         );
     }
 
