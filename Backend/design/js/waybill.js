@@ -290,6 +290,19 @@
         }
     });
 
+    /** Причина під селектом пояснює саме «Відправник»: з іншим платником вона хибна. */
+    document.addEventListener('change', function (event) {
+        var input = event.target;
+        if (!input.matches || !input.matches('[data-field="payer_type"]')) {
+            return;
+        }
+        var root = rootOf(input);
+        var reason = root && root.querySelector('.np-wb__payer .np-wb__reason');
+        if (reason) {
+            reason.hidden = input.value !== 'Sender';
+        }
+    });
+
     /** Доставка в сумі замовлення плюс отримувач ще раз платить за неї НП: сказати про це до створення. */
     document.addEventListener('change', function (event) {
         var input = event.target;

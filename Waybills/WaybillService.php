@@ -138,6 +138,8 @@ final class WaybillService
             'codPayer' => $draft->codPayer,
             'lifting' => $draft->lifting,
             'floor' => $draft->floor,
+            'payerType' => $draft->payerType,
+            'payerReason' => $draft->payerReason(),
         ]);
         if (!$saved) {
             $owner = $this->rows->orderOfNumber($number);

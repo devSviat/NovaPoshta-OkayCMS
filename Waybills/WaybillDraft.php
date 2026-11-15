@@ -75,7 +75,7 @@ final readonly class WaybillDraft
         public float $deliveryInTotal = 0.0,
         /** AdditionalInformation: що всередині; бачить лише відправник (за замовчуванням SKU). */
         public string $extraInfo = '',
-        /** Чому чернетка зробила платником відправника: 'in_total', 'free' або null — для примітки у формі. */
+        /** Чому чернетка зробила платником відправника: 'in_total', 'free' або null; див. також payerReason(). */
         public ?string $senderPaysBecause = null,
         /** Пункт видачі — поштомат: старому API для нього потрібен розмір місця. */
         public bool $locker = false,
@@ -85,7 +85,17 @@ final readonly class WaybillDraft
         public array $cargoTypes = WaybillConfig::CARGO_TYPES,
         /** Не оплачено, а його спосіб оплати нічого не стягує при отриманні: масове створення лишає його формі. */
         public bool $awaitsPayment = false,
+        /** Замовлення позначене оплаченим: грошового переказу немає, хоч би що надіслала форма. */
+        public bool $paid = false,
+        /** Менеджер змінив платника, якого поставила чернетка. */
+        public bool $payerManual = false,
     ) {
+    }
+
+    /** @return 'in_total'|'free'|'manual'|'setting' звідки платник доставки; зберігається з накладною для картки */
+    public function payerReason(): string
+    {
+        return $this->payerManual ? 'manual' : ($this->senderPaysBecause ?? 'setting');
     }
 
     /**
@@ -131,7 +141,7 @@ final readonly class WaybillDraft
 
     /**
      * Форма менеджера поверх цієї чернетки. Відсутній `cod` означає, що його прапорець вимкнено; інші
-     * відсутні поля зберігають значення чернетки.
+     * відсутні поля зберігають значення чернетки. Оплачене замовлення переказу не отримує.
      *
      * @return self|list<array{field: string, key: string}>
      */
@@ -182,7 +192,7 @@ final readonly class WaybillDraft
         if ($description === '' || mb_strlen($description) > self::DESCRIPTION_MAX) {
             $errors[] = ['field' => 'description', 'key' => 'waybill_error_description'];
         }
-        $cod = !empty($form['cod']);
+        $cod = !$this->paid && !empty($form['cod']);
         $codAmount = $number('cod_amount', $this->codAmount);
         // НП зберігає грошовий переказ у цілих гривнях, округлюючи до найближчого: те, що округлюється до 0, — не сума.
         if ($cod && ($codAmount === null || round($codAmount) <= 0)) {
@@ -234,6 +244,7 @@ final readonly class WaybillDraft
         $edrpou = $organization ? preg_replace('/\D+/', '', $text('edrpou', (string)$this->edrpou)) : null;
         $company = $organization ? mb_substr($text('company_name', (string)$this->companyName), 0, self::COMPANY_MAX) : null;
 
+        $payerType = $choice('payer_type', $this->payerType, ['Recipient', 'Sender']);
         $values = [
             'recipientType' => $recipientType,
             'edrpou' => $edrpou === '' ? null : $edrpou,
@@ -246,7 +257,8 @@ final readonly class WaybillDraft
             'description' => $description,
             'cargoType' => $cargoType,
             'extraInfo' => $extraInfo,
-            'payerType' => $choice('payer_type', $this->payerType, ['Recipient', 'Sender']),
+            'payerType' => $payerType,
+            'payerManual' => $this->payerManual || $payerType !== $this->payerType,
             'paymentMethod' => $choice('payment_method', $this->paymentMethod, ['Cash', 'NonCash']),
             'codPayer' => $choice('cod_payer', $this->codPayer, ['Recipient', 'Sender']),
             'cod' => $cod,

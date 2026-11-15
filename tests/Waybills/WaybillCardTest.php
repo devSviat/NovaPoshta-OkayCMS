@@ -84,4 +84,19 @@ class WaybillCardTest extends TestCase
         self::assertSame('05.11.2026 10:00', $card['updated']);
         self::assertSame('07.11.2026 15:10', $card['checked']);
     }
+
+    /** Причина — лише збережена під час створення і лише поки НП показує того самого платника. */
+    public function testPayerReasonComesFromTheCreatedWaybill(): void
+    {
+        $reason = static fn(?array $services): ?string => WaybillCard::fromDocument(W::fixture('status_cod'), self::row(['services' => $services === null ? null : json_encode($services)]))['payment']['reason'];
+
+        self::assertSame('sviat__novaposhta__card_payer_reason_setting', $reason(['payerType' => 'Recipient', 'payerReason' => 'setting']));
+        self::assertSame('sviat__novaposhta__card_payer_reason_manual', $reason(['payerType' => 'Recipient', 'payerReason' => 'manual']));
+        self::assertNull($reason(['cod' => false]), 'created before the reason was stored');
+        self::assertNull($reason(null), 'attached: nothing stored');
+        self::assertNull($reason(['payerType' => 'Sender', 'payerReason' => 'in_total']), 'the payer was changed at Nova Poshta later');
+        self::assertNull($reason(['payerType' => 'Recipient', 'payerReason' => '<b>x</b>']), 'only known reasons');
+        self::assertNull(WaybillCard::fromDocument(['PayerType' => 'Sender'] + W::fixture('status_cod'), self::row(['services' => json_encode(['payerType' => 'Recipient', 'payerReason' => 'free'])]))['payment']['reason']);
+        self::assertSame('sviat__novaposhta__card_payer_reason_free', WaybillCard::fromDocument(['PayerType' => 'Sender'] + W::fixture('status_cod'), self::row(['services' => json_encode(['payerType' => 'Sender', 'payerReason' => 'free'])]))['payment']['reason']);
+    }
 }

@@ -502,10 +502,8 @@
         {/foreach}
         <div class="np_grid np_grid--two mt-1">
             <div>
-                <div class="heading_label"><label for="np_waybill_payer">{$btr->sviat__novaposhta__waybill_payer|escape}</label>
-                    <i class="fn_tooltips np_tip hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__waybill_payer_tip|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__waybill_payer_tip|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>
-                </div>
-                <select id="np_waybill_payer" name="payer_type" class="selectpicker form-control">
+                <label class="heading_label" for="np_waybill_payer">{$btr->sviat__novaposhta__waybill_payer_default|escape}</label>
+                <select id="np_waybill_payer" name="payer_type" class="selectpicker form-control" aria-describedby="np_waybill_payer_help">
                     <option value="Recipient" {if $np_waybill.config->payerType == 'Recipient'}selected{/if}>{$btr->sviat__novaposhta__waybill_recipient|escape}</option>
                     <option value="Sender" {if $np_waybill.config->payerType == 'Sender'}selected{/if}>{$btr->sviat__novaposhta__waybill_sender_party|escape}</option>
                 </select>
@@ -517,6 +515,7 @@
                     <option value="NonCash" {if $np_waybill.config->paymentMethod == 'NonCash'}selected{/if}>{$btr->sviat__novaposhta__waybill_noncash|escape}</option>
                 </select>
             </div>
+            <div class="text_grey np_field_help" id="np_waybill_payer_help">{$btr->sviat__novaposhta__waybill_payer_tip|escape}</div>
             <div>
                 <div class="heading_label"><label for="np_waybill_cargo">{$btr->sviat__novaposhta__waybill_cargo|escape}</label>
                     <i class="fn_tooltips np_tip hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__waybill_cargo_tip|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__waybill_cargo_tip|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>
@@ -640,6 +639,10 @@
     .np_grid--point { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
     .np_grid--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .np_grid .bootstrap-select { width: 100% !important; }
+    /* Пояснення — окремий рядок сітки: поля над ним лишаються вирівняними по низу. */
+    .np_grid > .np_field_help { grid-column: 1 / -1; margin-top: -6px; font-size: 13px; line-height: 1.4; }
+    /* В одну колонку пояснення стоїть одразу під своїм полем, а не під сусіднім. */
+    @media (max-width: 767px) { .np_grid--two > .np_field_help:nth-child(3) { grid-row: 2; } }
     @media (max-width: 767px) { .np_grid--point, .np_grid--two { grid-template-columns: minmax(0, 1fr); } }
     .np_check { display: flex; align-items: flex-start; gap: 8px; }
     .np_check .okay_ckeckbox { flex: none; margin: 0; }
