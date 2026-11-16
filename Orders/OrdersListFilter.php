@@ -15,7 +15,7 @@ final class OrdersListFilter
     /** @param callable(string): list<int> $ordersOfNumber */
     public static function apply(array $filter, ?string $group, ?string $keyword, callable $ordersOfNumber): array
     {
-        $number = is_string($keyword) && preg_match('/^[\d\s\-]+$/', trim($keyword)) ? WaybillNumber::normalize(trim($keyword)) : null;
+        $number = self::number($keyword);
         $byNumber = $number !== null ? $ordersOfNumber($number) : [];
         // Не накладна цього магазину: пошук ядра лишає його (штрихкод у назві товару, цифри в email).
         if ($byNumber !== []) {
@@ -30,6 +30,12 @@ final class OrdersListFilter
         }
 
         return $filter;
+    }
+
+    /** Номер накладної (14 цифр), якщо текст пошуку складається лише з цифр, пробілів і дефісів. */
+    public static function number(?string $keyword): ?string
+    {
+        return is_string($keyword) && preg_match('/^[\d\s\-]+$/', trim($keyword)) ? WaybillNumber::normalize(trim($keyword)) : null;
     }
 
     /** @param list<int> $ids */

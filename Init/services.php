@@ -73,6 +73,9 @@ use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ClientAddress;
 use Okay\Modules\Sviat\NovaPoshta\Quote\DbCityRefStore;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
+use Okay\Modules\Sviat\NovaPoshta\Extenders\DeliveryFilterExtender;
+use Okay\Modules\Sviat\NovaPoshta\Orders\DeliveryFilterHub;
+use Okay\Core\Modules\Modules;
 use Okay\Modules\Sviat\NovaPoshta\Cart\UahTotal;
 
 return [
@@ -118,7 +121,15 @@ return [
     ],
     BackendExtender::class => [
         'class' => BackendExtender::class,
-        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Request::class), new SR(OrdersMassAction::class), new SR(OrderRowsCleanup::class), new SR(OrderDeliveryLines::class)],
+        'arguments' => [new SR(Design::class), new SR(OrderDeliveryStore::class), new SR(CodPayments::class), new SR(EntityFactory::class), new SR(WaybillView::class), new SR(Module::class), new SR(ShippingSettings::class), new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Request::class), new SR(OrdersMassAction::class), new SR(OrderRowsCleanup::class), new SR(OrderDeliveryLines::class), new SR(DeliveryFilterHub::class)],
+    ],
+    DeliveryFilterHub::class => [
+        'class' => DeliveryFilterHub::class,
+        'arguments' => [new SR(Modules::class)],
+    ],
+    DeliveryFilterExtender::class => [
+        'class' => DeliveryFilterExtender::class,
+        'arguments' => [new SR(WaybillStore::class), new SR(BackendTranslations::class), new SR(Modules::class)],
     ],
     DbMutex::class => [
         'class' => DbMutex::class,

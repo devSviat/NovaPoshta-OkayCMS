@@ -19,9 +19,10 @@ use Okay\Core\BackendTranslations;
 use Okay\Entities\CurrenciesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\DeliveryMode;
-use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStore;
+use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillRows;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderPointChange;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersListFilter;
+use Okay\Modules\Sviat\NovaPoshta\Orders\DeliveryFilterHub;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillStatus;
 use Okay\Core\Request;
 use Okay\Core\Response;
@@ -37,12 +38,13 @@ class BackendExtender implements ExtensionInterface
         private readonly WaybillView $waybills,
         private readonly Module $module,
         private readonly ShippingSettings $shipping,
-        private readonly WaybillStore $waybillRows,
+        private readonly WaybillRows $waybillRows,
         private readonly BackendTranslations $translations,
         private readonly Request $request,
         private readonly OrdersMassAction $massAction,
         private readonly OrderRowsCleanup $orderRows,
         private readonly OrderDeliveryLines $orderLines,
+        private readonly DeliveryFilterHub $hub,
     ) {
     }
 
@@ -159,8 +161,8 @@ class BackendExtender implements ExtensionInterface
     }
 
     /**
-     * ChainExtension для BackendOrdersHelper::buildFilter: група статусів НП, ключове слово, що є номером
-     * накладної, і дія списку «створити накладні» (ядро виконує свої дії безпосередньо перед цим).
+     * ChainExtension для BackendOrdersHelper::buildFilter: дія списку «створити накладні» (ядро виконує свої дії
+     * безпосередньо перед цим), а без хаба Sviat/DeliveryFilter — ще група статусів НП і пошук за номером накладної.
      */
     public function listFilter($filter)
     {
@@ -168,6 +170,9 @@ class BackendExtender implements ExtensionInterface
             return $filter;
         }
         $this->handleMassAction();
+        if ($this->hub->active()) {
+            return $filter;
+        }
         $group = $this->request->get('np_waybill');
         $group = is_string($group) && isset(WaybillStatus::FILTER_GROUPS[$group]) ? $group : null;
         $this->design->assign('np_status_groups', array_keys(WaybillStatus::FILTER_GROUPS));
@@ -203,10 +208,10 @@ class BackendExtender implements ExtensionInterface
         ));
     }
 
-    /** ChainExtension для BackendOrdersHelper::buildCountStatusesFilter: лічильники статусів враховують фільтр НП. */
+    /** ChainExtension для BackendOrdersHelper::buildCountStatusesFilter: лічильники статусів враховують фільтр НП; з хабом це робить хаб. */
     public function countFilter($countFilter, $filter = [])
     {
-        if (is_array($countFilter) && is_array($filter)) {
+        if (is_array($countFilter) && is_array($filter) && !$this->hub->active()) {
             foreach (['id', 'np_without_waybill', 'np_status_codes'] as $key) {
                 if (isset($filter[$key])) {
                     $countFilter[$key] = $filter[$key];
