@@ -36,6 +36,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersEntityFilters;
+use Okay\Modules\Sviat\NovaPoshta\Orders\DeliveryFilterHub;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Groups\DefaultGroups;
@@ -87,6 +88,9 @@ class Init extends AbstractInit
         $this->registerChainExtension([BackendOrdersHelper::class, 'buildFilter'], [BackendExtender::class, 'listFilter']);
         $this->registerChainExtension([BackendOrdersHelper::class, 'buildCountStatusesFilter'], [BackendExtender::class, 'countFilter']);
         $this->registerQueueExtension([BackendOrdersHelper::class, 'findOrders'], [BackendExtender::class, 'listOrders']);
+        foreach (DeliveryFilterHub::hooks(DeliveryFilterHub::HELPER) as [$expandable, $extension]) {
+            $this->registerChainExtension($expandable, $extension);
+        }
         $this->registerEntityFilter(OrdersEntity::class, 'np_without_waybill', OrdersEntityFilters::class, 'filter__np_without_waybill');
         $this->registerEntityFilter(OrdersEntity::class, 'np_status_codes', OrdersEntityFilters::class, 'filter__np_status_codes');
         $this->addBackendBlock('orders_list_name', 'orders_status.tpl');
