@@ -39,7 +39,10 @@ class DbDictionaryStoreTest extends TestCase
         });
         // Деструктор Database від'єднує pdo, а заглушка конструктора не викликає.
         new \ReflectionProperty(Database::class, 'pdo')->setValue($db, $this->createStub(ExtendedPdo::class));
-        $store = new DbDictionaryStore($db, new QueryFactory(new AuraQueryFactory('mysql')));
+        // Обгортки запитів QueryFactory ядра в конструкторі беруть Database з ServiceLocator, а в CI бази немає.
+        $queryFactory = $this->createStub(QueryFactory::class);
+        $queryFactory->method('newInsert')->willReturnCallback(static fn() => new AuraQueryFactory('mysql')->newInsert());
+        $store = new DbDictionaryStore($db, $queryFactory);
 
         $rows = [];
         for ($i = 0; $i < $count; $i++) {
