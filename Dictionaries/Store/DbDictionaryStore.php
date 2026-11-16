@@ -46,6 +46,10 @@ final class DbDictionaryStore implements DictionaryStore
                 $insert->onDuplicateKeyUpdate($column, "VALUES({$column})");
             }
         }
+        // Aura addRows() добудовує останній рядок пакета лише під час збирання тексту, а Database::query()
+        // OkayCMS 4.5.3 читає прив'язки раніше: пакет із двох рядків губив значення другого.
+        // У форку ядро виправлене (devSviat/OkayCMS-Fork#437); виклик лишається для OkayCMS 4.5.3.
+        $insert->getStatement();
         $this->run($insert);
     }
 
