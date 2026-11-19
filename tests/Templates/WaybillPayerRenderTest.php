@@ -9,7 +9,7 @@ use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillCard;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillDraft;
 use PHPUnit\Framework\TestCase;
 
-/** Блок накладної, відрендерений Smarty: причина платника у формі й картці та рядок переказу оплаченого замовлення. */
+/** Блок накладної, відрендерений Smarty: причина платника, рядок переказу оплаченого замовлення, заголовок і знак картки. */
 class WaybillPayerRenderTest extends TestCase
 {
     /** @param array<string, string> $texts переклади замість «[ключ]» */
@@ -125,5 +125,109 @@ class WaybillPayerRenderTest extends TestCase
         self::assertStringContainsString('<span class="np-wb__payer-why">[sviat__novaposhta__card_payer_reason_manual]</span>', $card(['payerType' => 'Recipient', 'payerReason' => 'manual']));
         self::assertStringNotContainsString('np-wb__payer-why', $card(['cod' => false]), 'control: an older waybill');
         self::assertStringContainsString('[sviat__novaposhta__card_payer]', $card(['cod' => false]));
+    }
+
+    private static function card(): string
+    {
+        $row = (object)['number' => '20451581331601', 'ref' => null, 'api' => 'old', 'status_code' => 7, 'tracked_at' => null, 'services' => null];
+
+        return self::render(['orderId' => 990061, 'row' => [
+            'number' => '20451581331601', 'numberSpaced' => '20 4515 8133 1601', 'attached' => false, 'deletable' => false,
+            'trackingUrl' => 'https://novaposhta.ua/tracking/20451581331601/', 'card' => WaybillCard::fromDocument(W::fixture('status_cod'), $row),
+            'services' => [], 'audit' => null,
+        ], 'draft' => null, 'refusal' => null]);
+    }
+
+    /** Картка має заголовок, як у ROZETKA, Meest і Укрпошти; форма лишає свій. */
+    public function testCardHasHeadingLikeOtherCarriers(): void
+    {
+        self::assertStringContainsString('<div class="np-wb__head np-wb__head--card"><span class="heading_box">[sviat__novaposhta__card_title]</span></div>', self::card());
+        self::assertStringNotContainsString('[sviat__novaposhta__card_title]', self::form(W::point()), 'control: the form keeps its own title');
+    }
+
+    /** Знак з файла модуля, перед номером; не з сайту перевізника. */
+    public function testCardShowsBundledLogoBeforeNumber(): void
+    {
+        $html = self::card();
+        $logo = '<img class="np-wb__logo" src="/Okay/Modules/Sviat/NovaPoshta/Backend/design/images/novaposhta.svg" width="19" height="19" alt="[sviat__novaposhta__logo_alt]">';
+
+        self::assertStringContainsString($logo, $html);
+        self::assertLessThan(strpos($html, '20 4515 8133 1601'), strpos($html, $logo));
+        self::assertStringNotContainsString('np-wb__logo', self::form(W::point()));
+    }
+
+    public function testLogoIsPlainShapes(): void
+    {
+        $svg = (string)file_get_contents(dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/Backend/design/images/novaposhta.svg');
+        $doc = new \DOMDocument();
+        self::assertTrue($doc->loadXML($svg, LIBXML_NONET));
+        $tags = [];
+        foreach ($doc->getElementsByTagName('*') as $node) {
+            $tags[$node->localName] = true;
+            foreach ($node->attributes as $attribute) {
+                self::assertDoesNotMatchRegularExpression('/^on|href/i', $attribute->name);
+                self::assertDoesNotMatchRegularExpression('/url\(|javascript:/i', $attribute->value);
+            }
+        }
+        self::assertSame(['svg', 'path'], array_keys($tags));
+    }
+
+    /**
+     * Від заголовка до картки — 15px, як у блоку ядра «Параметри замовлення». Обгортка тут flex, тож span
+     * заголовка стає блоком і сам дає ці 15px (нижній відступ .heading_box ядра); власний відступ зайвий.
+     */
+    public function testCardHeadingGapMatchesCore(): void
+    {
+        $css = (string)file_get_contents(dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/Backend/design/css/waybill.css');
+
+        self::assertStringNotContainsString('.np-wb__head--card', $css);
+        self::assertStringContainsString('.np-wb__head { display: flex;', $css);
+    }
+
+    /** Знак у картці заввишки з цифру номера (19px) на його базовій лінії, 8px до номера; viewBox файла обрізано по фарбі. */
+    public function testCardLogoMatchesDigitHeight(): void
+    {
+        $root = dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/Backend/design';
+
+        self::assertStringStartsWith('<svg viewBox="31.17 34.24 449.66 443.52" ', (string)file_get_contents($root . '/images/novaposhta.svg'));
+        self::assertStringContainsString('.np-wb__logo { flex: none; display: block; width: auto; height: 19px; align-self: baseline; margin-right: -4px; }', (string)file_get_contents($root . '/css/waybill.css'));
+        self::assertStringContainsString('.np-wb__card .np-wb__number { display: inline-flex; align-items: center; gap: 12px;', (string)file_get_contents($root . '/css/waybill.css'));
+        // .fn_clipboard ядра дає номеру 2px зліва: проміжок від знака до цифри був би на 2px більшим, ніж у інших.
+        self::assertStringContainsString('.np-wb__card .np-wb__copy { padding-left: 0; align-self: baseline; }', (string)file_get_contents($root . '/css/waybill.css'));
+    }
+
+    /**
+     * Знак у рядку списку замовлень: viewBox обрізано по фарбі, тож знак починається від лівого краю тексту рядка;
+     * 14px фарби й проміжок 5px до номера — як у інших перевізників.
+     */
+    public function testListLogoInkIs14pxTall(): void
+    {
+        $root = dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/Backend/design';
+        $css = (string)file_get_contents($root . '/css/waybill.css');
+
+        self::assertStringContainsString('<svg class="np-list-status__logo" width="14" height="14" viewBox="1.41 1.41 21.18 21.18" aria-hidden="true">', (string)file_get_contents($root . '/html/orders_status.tpl'));
+        self::assertStringContainsString('.np-list-status__logo { flex: none; display: block; width: auto; height: 14px; }', $css);
+        // .fn_clipboard ядра дає номеру 2px зліва, тож проміжок був би 7px замість 5.
+        self::assertStringContainsString('.np-list-status .np-list-status__number { padding-left: 0; }', $css);
+        // Рядок списку теж у .boxed: без цього svg отримав би 3px з обох боків від ядра.
+        self::assertStringContainsString('.np-list-status .np-list-status__logo { margin: 0; }', $css);
+    }
+
+    /** Рядок списку бере ту саму підказку, що й картка: «Натисніть, щоб скопіювати» / «Скопійовано». */
+    public function testListNumberUsesCardCopyTexts(): void
+    {
+        $root = dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/Backend';
+        $tpl = (string)file_get_contents($root . '/design/html/orders_status.tpl');
+
+        self::assertStringContainsString('data-hint="{$btr->sviat__novaposhta__card_copy|escape}" data-hint-copied="{$btr->sviat__novaposhta__card_copied|escape}"', $tpl);
+        self::assertStringNotContainsString('sviat__novaposhta__list_cop', (string)file_get_contents($root . '/lang/ua.php'));
+    }
+
+    /** Значок посилання й бейдж статусу центровані на цифрах номера, а не на його рядку: у Inter 26px/1.2 центр цифр на 1.35px вище. */
+    public function testRowItemsCentredOnDigits(): void
+    {
+        $css = (string)file_get_contents(dirname(__DIR__, 5) . '/Okay/Modules/Sviat/NovaPoshta/Backend/design/css/waybill.css');
+
+        self::assertStringContainsString('.np-wb__card .np-wb__open { transform: translateY(-1.35px); }', $css);
     }
 }

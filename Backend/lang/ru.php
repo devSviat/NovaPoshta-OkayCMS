@@ -510,8 +510,6 @@ $lang['sviat__novaposhta__codpay_money_note'] = 'без договора, ден
 $lang['sviat__novaposhta__codpay_money_tip'] = 'Для отправителя-физлица. Деньги поступают на карту отправителя после вручения. Комиссию НП платит тот, кто указан в накладной; если покупатель, корзина показывает её под этим способом оплаты.';
 $lang['sviat__novaposhta__service_ww'] = 'Отделение или почтомат';
 $lang['sviat__novaposhta__service_wd'] = 'Адрес (курьер до двери)';
-$lang['sviat__novaposhta__list_copy'] = 'Скопировать номер';
-$lang['sviat__novaposhta__list_copied'] = 'Скопировано';
 $lang['sviat__novaposhta__card_departure'] = 'Дата выезда';
 $lang['sviat__novaposhta__card_plan_time'] = 'Плановое время доставки';
 $lang['sviat__novaposhta__card_phone'] = 'Телефон получателя';
@@ -536,3 +534,5 @@ $lang['sviat__novaposhta__card_payer_reason_setting'] = 'по настройка
 $lang['sviat__novaposhta__op_change'] = 'изменить';
 $lang['sviat__novaposhta__variant_volume'] = 'Объём, м³';
 $lang['sviat__novaposhta__variant_volume_hint'] = 'Объём упакованного товара для Новой Почты: считает цену доставки и поместится ли посылка в почтомат. 40×30×10 см = 0.012. Если пусто, берётся объём из настроек модуля.';
+$lang['sviat__novaposhta__card_title'] = 'ТТН Новая Почта';
+$lang['sviat__novaposhta__logo_alt'] = 'Новая Почта';
