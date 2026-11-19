@@ -510,8 +510,6 @@ $lang['sviat__novaposhta__codpay_money_note'] = 'без договору, гро
 $lang['sviat__novaposhta__codpay_money_tip'] = 'Для відправника-фізособи. Гроші надходять на картку відправника після вручення. Комісію НП платить той, кого вказано в накладній; якщо покупець, кошик показує її під цим способом оплати.';
 $lang['sviat__novaposhta__service_ww'] = 'Відділення або поштомат';
 $lang['sviat__novaposhta__service_wd'] = 'Адреса (кур\'єр до дверей)';
-$lang['sviat__novaposhta__list_copy'] = 'Скопіювати номер';
-$lang['sviat__novaposhta__list_copied'] = 'Скопійовано';
 $lang['sviat__novaposhta__card_departure'] = 'Дата виїзду';
 $lang['sviat__novaposhta__card_plan_time'] = 'Плановий час доставки';
 $lang['sviat__novaposhta__card_phone'] = 'Телефон одержувача';
@@ -536,3 +534,5 @@ $lang['sviat__novaposhta__card_payer_reason_setting'] = 'за налаштува
 $lang['sviat__novaposhta__op_change'] = 'змінити';
 $lang['sviat__novaposhta__variant_volume'] = 'Об\'єм, м³';
 $lang['sviat__novaposhta__variant_volume_hint'] = 'Об\'єм упакованого товару для Нової Пошти: за ним рахується ціна доставки й те, чи вміститься посилка в поштомат. 40×30×10 см = 0.012. Якщо порожньо, береться об\'єм із налаштувань модуля.';
+$lang['sviat__novaposhta__card_title'] = 'ЕН Нова Пошта';
+$lang['sviat__novaposhta__logo_alt'] = 'Нова Пошта';
