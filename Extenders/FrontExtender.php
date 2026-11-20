@@ -26,6 +26,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\SettlementEntity;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryLines;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryView;
+use Okay\Modules\Sviat\NovaPoshta\Products\OfferShippingRates;
 use Okay\Core\Money;
 use Okay\Entities\CurrenciesEntity;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CartQuotes;
@@ -64,11 +65,20 @@ class FrontExtender implements ExtensionInterface
         private readonly UahTotal $uahTotal,
         private readonly WaybillStore $waybills,
         private readonly OrderDeliveryLines $orderLines,
+        private readonly OfferShippingRates $offerShippingRates,
     ) {
     }
 
     /** Як розраховано ціну замовлення; зберігається від prepareDeliveryPriceInfo до знімка (той самий запит). */
     private ?array $pricing = null;
+
+    /** QueueExtension для ProductsHelper::attachProductData: ціна доставки у відділення для розмітки Offer сторінки товару. */
+    public function offerShippingRates($product): void
+    {
+        if (is_object($product)) {
+            $this->offerShippingRates->assign();
+        }
+    }
 
     /**
      * ChainExtension для DeliveriesHelper::getCartDeliveriesList: спосіб доставки з ціною, розрахованою

@@ -8,6 +8,7 @@ use Okay\Core\EntityFactory;
 use Okay\Helpers\DeliveriesHelper;
 use Okay\Helpers\NotifyHelper;
 use Okay\Helpers\OrdersHelper;
+use Okay\Helpers\ProductsHelper;
 use Okay\Helpers\ValidateHelper;
 use Okay\Core\Languages;
 use Okay\Core\Modules\AbstractInit;
@@ -123,6 +124,10 @@ class Init extends AbstractInit
         $this->registerChainExtension(
             [ValidateHelper::class, 'getCartValidateError'],
             [FrontExtender::class, 'getCartValidateError']
+        );
+        $this->registerQueueExtension(
+            [ProductsHelper::class, 'attachProductData'],
+            [FrontExtender::class, 'offerShippingRates']
         );
         $this->registerQueueExtension(
             [OrdersHelper::class, 'finalCreateOrderProcedure'],

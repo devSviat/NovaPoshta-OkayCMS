@@ -236,7 +236,7 @@ final class CartQuotes
         $moduleId = (int)$this->module->getModuleIdByNamespace(__CLASS__);
 
         return $moduleId > 0 && (int)($delivery->module_id ?? 0) === $moduleId
-            && ($mode === null || DeliveryMode::fromServiceType(self::settings($delivery)['service_type'] ?? null) === $mode);
+            && ($mode === null || DeliveryMode::of($delivery) === $mode);
     }
 
     /** Нова Пошта рахує ціни в гривнях; ціни доставки в OkayCMS — в основній валюті магазину. */
