@@ -35,6 +35,7 @@ use Okay\Modules\Sviat\NovaPoshta\Dictionaries\DivisionsUpdater;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\SettlementsUpdater;
 use Okay\Modules\Sviat\NovaPoshta\Dictionaries\Store\DbDictionaryStore;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
+use Okay\Modules\Sviat\NovaPoshta\Products\OfferShippingRates;
 use Okay\Modules\Sviat\NovaPoshta\Groups\GroupsStore;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyChecker;
 use Okay\Modules\Sviat\NovaPoshta\KeyCheck\KeyRejections;
@@ -260,7 +261,12 @@ return [
             new SR(UahTotal::class),
             new SR(WaybillStore::class),
             new SR(OrderDeliveryLines::class),
+            new SR(OfferShippingRates::class),
         ],
+    ],
+    OfferShippingRates::class => [
+        'class' => OfferShippingRates::class,
+        'arguments' => [new SR(EntityFactory::class), new SR(Module::class), new SR(Design::class)],
     ],
     OrderDeliveryLines::class => [
         'class' => OrderDeliveryLines::class,

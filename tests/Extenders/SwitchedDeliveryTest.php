@@ -32,6 +32,7 @@ use Okay\Modules\Sviat\NovaPoshta\Extenders\BackendExtender;
 use Okay\Modules\Sviat\NovaPoshta\Orders\DeliveryFilterHub;
 use Okay\Modules\Sviat\NovaPoshta\Extenders\FrontExtender;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryLines;
+use Okay\Modules\Sviat\NovaPoshta\Products\OfferShippingRates;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersMassAction;
@@ -165,6 +166,7 @@ class SwitchedDeliveryTest extends TestCase
             self::blank(UahTotal::class),
             new WaybillStore($factory),
             $this->lines($factory),
+            self::blank(OfferShippingRates::class),
         );
     }
 

@@ -17,6 +17,17 @@ enum DeliveryMode: string
         return str_ends_with((string)$serviceType, 'Doors') ? self::Address : self::Points;
     }
 
+    /** Режим способу доставки з його налаштувань: рядок із бази (serialize) чи вже розібраний масив. */
+    public static function of(object $delivery): self
+    {
+        $settings = $delivery->settings ?? [];
+        if (is_string($settings)) {
+            $settings = @unserialize($settings, ['allowed_classes' => false]);
+        }
+
+        return self::fromServiceType(is_array($settings) ? (string)($settings['service_type'] ?? '') : null);
+    }
+
     /**
      * Налаштування доставки з `service_type`, що є одним із варіантів, які пропонує settings.xml, тож
      * форма способу показує збережений режим, а збереження його не втрачає.
