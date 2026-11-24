@@ -67,10 +67,13 @@ class Init extends AbstractInit
         $this->migrateEntityField(VariantsEntity::class, new EntityField(VariantVolume::FIELD)->setTypeDecimal('10,5', false)->setDefault(0));
     }
 
-    /** Позначка обіцяної безкоштовної доставки для оформлених до 1.3.0 замовлень; див. FreePromiseBackfill. */
+    /**
+     * Позначка обіцяної безкоштовної доставки для оформлених до 1.3.0 замовлень; див. FreePromiseBackfill.
+     * Сток 4.5.3 під час встановлення не реєструє сервіси модуля, тож клас збирається з сервісу ядра.
+     */
     public function update_1_3_0(): void
     {
-        ServiceLocator::getInstance()->getService(FreePromiseBackfill::class)->run();
+        new FreePromiseBackfill(ServiceLocator::getInstance()->getService(EntityFactory::class))->run();
     }
 
     public function init()
