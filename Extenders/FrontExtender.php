@@ -147,15 +147,15 @@ class FrontExtender implements ExtensionInterface
             return $info;
         }
         $freeByCore = FreeDelivery::applies($delivery, (float)($order->total_price ?? 0));
-        $decision = PriceDecision::forOrder($quote, $info, $freeByCore, $freeByCore ? 0.0 : (float)$delivery->price);
-        $this->pricing = $quote === null ? null : [
+        $decision = PriceDecision::forOrder($quote, $info, $freeByCore, $freeByCore ? 0.0 : (float)$delivery->price, empty($delivery->paid));
+        $this->pricing = $quote === null && $decision['source'] === null ? null : [
             'delivery_price' => $decision['info']['delivery_price'] ?? null,
             'price_source' => $decision['source'],
-            'delivery_term' => $quote->term?->format('Y-m-d'),
+            'delivery_term' => $quote?->term?->format('Y-m-d'),
             'cod' => $this->quotes->isCodPayment((int)($order->payment_method_id ?? 0)) ? 1 : 0,
             // Зберігається й для замовлень з оплатою карткою: покупець може перейти на післяплату на сторінці
             // замовлення.
-            'cod_fee' => $quote->codFee,
+            'cod_fee' => $quote?->codFee,
         ];
 
         return $decision['info'];

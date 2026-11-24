@@ -302,6 +302,21 @@ class WaybillDraftTest extends TestCase
         self::assertSame('free', self::build($order, promisedFree: true)->senderPaysBecause);
     }
 
+    /** Безготівка — договір магазину з НП; отримувач-фізособа так платити не може, тож форма оплати йде за платником. */
+    public function testPaymentMethodFollowsThePayer(): void
+    {
+        $nonCash = new WaybillConfig(null, null, payerType: 'Recipient', paymentMethod: 'NonCash');
+        $apart = self::order(['separate_delivery' => 1, 'total_price' => 2359.0]);
+
+        self::assertSame(['Recipient', 'Cash'], [self::build($apart, config: $nonCash)->payerType, self::build($apart, config: $nonCash)->paymentMethod]);
+        self::assertSame(['Sender', 'NonCash'], [self::build(config: $nonCash)->payerType, self::build(config: $nonCash)->paymentMethod], 'in_total: the shop pays under its contract');
+        self::assertSame('NonCash', self::build($apart, config: $nonCash)->senderPaymentMethod);
+        self::assertSame('Cash', self::build($apart, invoice: ['edrpou' => '12345678', 'company' => 'ТОВ Тест'], config: $nonCash)->paymentMethod, 'company recipient: contract unknown');
+        self::assertSame('NonCash', self::build($apart, config: $nonCash)->withInput(['payment_method' => 'NonCash'])->paymentMethod, 'manual choice is kept');
+        self::assertSame('Cash', self::build($apart)->paymentMethod, 'our shop: Recipient + Cash');
+        self::assertSame([['field' => 'payment_method', 'key' => 'waybill_error_choice']], self::build($apart)->withInput(['payment_method' => 'Bogus']), 'forged value is refused');
+    }
+
     /** Позначка «Оплачено» закриває переказ і на сервері: підроблений POST з `cod` його не вмикає. */
     public function testPaidOrderTakesNoCodFromTheForm(): void
     {
@@ -457,16 +472,17 @@ class WaybillDraftTest extends TestCase
         self::assertSame('Cargo', self::build(config: new WaybillConfig(null, null, cargoType: 'Cargo'))->cargoType);
     }
 
+    /** Обіцянку записав кошик; поріг способу на момент накладної нічого не вирішує (замовлення з інших джерел). */
     public function testPromisedFreeDelivery(): void
     {
         $order = self::order(['delivery_price' => 0, 'total_price' => 1200.0]);
-        $paid = (object)['paid' => 1, 'free_from' => 1000, 'price' => 70];
 
-        self::assertTrue(WaybillDrafts::promisedFree($paid, $order, (object)['price_source' => 'np']), 'past the threshold');
-        self::assertTrue(WaybillDrafts::promisedFree((object)['paid' => 0, 'free_from' => 0, 'price' => 0], $order, null), 'a free method');
-        self::assertTrue(WaybillDrafts::promisedFree((object)['paid' => 1, 'free_from' => 5000, 'price' => 70], $order, (object)['price_source' => 'external']), 'another module (a promo) made it free');
-        self::assertFalse(WaybillDrafts::promisedFree((object)['paid' => 1, 'free_from' => 5000, 'price' => 70], $order, (object)['price_source' => 'fallback']), 'NP did not price it');
-        self::assertFalse(WaybillDrafts::promisedFree((object)['paid' => 1, 'free_from' => 5000, 'price' => 70], self::order(), (object)['price_source' => 'np']), 'priced, below the threshold');
-        self::assertFalse(WaybillDrafts::promisedFree(null, $order, null));
+        self::assertTrue(WaybillDrafts::promisedFree($order, (object)['price_source' => 'free']), 'the cart promised it');
+        self::assertTrue(WaybillDrafts::promisedFree($order, (object)['price_source' => 'external']), 'a promo made it free');
+        self::assertFalse(WaybillDrafts::promisedFree(self::order(['delivery_price' => 80]), (object)['price_source' => 'external']), 'a promo that changed but did not zero the price');
+        self::assertFalse(WaybillDrafts::promisedFree($order, (object)['price_source' => null]), 'admin or another source above the threshold');
+        self::assertFalse(WaybillDrafts::promisedFree($order, (object)['price_source' => 'new']), 'priced by the cart, total raised later in admin');
+        self::assertFalse(WaybillDrafts::promisedFree($order, (object)['price_source' => 'legacy']));
+        self::assertFalse(WaybillDrafts::promisedFree($order, null));
     }
 }

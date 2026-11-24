@@ -317,6 +317,34 @@
         warning.hidden = input.value !== 'Recipient';
     });
 
+    /**
+     * Безготівка — договір магазину з НП, тож форма оплати йде за платником: відправник — як у налаштуваннях,
+     * отримувач — готівка. Вибір, який менеджер зробив сам, не перезаписується.
+     */
+    document.addEventListener('change', function (event) {
+        var input = event.target;
+        if (!input.matches) {
+            return;
+        }
+        if (input.matches('[data-field="payment_method"]')) {
+            input.setAttribute('data-manual', '1');
+            return;
+        }
+        if (!input.matches('[data-field="payer_type"]')) {
+            return;
+        }
+        var root = rootOf(input);
+        var holder = root && root.querySelector('.np-wb__payment');
+        var payment = holder && holder.querySelector('[data-field="payment_method"]');
+        if (!payment || payment.hasAttribute('data-manual')) {
+            return;
+        }
+        payment.value = input.value === 'Sender' ? holder.getAttribute('data-sender-payment') : 'Cash';
+        if (window.jQuery && window.jQuery.fn.selectpicker) {
+            window.jQuery(payment).selectpicker('refresh');
+        }
+    });
+
     // Ядро прив'язує .fn_clipboard ще в <head>, до появи рядків списку замовлень, і не бачить карток, перемальованих
     // пізніше; без власного обробника клік по href="" перезавантажує сторінку.
     document.addEventListener('click', function (event) {

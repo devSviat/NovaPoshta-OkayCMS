@@ -64,6 +64,7 @@ use Okay\Modules\Sviat\NovaPoshta\Backend\SenderDivisions;
 use Okay\Modules\Sviat\NovaPoshta\Orders\DbExistingOrders;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryLines;
 use Okay\Modules\Sviat\NovaPoshta\Orders\ExistingOrders;
+use Okay\Modules\Sviat\NovaPoshta\Orders\FreePromiseBackfill;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CityRefResolver;
@@ -139,6 +140,10 @@ return [
     ExistingOrders::class => [
         'class' => DbExistingOrders::class,
         'arguments' => [new SR(Database::class), new SR(QueryFactory::class)],
+    ],
+    FreePromiseBackfill::class => [
+        'class' => FreePromiseBackfill::class,
+        'arguments' => [new SR(EntityFactory::class)],
     ],
     OrderRowsCleanup::class => [
         'class' => OrderRowsCleanup::class,

@@ -509,13 +509,14 @@
                 </select>
             </div>
             <div>
-                <label class="heading_label" for="np_waybill_payment">{$btr->sviat__novaposhta__waybill_payment|escape}</label>
-                <select id="np_waybill_payment" name="payment_method" class="selectpicker form-control">
+                <label class="heading_label" for="np_waybill_payment">{$btr->sviat__novaposhta__waybill_payment_sender|escape}</label>
+                <select id="np_waybill_payment" name="payment_method" class="selectpicker form-control" aria-describedby="np_waybill_payment_help">
                     <option value="Cash" {if $np_waybill.config->paymentMethod == 'Cash'}selected{/if}>{$btr->sviat__novaposhta__waybill_cash|escape}</option>
                     <option value="NonCash" {if $np_waybill.config->paymentMethod == 'NonCash'}selected{/if}>{$btr->sviat__novaposhta__waybill_noncash|escape}</option>
                 </select>
             </div>
             <div class="text_grey np_field_help" id="np_waybill_payer_help">{$btr->sviat__novaposhta__waybill_payer_tip|escape}</div>
+            <div class="text_grey np_field_help" id="np_waybill_payment_help">{$btr->sviat__novaposhta__waybill_payment_sender_help|escape}</div>
             <div>
                 <div class="heading_label"><label for="np_waybill_cargo">{$btr->sviat__novaposhta__waybill_cargo|escape}</label>
                     <i class="fn_tooltips np_tip hint-bottom-middle-t-white-s-small-mobile hint-anim" data-hint="{$btr->sviat__novaposhta__waybill_cargo_tip|escape}" tabindex="0" role="img" aria-label="{$btr->sviat__novaposhta__waybill_cargo_tip|escape}">{include file='svg_icon.tpl' svgId='icon_tooltips'}</i>

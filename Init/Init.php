@@ -34,6 +34,7 @@ use Okay\Modules\Sviat\NovaPoshta\Entities\DivisionEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\GroupEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\OrderDeliveryEntity;
 use Okay\Modules\Sviat\NovaPoshta\Entities\WaybillEntity;
+use Okay\Modules\Sviat\NovaPoshta\Orders\FreePromiseBackfill;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderRowsCleanup;
 use Okay\Modules\Sviat\NovaPoshta\Waybills\WaybillTracking;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrdersEntityFilters;
@@ -64,6 +65,12 @@ class Init extends AbstractInit
     {
         $this->migrateEntityField(PaymentsEntity::class, new EntityField(CodPayments::FIELD)->setTypeTinyInt(1, false)->setDefault(0));
         $this->migrateEntityField(VariantsEntity::class, new EntityField(VariantVolume::FIELD)->setTypeDecimal('10,5', false)->setDefault(0));
+    }
+
+    /** Позначка обіцяної безкоштовної доставки для оформлених до 1.3.0 замовлень; див. FreePromiseBackfill. */
+    public function update_1_3_0(): void
+    {
+        ServiceLocator::getInstance()->getService(FreePromiseBackfill::class)->run();
     }
 
     public function init()

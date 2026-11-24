@@ -91,6 +91,15 @@ class WaybillPayerRenderTest extends TestCase
         self::assertMatchesRegularExpression('~<div class="alert alert--warning np-wb__double" role="alert"\s*>~', $html);
     }
 
+    /** JS форми повертає форму оплати відправника при зміні платника: значення лежить біля селекта. */
+    public function testPaymentSelectKnowsTheSendersMethod(): void
+    {
+        $html = self::form(W::point(['senderPaymentMethod' => 'NonCash']));
+
+        self::assertMatchesRegularExpression('~<div class="np-wb__payment" data-sender-payment="NonCash">.*?data-field="payment_method"~s', $html);
+        self::assertStringContainsString('data-sender-payment="Cash"', self::form(W::point()), 'control: default');
+    }
+
     public function testPaidOrderShowsOneLineInsteadOfTheTransfer(): void
     {
         $paid = self::form(W::point(['paid' => true]), paid: true);
