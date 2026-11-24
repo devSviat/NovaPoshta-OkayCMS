@@ -12,7 +12,7 @@ final readonly class WaybillConfig
 
     /**
      * @param 'Recipient'|'Sender' $payerType з чого починає форма; чернетка однаково робить платником відправника, коли сума замовлення містить доставку
-     * @param 'Cash'|'NonCash' $paymentMethod
+     * @param 'Cash'|'NonCash' $paymentMethod коли платить відправник; отримувач платить готівкою (WaybillDrafts::build)
      * @param 'Parcel'|'Cargo'|'Documents' $cargoType
      * @param 'Recipient'|'Sender' $codPayer хто платить комісію за грошовий переказ
      * @param list<'Parcel'|'Cargo'|'Documents'> $cargoTypes типи, які пропонує форма накладної; містить $cargoType

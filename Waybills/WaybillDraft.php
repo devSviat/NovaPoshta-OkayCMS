@@ -89,6 +89,8 @@ final readonly class WaybillDraft
         public bool $paid = false,
         /** Менеджер змінив платника, якого поставила чернетка. */
         public bool $payerManual = false,
+        /** @var 'Cash'|'NonCash' форма оплати з налаштувань, коли платить відправник; форма ТТН повертає її при зміні платника */
+        public string $senderPaymentMethod = 'Cash',
     ) {
     }
 

@@ -3,7 +3,6 @@
 namespace Okay\Modules\Sviat\NovaPoshta\Waybills;
 
 use Okay\Core\EntityFactory;
-use Okay\Entities\DeliveriesEntity;
 use Okay\Entities\OrdersEntity;
 use Okay\Modules\Sviat\NovaPoshta\Backend\ShippingSettings;
 use Okay\Modules\Sviat\NovaPoshta\Cart\CartMetrics;
@@ -14,8 +13,8 @@ use Okay\Modules\Sviat\NovaPoshta\Orders\OrderDeliveryStore;
 use Okay\Modules\Sviat\NovaPoshta\Orders\OrderParcel;
 use Okay\Modules\Sviat\NovaPoshta\Payments\CodPayments;
 use Okay\Modules\Sviat\NovaPoshta\Quote\CodKind;
-use Okay\Modules\Sviat\NovaPoshta\Quote\FreeDelivery;
 use Okay\Modules\Sviat\NovaPoshta\Quote\Parcel;
+use Okay\Modules\Sviat\NovaPoshta\Quote\PriceDecision;
 use Okay\Modules\Sviat\NovaPoshta\Quote\ShippingConfig;
 
 /** Будує першу чернетку накладної замовлення. */
@@ -59,22 +58,20 @@ final class WaybillDrafts
             new \DateTimeImmutable(),
             fn(float $totalUah): float => $this->amountDue->onPickup($order, $totalUah),
             $this->invoices->forOrder($order),
-            self::promisedFree($this->entityFactory->get(DeliveriesEntity::class)->get((int)($order->delivery_id ?? 0)) ?: null, $order, $snapshot),
+            self::promisedFree($order, $snapshot),
         );
     }
 
-    /** Кошик показав доставку безкоштовною: безкоштовний спосіб, поріг free_from або інший модуль (промо), що обнулив ціну. */
-    public static function promisedFree(?object $delivery, object $order, ?object $snapshot): bool
+    /**
+     * Кошик записав, що доставка безкоштовна (поріг, безкоштовний спосіб), або інший модуль (промо) обнулив ціну.
+     * Поріг способу тут не перевіряється: замовлення з адмінки чи інших джерел нічого не обіцяли.
+     */
+    public static function promisedFree(object $order, ?object $snapshot): bool
     {
-        if ($delivery === null) {
-            return false;
-        }
-        $deliveryPrice = max(0.0, (float)($order->delivery_price ?? 0));
-        $goods = (float)($order->total_price ?? 0) - (empty($order->separate_delivery) ? $deliveryPrice : 0.0);
+        $source = $snapshot->price_source ?? null;
 
-        return empty($delivery->paid)
-            || FreeDelivery::applies($delivery, $goods)
-            || (($snapshot->price_source ?? null) === 'external' && $deliveryPrice <= 0.0);
+        return $source === PriceDecision::FREE
+            || ($source === 'external' && (float)($order->delivery_price ?? 0) <= 0.0);
     }
 
     /**
@@ -139,6 +136,7 @@ final class WaybillDrafts
         $locker = !$address && ($division->category ?? null) === DivisionCategory::Postomat->value;
         // Доставку магазин уже взяв (у сумі) або пообіцяв безкоштовною: НП не має стягувати з отримувача.
         $senderPaysBecause = $deliveryInTotal > 0 ? 'in_total' : ($promisedFree ? 'free' : null);
+        $payerType = $senderPaysBecause !== null ? 'Sender' : $waybill->payerType;
 
         return new WaybillDraft(
             (int)$order->id,
@@ -166,8 +164,9 @@ final class WaybillDrafts
             $waybill->descriptionMode === 'text' ? $waybill->description : 'Замовлення №' . (int)$order->id,
             // Поштомат не приймає «Вантаж» (api-docs-ua, «ЕН на поштомат»).
             $locker && $waybill->cargoType === 'Cargo' ? 'Parcel' : $waybill->cargoType,
-            $senderPaysBecause !== null ? 'Sender' : $waybill->payerType,
-            $waybill->paymentMethod,
+            $payerType,
+            // Безготівка — договір магазину з НП; отримувач платить при отриманні готівкою чи карткою.
+            $payerType === 'Sender' ? $waybill->paymentMethod : 'Cash',
             $cod,
             $due,
             $codKind ?? CodKind::Money,
@@ -184,6 +183,7 @@ final class WaybillDrafts
             cargoTypes: $waybill->cargoTypes,
             awaitsPayment: $codKind === null && empty($order->paid),
             paid: !empty($order->paid),
+            senderPaymentMethod: $waybill->paymentMethod,
         );
     }
 

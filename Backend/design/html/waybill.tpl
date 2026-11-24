@@ -240,7 +240,9 @@
                         <div class="np-wb__reason" {if $d->payerType != 'Sender'}hidden{/if}>{$btr->sviat__novaposhta__waybill_payer_free|escape}</div>
                     {/if}
                 </div>
-                {np_wb_select field='payment_method' value=$d->paymentMethod label=$btr->sviat__novaposhta__waybill_payment options=['Cash' => $btr->sviat__novaposhta__waybill_cash, 'NonCash' => $btr->sviat__novaposhta__waybill_noncash]}
+                <div class="np-wb__payment" data-sender-payment="{$d->senderPaymentMethod|escape}">
+                    {np_wb_select field='payment_method' value=$d->paymentMethod label=$btr->sviat__novaposhta__waybill_payment options=['Cash' => $btr->sviat__novaposhta__waybill_cash, 'NonCash' => $btr->sviat__novaposhta__waybill_noncash]}
+                </div>
             </div>
             {if $d->deliveryInTotal > 0}
                 <div class="alert alert--warning np-wb__double" role="alert" {if $d->payerType != 'Recipient'}hidden{/if}><div class="alert__content">{$btr->sviat__novaposhta__waybill_double_delivery|replace:'%sum%':$np_wb_delivery|escape}</div></div>

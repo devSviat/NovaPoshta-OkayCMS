@@ -82,12 +82,15 @@ class SchemaTest extends TestCase
         }
     }
 
-    /** 1.0.0 — перший реліз: install() створює всю схему, оновлюватися нема з чого. */
-    public function testNoUpgradeSteps(): void
+    /**
+     * install() створює всю схему; update_* виконуються й на чистій інсталяції, тож кожен новий крок має бути
+     * безпечним для порожніх таблиць. 1.3.0 лише позначає дані (FreePromiseBackfill), схему не змінює.
+     */
+    public function testUpgradeStepsAreKnown(): void
     {
         $updates = array_filter(get_class_methods(Init::class), static fn(string $m): bool => str_starts_with($m, 'update_'));
 
-        self::assertSame([], array_values($updates));
+        self::assertSame(['update_1_3_0'], array_values($updates));
     }
 
     /** Дати зберігаються в базі як дати, а не як рядки чи секунди Unix (EntityField ядра не має DATE). */
